@@ -1,7 +1,28 @@
 #!/usr/bin/env python
 
-print('Hello World')
+import os, sys
+import shutil # for copyfile
+import fileinput # for inline text replacement
+import subprocess
+
+# Configuration parameters
 distro='fuerte'
+variant='mobile'
+target='~/fuerte'
+
+def main():
+	# Make sure our current working dir is the script's location
+	path = os.path.dirname(os.path.realpath(__file__))
+	os.chdir(path)
+	print('path: ' + path)
+	enabledRestricted()
+
+def enabledRestricted():
+	# First, back up the file
+	
+	for lin in fileinput.input('/etc/apt/sources.list', inplace = 1):
+		pass
+
 # Enable restricted repositories by adding " restricted" to the end of the
 # four lines in /etc/apt/sources.list:
 # deb http://... precise main universe multiverse
@@ -15,7 +36,7 @@ distro='fuerte'
 
 # sudo apt-get update
 
-# Install dependencies
+# Install dependencies (these can be found in settings.xml)
 # Bootstrap:
 ## build-essential python-yaml cmake subversion python-setuptools mercurial
 # Core library dependencies (aka, 'ROS Base'):
@@ -32,8 +53,6 @@ distro='fuerte'
 
 # Install ROS utilities
 #sudo pip install -U rosinstall rospkg rosdep
-# TODO: Maybe this should be:
-#sudo pip install -U rosinstall vcstools rospkg rosdep
 
 # Install core libraries into /opt/ros/fuerte
 # Do this only if /opt/ros doesn't exist
@@ -73,3 +92,6 @@ target='~/ros'
 #rosdep install -a
 # Build the ROS stacks using rosmake
 #rosmake -a
+
+if __name__ == '__main__':
+	main()

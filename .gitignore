@@ -33,6 +33,7 @@ Release
 .#*
 *.asv
 *.save
+*.save.*
 
 # ignore python compiled files
 *.pyc
