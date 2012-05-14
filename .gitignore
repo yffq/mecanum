@@ -1,5 +1,38 @@
-CMakeCache.txt
-CMakeFiles
-Makefile
+## ROS ignorables ##
+build
+bin
+lib
+*/lib/*
+installed
+patched
+wiped
+msg_gen
+srv_gen
+
+## Eclipse ignorables ##
+.cproject
+.project
+.pydevproject
 cmake_install.cmake
-install_manifest.txt
+Debug
+Release
+.settings
+
+## Generic ignorables ##
+.DS_Store
+*.coverage
+*.egg-info
+*.log
+*/tmp/*
+.svn
+
+# ignore vim swp files and gedit temp files
+*.swp
+*~
+*#
+.#*
+*.asv
+
+# ignore python compiled files
+*.pyc
+*.pyo
