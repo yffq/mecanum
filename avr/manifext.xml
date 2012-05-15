@@ -1,0 +1,14 @@
+<package>
+  <catkin/>
+  <description brief="avr">
+
+AVR microprocessor code for Mecanum Bot.
+
+  </description>
+  <author>Garrett Brown</author>
+  <license>GPLv2</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/rostime</url>
+
+  <export/>
+</package>

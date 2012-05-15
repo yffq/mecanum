@@ -1,0 +1,16 @@
+Catkin-ProjectName: mecanum
+Description: Mecanum Bot
+Author: Garrett Brown <garbearucla@gmail.com>
+Maintainer: Mecanum Bot feels unloved
+Homepage: http://www.ros.org/wiki/mecanum
+
+Version: 1.0
+
+Depends: arduino-core
+#  genmsg,
+#  libboost-thread-dev,
+#  libboost-date-time-dev,
+#  gtest
+
+Catkin-CopyrightType: Garrett Brown
+Catkin-DebRulesType: cmake

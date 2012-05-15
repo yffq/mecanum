@@ -1,0 +1,8 @@
+<stack>
+  <description brief="mecanum-bot">Mecanum Bot</description>
+  <author>Maintained by Garrett Brown</author>
+  <license>BSD</license>  
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/Mecanum-Bot</url>
+  <depend stack="ros" />
+</stack>
