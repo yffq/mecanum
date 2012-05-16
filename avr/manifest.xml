@@ -1,8 +1,9 @@
 <package>
   <catkin/>
+  <!-- AVR microprocessor code for Mecanum Bot. -->
   <description brief="avr">
 
-AVR microprocessor code for Mecanum Bot.
+avr
 
   </description>
   <author>Garrett Brown</author>
@@ -10,5 +11,7 @@ AVR microprocessor code for Mecanum Bot.
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/rostime</url>
 
-  <export/>
+  <export>
+  <!-- cpp exports -->
+  </export>
 </package>

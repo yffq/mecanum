@@ -1,5 +1,5 @@
 # Arduino Toolchain. See https://github.com/queezythegreat/arduino-cmake
-set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/avr/arduino-cmake/cmake/ArduinoToolchain.cmake)
+#set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/avr/arduino-cmake/cmake/ArduinoToolchain.cmake)
 
 cmake_minimum_required(VERSION 2.8)
 
