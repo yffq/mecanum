@@ -9,6 +9,11 @@ project(avr)
 set(ARDUINO_DEFAULT_BOARD mega2560) # Default Board ID, when not specified
 set(ARDUINO_DEFAULT_PORT /dev/ttyACM0) # Default Port, when not specified
 
+# Hack so that Eclipse can find the pins_arduino.h file specific to the mega2560
+# The "mega" part of this directory is determined by looking in boards.txt (see
+# the arduino sdk path) and finding the boardID.build.variant setting.
+include_directories("${ARDUINO_VARIANTS_PATH}/mega")
+
 generate_arduino_firmware(avr_base
     SRCS src/base.cpp
 #    HDRS src/main.h
