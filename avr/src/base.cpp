@@ -1,3 +1,5 @@
+#include <Arduino.h>
+
 const int pwm_pins[] = {4, // Green
                         7, // Amber
                         8, // Red
