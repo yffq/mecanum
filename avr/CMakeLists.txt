@@ -1,4 +1,5 @@
 # Arduino Toolchain. See https://github.com/queezythegreat/arduino-cmake
+# ROS sets this to rostoolchain.cmake. Override it to build our Arduino code.
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/arduino-cmake/cmake/ArduinoToolchain.cmake)
 
 cmake_minimum_required(VERSION 2.8)
