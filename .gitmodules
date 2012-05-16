@@ -1,0 +1,3 @@
+[submodule "avr/arduino-cmake"]
+	path = avr/arduino-cmake
+	url = git://github.com/queezythegreat/arduino-cmake.git
