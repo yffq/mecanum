@@ -12,8 +12,8 @@ def main():
 	path = os.path.dirname(os.path.realpath(__file__))
 	os.chdir(path)
 	#buildKernel()
-	buildInstallQemu()
-	buildImage()
+	#buildInstallQemu()
+	#buildImage()
 	setupCard()
 
 # Utility function
@@ -113,16 +113,20 @@ def buildImage():
 	replaceAll('build_image.sh', 'USER_PASS="temppwd"', 'USER_PASS="password"')
 	replaceAll('build_image.sh', 'USER_NAME="Demo User"', 'USER_NAME="Garrett"')
 	# Only build Precise image
-
+	
 	# Build the image
 	subprocess.call(['./build_image.sh'])
 
 def setupCard():
 	global MMC
+	# Install dependencies
+	subprocess.call(['sudo', 'apt-get', '-y', 'install',
+		'uboot-mkimage', 'wget', 'pv', 'dosfstools', 'btrfs-tools', 'parted'])
+	
 	os.chdir('omap-image-builder')
 	os.chdir('deploy')
-	os.chdir('2012-05-16-STABLE') # TODO
-	os.chdir('ubuntu-12.04-r3-minimal-armhf') # TODO
+	os.chdir('2012-05-16-STABLE') # TODO: Enter last folder
+	os.chdir('ubuntu-12.04-r3-minimal-armhf') # TODO: Enter only folder
 	subprocess.call(['sudo', './setup_sdcard.sh', '--mmc', MMC,
 		'--uboot', 'beagle_xm', '--rootfs', 'btrfs',
 		'--boot_label', 'boot', '--rootfs_label', 'rootfs'])
@@ -130,7 +134,7 @@ def setupCard():
 	os.chdir('..')
 	os.chdir('..')
 	os.chdir('..')
-	
+
 
 if __name__ == "__main__":
 	main()
