@@ -109,7 +109,7 @@ def buildImage():
 	
 	# Configure image builder
 	replaceAll('build_image.sh', 'FQDN="omap"', 'FQDN="mecanum"')
-	replaceAll('build_image.sh', 'USER_LOGIN="ubuntu""', 'USER_LOGIN="garrett"')
+	replaceAll('build_image.sh', 'USER_LOGIN="ubuntu"', 'USER_LOGIN="garrett"')
 	replaceAll('build_image.sh', 'USER_PASS="temppwd"', 'USER_PASS="password"')
 	replaceAll('build_image.sh', 'USER_NAME="Demo User"', 'USER_NAME="Garrett"')
 	# Only build Precise image
