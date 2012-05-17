@@ -90,7 +90,7 @@ def buildInstallQemu():
 	os.chdir('..')
 	os.chdir('..')
 
-# Observed: 42 minutes to build image
+# Observed: 42 minutes to build image on Core i7
 def buildImage():
 	# Clone RCN's git repository
 	print('Building Ubuntu image')
