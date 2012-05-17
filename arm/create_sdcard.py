@@ -123,8 +123,9 @@ def setupCard():
 	os.chdir('deploy')
 	os.chdir('2012-05-16-STABLE') # TODO
 	os.chdir('ubuntu-12.04-r3-minimal-armhf') # TODO
-	subprocess.call(['sudo', './setup_sdcard.sh',
-		'--mmc', MMC, '--uboot', 'beagle_xm', '--rootfs', 'btrfs'])
+	subprocess.call(['sudo', './setup_sdcard.sh', '--mmc', MMC,
+		'--uboot', 'beagle_xm', '--rootfs', 'btrfs',
+		'--boot_label', 'boot', '--rootfs_label', 'rootfs'])
 	os.chdir('..')
 	os.chdir('..')
 	os.chdir('..')
