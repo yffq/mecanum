@@ -15,7 +15,7 @@ def main():
 	#buildKernel()
 	#buildInstallQemu()
 	buildImage()
-	#setupCard()
+	setupCard()
 
 # Utility function
 # http://stackoverflow.com/questions/39086/search-and-replace-a-line-in-a-file-in-python
@@ -153,6 +153,7 @@ def buildImage():
 	
 	# Build the image
 	subprocess.call(['./build_image.sh'])
+	os.chdir('..')
 
 def setupCard():
 	global mmc
@@ -162,7 +163,7 @@ def setupCard():
 	
 	os.chdir('omap-image-builder')
 	os.chdir('deploy')
-	os.chdir('2012-05-16-STABLE') # TODO: Enter last folder
+	os.chdir('2012-05-18-STABLE') # TODO: Enter last folder
 	os.chdir('ubuntu-12.04-r3-minimal-armhf') # TODO: Enter only folder
 	subprocess.call(['sudo', './setup_sdcard.sh', '--mmc', mmc,
 		'--uboot', 'beagle_xm', '--rootfs', 'btrfs',
