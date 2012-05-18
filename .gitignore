@@ -26,12 +26,13 @@ Release
 */tmp/*
 .svn
 
-# ignore vim swp files and gedit temp files
+# ignore vim, gedit, matlab and nano temp files
 *.swp
 *~
 *#
 .#*
 *.asv
+*.save
 
 # ignore python compiled files
 *.pyc
