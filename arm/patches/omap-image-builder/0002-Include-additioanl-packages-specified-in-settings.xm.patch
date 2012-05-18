@@ -1,0 +1,26 @@
+From b6da8600c0b8cc709480f56356e07f6cc4cc35f8 Mon Sep 17 00:00:00 2001
+From: Garrett Brown <garbearucla@gmail.com>
+Date: Fri, 18 May 2012 10:33:34 -0700
+Subject: [PATCH 2/2] Include additioanl packages specified in settings.xml
+
+---
+ build_image.sh |    3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/build_image.sh b/build_image.sh
+index 56ea5b9..1003664 100755
+--- a/build_image.sh
++++ b/build_image.sh
+@@ -107,6 +107,9 @@ MINIMAL_APT="${MINIMAL_APT},openssh-server,apache2"
+ MINIMAL_APT="${MINIMAL_APT},btrfs-tools,usb-modeswitch,wireless-tools,wpasupplicant"
+ MINIMAL_APT="${MINIMAL_APT},cpufrequtils,fbset,ntpdate,ppp"
+ 
++# Mecanum dependencies (__MECANUM_PACKAGES__ is replaced by list of packages)
++MINIMAL_APT="${MINIMAL_APT},__MECANUM_PACKAGES__"
++
+ #Hostname:
+ FQDN="omap"
+ 
+-- 
+1.7.9.5
+

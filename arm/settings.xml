@@ -6,11 +6,13 @@
 	<mmc>/dev/mmcblk0</mmc>
 	<packages for="mecanum/avr">arduino-core</packages>
 	<packages for="ROS bootstrap">build-essential python-yaml cmake subversion wget python-setuptools mercurial git-core</packages>
-	<packages for="ROS base">python-yaml libapr1-dev libaprutil1-dev libbz2-dev python-dev libgtest-dev python-paramiko liblog4cxx10-dev pkg-config</packages>
-	<!--<packages for="ROS base (libboost)">libboost1.40-all-dev</packages>-->
-	<!--<packages for="ROS base (libboost)">libboost1.46-all-dev</packages>-->
-	<!--<packages for="ROS base (libboost)">libboost1.48-all-dev</packages>-->
+	<packages for="ROS base">python-yaml libapr1-dev libaprutil1-dev libbz2-dev python-dev libgtest-dev python-paramiko liblog4cxx10-dev pkg-config python-empy python-nose</packages>
+	<!-- ROS base specifies libboost1.40-all-dev -->
+	<!-- mobile variant specifies libboost-all-dev (aliased by libboost1.48-all-dev) -->
+	<packages for="ROS base and mobile variant">libboost-all-dev</packages>
 	<!--<packages for="ROS full">python-wxgtk2.8 python-gtk2 python-matplotlib libwxgtk2.8-dev python-imaging libqt4-dev graphviz qt4-qmake python-numpy ros-fuerte-swig-wx</packages>-->
 	<packages for="rosinstall">python-pip</packages>
+	<packages for="mobile variant">freeglut3-dev python-wxgtk2.8 libcurl4-openssl-dev unzip libxext-dev python-imaging libtinyxml-dev python-numpy libfltk1.1-dev graphviz libeigen3-dev libnetpbm10-dev python-sip-dev libcppunit-dev libxml2-dev libsdl-image1.2-dev libassimp-dev yaml-cpp</packages>
+	<!--<packages for="mobile variant (missing)">ros-fuerte-pcl</packages>-->
 	<macaddress>00:80:54:15:58:01</macaddress>
 </settings>

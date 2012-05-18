@@ -127,13 +127,16 @@ def buildImage():
 		os.chdir('omap-image-builder')
 		subprocess.call(['git', 'reset', '--hard', 'HEAD'])
 		subprocess.call(['git', 'checkout', 'master'])
-		subprocess.call(['git', 'pull', 'origin', 'master'])
+		#subprocess.call(['git', 'pull', 'origin', 'master'])
 		subprocess.call(['git', 'branch', '-D', 'mecanum'])
 		subprocess.call(['git', 'checkout', '-b', 'mecanum'])
 	
 	# 0001-Only-build-Precise-image.patch
 	subprocess.call(['git', 'am', os.path.join(os.path.realpath('..'), 'patches',
 		'omap-image-builder', '0001-Only-build-Precise-image.patch')])
+	# 0002-Include-additioanl-packages-specified-in-settings.xm.patch
+	subprocess.call(['git', 'am', os.path.join(os.path.realpath('..'), 'patches',
+		'omap-image-builder', '0002-Include-additioanl-packages-specified-in-settings.xm.patch')])
 
 	#subprocess.call(['git', 'checkout', 'v2012.4-1', '-b', 'v2012.4-1'])
 	
@@ -142,10 +145,9 @@ def buildImage():
 	replaceAll('build_image.sh', 'USER_LOGIN="ubuntu"', 'USER_LOGIN="' + username + '"')
 	replaceAll('build_image.sh', 'USER_PASS="temppwd"', 'USER_PASS="' + password + '"')
 	replaceAll('build_image.sh', 'USER_NAME="Demo User"', 'USER_NAME="' + name + '"')
-	# Only build Precise image
+	replaceAll('build_image.sh', '__MECANUM_PACKAGES__', ','.join(packages))
 	
 	# Build the image
-	time.sleep(60)
 	subprocess.call(['./build_image.sh'])
 
 def setupCard():
