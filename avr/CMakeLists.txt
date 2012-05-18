@@ -36,7 +36,9 @@ link_directories(${CMAKE_CURRENT_SOURCE_DIR}/libraries)
 
 generate_arduino_firmware(avr_base
     SRCS src/base.cpp
-#    HDRS src/main.h
+         src/Blink.cpp
+         src/FSMVector.cpp
+#    HDRS src/FiniteStateMachine.h # For project-based systems
 #    LIBS lib/main_lib
 )
 

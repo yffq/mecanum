@@ -1,3 +1,5 @@
+#ifndef HARDWARE_INTERFACE_H
+#define HARDWARE_INTERFACE_H
 
 #define LED_GREEN     4
 #define LED_YELLOW    7
@@ -12,3 +14,4 @@
 #define LED_BATTERY_MEDIUM 50
 #define LED_BATTERY_HIGH   52
 
+#endif // HARDWARE_INTERFACE_H
