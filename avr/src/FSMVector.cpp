@@ -1,15 +1,21 @@
 #include "FSMVector.h"
 
 
-void FSMVector::PushBack(FiniteStateMachine *fsm)
+int FSMVector::PushBack(FiniteStateMachine *fsm)
 {
 	if (m_size < MAX_FSM)
-		m_fsmv[m_size++] = fsm;
+	{
+		m_fsmv[m_size] = fsm;
+		return m_size++; // Return the pre-incremented m_size
+	}
 	else
+	{
 		// If fsm doesn't fit in the array, we trash it here because the
 		// code invoking PushBack() shouldn't touch the object after it
 		// hands it off.
 		delete fsm;
+		return -1; // Array is full
+	}
 }
 
 void FSMVector::PopBack()
@@ -34,13 +40,15 @@ void FSMVector::QuickErase(unsigned int i)
 	if (i < m_size)
 	{
 		delete m_fsmv[i];
-		m_fsmv[i] = m_fsmv[--m_size];
+		// Only swap in the last element if we still have a last element
+		if (--m_size > 0)
+			m_fsmv[i] = m_fsmv[m_size];
 	}
 }
 
 void FSMVector::Empty()
 {
-	while (GetSize())
+	while (m_size)
 		PopBack();
 }
 
