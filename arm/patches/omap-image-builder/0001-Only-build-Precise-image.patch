@@ -1,17 +1,17 @@
-From 6eb248ddf2ff9a35ee487ce6f149a7f7496b5307 Mon Sep 17 00:00:00 2001
+From 1c4875dc2a1c2c78a2eb481fcd06f922b1d94f7c Mon Sep 17 00:00:00 2001
 From: Garrett Brown <garbearucla@gmail.com>
-Date: Wed, 16 May 2012 18:26:09 -0700
-Subject: [PATCH] Skip building all images except for precise
+Date: Fri, 18 May 2012 10:27:19 -0700
+Subject: [PATCH 1/2] Only build Precise image
 
 ---
- build_image.sh |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ build_image.sh |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
 diff --git a/build_image.sh b/build_image.sh
-index 09e2910..85f1918 100755
+index 09e2910..56ea5b9 100755
 --- a/build_image.sh
 +++ b/build_image.sh
-@@ -427,14 +427,16 @@ SECONDARY_KERNEL_SEL="STABLE"
+@@ -427,14 +427,14 @@ SECONDARY_KERNEL_SEL="STABLE"
  #SECONDARY_KERNEL_SEL="TESTING"
  #SECONDARY_KERNEL_SEL="EXPERIMENTAL"
  
@@ -20,8 +20,6 @@ index 09e2910..85f1918 100755
 -if [ "-${HOST_ARCH}-" == "-armv7l-" ] ; then
 -squeeze_release
 -fi
-+# Only build precise
-+
 +#ARCH=armel
 +#oneiric_release
 +#if [ "-${HOST_ARCH}-" == "-armv7l-" ] ; then

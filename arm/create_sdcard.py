@@ -5,6 +5,7 @@ import fileinput # For system.sh search-and-replace
 from xml.etree import ElementTree
 import shutil
 import subprocess
+import time
 
 def main():
 	# Make sure our current working directory is the script's location
@@ -13,8 +14,8 @@ def main():
 	loadSettings()
 	#buildKernel()
 	#buildInstallQemu()
-	#buildImage()
-	setupCard()
+	buildImage()
+	#setupCard()
 
 # Utility function
 # http://stackoverflow.com/questions/39086/search-and-replace-a-line-in-a-file-in-python
@@ -121,14 +122,19 @@ def buildImage():
 	if not os.path.isdir('omap-image-builder'):
 		subprocess.call(['git', 'clone', 'git://github.com/RobertCNelson/omap-image-builder.git', 'omap-image-builder'])
 		os.chdir('omap-image-builder')
-		# Only build Precise image
-		subprocess.call(['git', 'am', os.path.join(os.path.realpath('..'), 'patches',
-			'omap-image-builder', 'only_build_precise.patch')])
+		subprocess.call(['git', 'checkout', '-b', 'mecanum'])
 	else:
 		os.chdir('omap-image-builder')
 		subprocess.call(['git', 'reset', '--hard', 'HEAD'])
-		subprocess.call(['git', 'pull', 'origin'])
+		subprocess.call(['git', 'checkout', 'master'])
+		subprocess.call(['git', 'pull', 'origin', 'master'])
+		subprocess.call(['git', 'branch', '-D', 'mecanum'])
+		subprocess.call(['git', 'checkout', '-b', 'mecanum'])
 	
+	# 0001-Only-build-Precise-image.patch
+	subprocess.call(['git', 'am', os.path.join(os.path.realpath('..'), 'patches',
+		'omap-image-builder', '0001-Only-build-Precise-image.patch')])
+
 	#subprocess.call(['git', 'checkout', 'v2012.4-1', '-b', 'v2012.4-1'])
 	
 	# Configure image builder
@@ -139,6 +145,7 @@ def buildImage():
 	# Only build Precise image
 	
 	# Build the image
+	time.sleep(60)
 	subprocess.call(['./build_image.sh'])
 
 def setupCard():
