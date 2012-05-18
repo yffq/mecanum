@@ -5,23 +5,28 @@
 
 #include <stdint.h>
 
-//class FiniteStateMachine; // Can I get away with using this line instead of the #include?
-
+/**
+ * Blink a light by setting a digital pin high and low repeatedly.
+ */
 class Blink : public FiniteStateMachine
 {
 public:
-	Blink(uint8_t pin, int delay /* ms */);
-
-	virtual ~Blink() { }
+	/**
+	 * Create a new blinker.
+	 *
+	 * @param pin The digital pin, supposedly connected to an LED
+	 * @param delay The delay -- the blinking period is twice the delay
+	 */
+	Blink(uint8_t pin, unsigned long delay /* ms */);
 
 	virtual void Step();
 
-	virtual int Delay() const { return m_delay; }
+	virtual unsigned long Delay() const { return m_delay; }
 
 private:
 	uint8_t m_pin;
 	bool m_enabled;
-	int m_delay; // ms
+	unsigned long m_delay; // ms
 };
 
 #endif // BLINK_H

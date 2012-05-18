@@ -2,7 +2,7 @@
 #define FINITESTATEMACHINE_H
 
 /**
- *
+ * A FiniteStateMachine represents
  */
 class FiniteStateMachine
 {
@@ -17,18 +17,7 @@ public:
 	/**
 	 *
 	 */
-	virtual int Delay() const = 0;
-
-	/**
-	 *
-	 *
-	int Time()
-	{
-		unsigned long start = millis();
-		this->Step();
-		return static_cast<int>(millis() - start);
-	}
-	/**/
+	virtual unsigned long Delay() const = 0;
 };
 
 #endif // FINITESTATEMACHINE_H

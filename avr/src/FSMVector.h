@@ -44,7 +44,8 @@ public:
 
 	/**
 	 * Erase the element at the given index. This will shift all subsequent
-	 * elements over by 1, giving an average runtime of O(N).
+	 * elements over by 1, giving an average runtime of O(N) but maintaining
+	 * the FSM ordering.
 	 */
 	void Erase(unsigned int i);
 
