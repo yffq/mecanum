@@ -1,7 +1,7 @@
 #ifndef FSMVECTOR_H
 #define FSMVECTOR_H
 
-class FiniteStateMachine;
+#include "FiniteStateMachine.h"
 
 class FSMVector
 {
