@@ -2,15 +2,15 @@
 
 import os, sys
 import fileinput # For system.sh search-and-replace
+from xml.etree import ElementTree
 import shutil
 import subprocess
-
-MMC = '/dev/mmcblk0'
 
 def main():
 	# Make sure our current working directory is the script's location
 	path = os.path.dirname(os.path.realpath(__file__))
 	os.chdir(path)
+	loadSettings()
 	#buildKernel()
 	#buildInstallQemu()
 	#buildImage()
@@ -24,8 +24,31 @@ def replaceAll(file, searchExp, replaceExp):
 			line = line.replace(searchExp, replaceExp)
 		sys.stdout.write(line)
 
+def loadSettings():
+	global username, name, password, fqdn, mmc, macaddress, packages
+	settings = ElementTree.parse('settings.xml').getroot()
+	username = settings.findtext('username')
+	name = settings.findtext('name')
+	password = settings.findtext('password')
+	fqdn = settings.findtext('fqdn') # Fully-qualified domain name
+	mmc = settings.findtext('mmc')
+	macaddress = settings.findtext('macaddress')
+	packages = []
+	for pkglist in settings.findall('packages'):
+		if pkglist.text:
+			for pkg in str(pkglist.text).split(' '):
+				packages.append(pkg)
+	print('Creating SD card with the following settings:')
+	print('Username: ' + username)
+	print('Name: ' + name)
+	print('Password: ' + password)
+	print('FQDN: ' + fqdn)
+	print('MMC: ' + mmc)
+	print('MAC address: ' + macaddress)
+	print('Packages: ' + ' '.join(packages))
+
 def buildKernel():
-	global MMC
+	global mmc
 	# Install dependencies
 	subprocess.call(['sudo', 'apt-get', '-y', 'install', 'gcc-arm-linux-gnueabi'])
 	
@@ -54,7 +77,7 @@ def buildKernel():
 	file.write('LINUX_GIT=' + os.path.join(os.path.realpath('..'), LinuxDirName) + '\n')
 	file.write('ZRELADDR=0x80008000' + '\n') # For TI: OMAP3/4/AM35xx (BB is OMAP3)
 	#file.write('BUILD_UIMAGE=1' + '\n') # Do I need to build uImage?
-	file.write('MMC=' + MMC + '\n')
+	file.write('MMC=' + mmc + '\n')
 	# Pull in Torvalds current master tree before applying local patchset
 	# This is very useful during an intial 'rc0' merge.
 	# It is never supported... Enable at your own risk
@@ -90,8 +113,9 @@ def buildInstallQemu():
 	os.chdir('..')
 	os.chdir('..')
 
-# Observed: 42 minutes to build image on Core i7
+# Observed: 42 minutes to build image on Core i7 (before adding extra packages)
 def buildImage():
+	global username, name, password, fqdn, packages
 	# Clone RCN's git repository
 	print('Building Ubuntu image')
 	if not os.path.isdir('omap-image-builder'):
@@ -108,17 +132,17 @@ def buildImage():
 	#subprocess.call(['git', 'checkout', 'v2012.4-1', '-b', 'v2012.4-1'])
 	
 	# Configure image builder
-	replaceAll('build_image.sh', 'FQDN="omap"', 'FQDN="mecanum"')
-	replaceAll('build_image.sh', 'USER_LOGIN="ubuntu"', 'USER_LOGIN="garrett"')
-	replaceAll('build_image.sh', 'USER_PASS="temppwd"', 'USER_PASS="password"')
-	replaceAll('build_image.sh', 'USER_NAME="Demo User"', 'USER_NAME="Garrett"')
+	replaceAll('build_image.sh', 'FQDN="omap"', 'FQDN="' + fqdn + '"')
+	replaceAll('build_image.sh', 'USER_LOGIN="ubuntu"', 'USER_LOGIN="' + username + '"')
+	replaceAll('build_image.sh', 'USER_PASS="temppwd"', 'USER_PASS="' + password + '"')
+	replaceAll('build_image.sh', 'USER_NAME="Demo User"', 'USER_NAME="' + name + '"')
 	# Only build Precise image
 	
 	# Build the image
 	subprocess.call(['./build_image.sh'])
 
 def setupCard():
-	global MMC
+	global mmc
 	# Install dependencies
 	subprocess.call(['sudo', 'apt-get', '-y', 'install',
 		'uboot-mkimage', 'wget', 'pv', 'dosfstools', 'btrfs-tools', 'parted'])
@@ -127,7 +151,7 @@ def setupCard():
 	os.chdir('deploy')
 	os.chdir('2012-05-16-STABLE') # TODO: Enter last folder
 	os.chdir('ubuntu-12.04-r3-minimal-armhf') # TODO: Enter only folder
-	subprocess.call(['sudo', './setup_sdcard.sh', '--mmc', MMC,
+	subprocess.call(['sudo', './setup_sdcard.sh', '--mmc', mmc,
 		'--uboot', 'beagle_xm', '--rootfs', 'btrfs',
 		'--boot_label', 'boot', '--rootfs_label', 'rootfs'])
 	os.chdir('..')

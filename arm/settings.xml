@@ -7,7 +7,10 @@
 	<packages for="mecanum/avr">arduino-core</packages>
 	<packages for="ROS bootstrap">build-essential python-yaml cmake subversion wget python-setuptools mercurial git-core</packages>
 	<packages for="ROS base">python-yaml libapr1-dev libaprutil1-dev libbz2-dev python-dev libgtest-dev python-paramiko liblog4cxx10-dev pkg-config</packages>
-	<packages for="ROS base (libboost)">libboost1.40-all-dev</packages>
-	<packages for=""></packages>
+	<!--<packages for="ROS base (libboost)">libboost1.40-all-dev</packages>-->
+	<!--<packages for="ROS base (libboost)">libboost1.46-all-dev</packages>-->
+	<!--<packages for="ROS base (libboost)">libboost1.48-all-dev</packages>-->
+	<!--<packages for="ROS full">python-wxgtk2.8 python-gtk2 python-matplotlib libwxgtk2.8-dev python-imaging libqt4-dev graphviz qt4-qmake python-numpy ros-fuerte-swig-wx</packages>-->
+	<packages for="rosinstall">python-pip</packages>
 	<macaddress>00:80:54:15:58:01</macaddress>
 </settings>
