@@ -15,16 +15,16 @@ static int fsm_delay[MAX_FSM];
  * be operated upon, we give rise to a SIMD architecture and thus use a single
  * protothread function to process our numerous state machines.
  */
-static int protothread(struct pt *pt)
+static int protothread(struct pt *pt, int i)
 {
 	PT_BEGIN(pt);
 	while(1)
 	{
-		fsm_delay[0] = millis() + fsmv[0]->Delay();
-		PT_WAIT_UNTIL(pt, fsm_delay[0] <= millis());
-		fsmv[0]->Step();
-		PT_END(pt);
+		fsm_delay[i] = millis() + fsmv[i]->Delay();
+		PT_WAIT_UNTIL(pt, fsm_delay[i] <= millis());
+		fsmv[i]->Step();
 	}
+	PT_END(pt);
 }
 
 /**
@@ -40,11 +40,8 @@ static int protothread(struct pt *pt)
  */
 void setup()
 {
-	/*
 	for (int i = 0; i < sizeof(ptv) / sizeof(ptv[0]); ++i)
 		PT_INIT(&ptv[i]);
-	/**/
-	PT_INIT(&ptv[0]);
 
 	// Test FSMs
 	fsmv.PushBack(new Blink(LED_BATTERY_EMPTY, 250));
@@ -52,9 +49,6 @@ void setup()
 
 void loop()
 {
-	/*
 	for (int i = 0; i < fsmv.GetSize(); ++i)
-		protothread(&ptv[i]);
-	/**/
-	protothread(&ptv[0]);
+		protothread(&ptv[i], i);
 }
