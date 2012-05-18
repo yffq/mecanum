@@ -1,5 +1,6 @@
-#include "Blink.h"
 #include "FSMVector.h"
+#include "Blink.h"
+#include "BatteryMonitor.h"
 #include "hardware_interface.h"
 
 #include <Arduino.h>
@@ -46,11 +47,7 @@ void setup()
 		PT_INIT(&ptv[i]);
 
 	// Test FSMs
-	fsmv.PushBack(new Blink(LED_BATTERY_EMPTY, 250));
-	fsmv.PushBack(new Blink(LED_BATTERY_LOW, 250));
-	fsmv.PushBack(new Blink(LED_BATTERY_MEDIUM, 250));
-	fsmv.PushBack(new Blink(LED_BATTERY_HIGH, 250));
-	fsmv.Erase(1);
+	fsmv.PushBack(new BatteryMonitor());
 }
 
 void loop()

@@ -3,7 +3,7 @@
 
 #include "FiniteStateMachine.h"
 
-#include <stdint.h>
+#include <stdint.h> // for uint8_t
 
 /**
  * Blink a light by setting a digital pin high and low repeatedly.
