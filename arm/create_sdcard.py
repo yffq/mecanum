@@ -134,9 +134,9 @@ def buildImage():
 	# 0001-Only-build-Precise-image.patch
 	subprocess.call(['git', 'am', os.path.join(os.path.realpath('..'), 'patches',
 		'omap-image-builder', '0001-Only-build-Precise-image.patch')])
-	# 0002-Include-additioanl-packages-specified-in-settings.xm.patch
+	# 0002-Include-additional-packages-specified-in-settings.xm.patch
 	subprocess.call(['git', 'am', os.path.join(os.path.realpath('..'), 'patches',
-		'omap-image-builder', '0002-Include-additioanl-packages-specified-in-settings.xm.patch')])
+		'omap-image-builder', '0002-Include-additional-packages-specified-in-settings.xm.patch')])
 
 	#subprocess.call(['git', 'checkout', 'v2012.4-1', '-b', 'v2012.4-1'])
 	
