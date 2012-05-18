@@ -137,6 +137,9 @@ def buildImage():
 	# 0002-Include-additional-packages-specified-in-settings.xm.patch
 	subprocess.call(['git', 'am', os.path.join(os.path.realpath('..'), 'patches',
 		'omap-image-builder', '0002-Include-additional-packages-specified-in-settings.xm.patch')])
+	# 0003-Force-MAC-address.patch
+	subprocess.call(['git', 'am', os.path.join(os.path.realpath('..'), 'patches',
+		'omap-image-builder', '0003-Force-MAC-address.patch')])
 
 	#subprocess.call(['git', 'checkout', 'v2012.4-1', '-b', 'v2012.4-1'])
 	
@@ -146,6 +149,7 @@ def buildImage():
 	replaceAll('build_image.sh', 'USER_PASS="temppwd"', 'USER_PASS="' + password + '"')
 	replaceAll('build_image.sh', 'USER_NAME="Demo User"', 'USER_NAME="' + name + '"')
 	replaceAll('build_image.sh', '__MECANUM_PACKAGES__', ','.join(packages))
+	replaceAll('tools/fixup.sh', 'DE:AD:BE:EF:CA:FE', macaddress)
 	
 	# Build the image
 	subprocess.call(['./build_image.sh'])
