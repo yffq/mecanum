@@ -48,7 +48,10 @@ def installDependencies():
 	
 	# Do the install
 	subprocess.call(['sudo', 'apt-get', 'update'])
-	subprocess.call(['sudo', 'apt-get', 'install', '-y'].extend(packages))
+	#subprocess.call(['sudo', 'apt-get', 'install', '-y'].extend(packages)) # TypeError: 'NoneType' object is not iterable
+	cmd = ['sudo', 'apt-get', 'install', '-y']
+	cmd = cmd.extend(packages)
+	subprocess.call(cmd)
 
 # Install rosinstall, rospkg and rosdep utilities
 def installUtilities():
@@ -69,7 +72,7 @@ def installCore():
 	os.chdir('..')
 	os.chdir('..')
 	# Cleanup after ourselves
-	subprocess.call(['rm', '-rf', 'ros-underlay')])
+	subprocess.call(['rm', '-rf', 'ros-underlay'])
 
 # Higher-level robotics libraries and tools
 # See REP 113 (http://www.ros.org/reps/rep-0113.html) for variants
