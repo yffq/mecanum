@@ -3,6 +3,7 @@
 import os, sys
 import shutil # for copyfile
 import fileinput # for inline text replacement
+from xml.etree import ElementTree
 import subprocess
 
 # Configuration parameters
@@ -14,59 +15,61 @@ def main():
 	# Make sure our current working dir is the script's location
 	path = os.path.dirname(os.path.realpath(__file__))
 	os.chdir(path)
-	print('path: ' + path)
 	enabledRestricted()
+	installDependencies()
+	installUtilities()
+	installCore()
+	installMobile()
 
 def enabledRestricted():
 	# First, back up the file
+	subprocess.call(['sudo', 'cp', '/etc/apt/sources.list', '/etc/apt/sources.list.bak'])
+	try:
+		for lin in fileinput.input('/etc/apt/sources.list', inplace = 1):
+			if line.endswith('main universe multiverse'):
+				line = line + ' restricted'
+			sys.out.write(line)
+		subprocess.call(['sudo', 'rm', '/etc/apt/sources.list.bak'])
+	except:
+		subprocess.call(['sudo', 'rm', '/etc/apt/sources.list'])
+		subprocess.call(['sudo', 'mv', '/etc/apt/sources.list.bak', '/etc/apt/sources.list'])
+
+def installDependencies():
+	# Enable ROS packages -- skip this step because there are no armhf packages
+	# sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu precise main" > /etc/apt/sources.list.d/ros-latest.list'
+	# wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
 	
-	for lin in fileinput.input('/etc/apt/sources.list', inplace = 1):
-		pass
+	# Read in the packages from settings.xml
+	packages = []
+	for packageNode in ElementTree.parse('settings.xml').getroot().findall('packages'):
+		if packageNode.text:
+			for pkg in str(packageNode.text).split(' '):
+				packages.append(pkg)
+	
+	# Do the install
+	subprocess.call(['sudo', 'apt-get', 'update'])
+	subprocess.call(['sudo', 'apt-get', 'install', '-y'].extend(packages))
 
-# Enable restricted repositories by adding " restricted" to the end of the
-# four lines in /etc/apt/sources.list:
-# deb http://... precise main universe multiverse
-# deb-src http://... precise main universe multiverse
-# deb http:// precise-updates main universe multiverse
-# deb-src http://... precise-updates main universe multiverse
-
-# Install ROS packages -- skip this step because there are no armhf packages
-# sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu precise main" > /etc/apt/sources.list.d/ros-latest.list'
-# wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
-
-# sudo apt-get update
-
-# Install dependencies (these can be found in settings.xml)
-# Bootstrap:
-## build-essential python-yaml cmake subversion python-setuptools mercurial
-# Core library dependencies (aka, 'ROS Base'):
-## python-yaml libapr1-dev libaprutil1-dev libbz2-dev python-dev libgtest-dev
-## python-paramiko liblog4cxx10-dev pkg-config
-# ROS wants libboost1.40-all-dev, but Precise only offers 1.46 and 1.48
-## libboost1.46-all-dev -or- libboost1.48-all-dev -or- libboost-all-dev
-# 'ROS Full' -- don't install these (ros-fuerte-swig-wx isn't available anyways)
-## python-wxgtk2.8 python-gtk2 python-matplotlib libwxgtk2.8-dev python-imaging
-## libqt4-dev graphviz qt4-qmake python-numpy ros-fuerte-swig-wx
-# pip (because easy_install is no longer maintained and much less powerful
-# and user-friendly than pip.
-## python-pip
-
-# Install ROS utilities
-#sudo pip install -U rosinstall rospkg rosdep
+# Install rosinstall, rospkg and rosdep utilities
+def installUtilities():
+	subprocess.call(['sudo', 'pip', 'install', '-U', 'rosinstall', 'rospkg', 'rosdep'])
 
 # Install core libraries into /opt/ros/fuerte
-# Do this only if /opt/ros doesn't exist
-#rm -rf ~/ros-underlay (if it exists)
-#rosinstall --catkin ~/ros-underlay http://ros.org/rosinstalls/fuerte-ros-base.rosinstall
-#cd ~/ros-underlay
-#mkdir build
-#cd build
-#cmake .. -DCMAKE_INSTALL_PREFIX=/opt/ros/fuerte
-#make (-j8)
-#sudo make install
-#cd ..
-#cd ..
-#rm -rf ~/ros-underlay
+# If /opt/ros exists, we may have done this already
+# If ./ros-underlay exists, the previous install might not have finished
+def installCore():
+	subprocess.call(['rosinstall', '--catkin', os.path.realpath('ros-underlay'),
+		'http://ros.org/rosinstalls/fuerte-ros-base.rosinstall'])
+	os.chdir('ros-underlay')
+	subprocess.call(['mkdir', 'build'])
+	os.chdir('build')
+	subprocess.call(['cmake', '..', '-DCMAKE_INSTALL_PREFIX=/opt/ros/fuerte'])
+	subprocess.call(['make']) # make -j8 would run out of memory around 90% of the way through
+	subprocess.call(['sudo', 'make', 'install'])
+	os.chdir('..')
+	os.chdir('..')
+	# Cleanup after ourselves
+	subprocess.call(['rm', '-rf', 'ros-underlay')])
 
 # Higher-level robotics libraries and tools
 # See REP 113 (http://www.ros.org/reps/rep-0113.html) for variants
@@ -76,9 +79,9 @@ def enabledRestricted():
 # nodelet_core, orocos_kinematics_dynamics, pluginlib, assimp, robot_model,
 # executive_smach, xacro, navigation, slam_gmapping, laser_pipeline,
 # perception_pcl
-variant='mobile'
-distro='fuerte'
-target='~/ros'
+def installMobile():
+	pass
+
 #'rosinstall ' + target + ' "http://packages.ros.org/cgi-bin/gen_rosinstall.py?"' +
 #	'rosdistro=' + distro + '&variant=' + variant + '&overlay=no"'
 
