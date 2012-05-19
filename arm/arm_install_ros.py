@@ -50,7 +50,7 @@ def installDependencies():
 	subprocess.call(['sudo', 'apt-get', 'update'])
 	#subprocess.call(['sudo', 'apt-get', 'install', '-y'].extend(packages)) # TypeError: 'NoneType' object is not iterable
 	cmd = ['sudo', 'apt-get', 'install', '-y']
-	cmd = cmd.extend(packages)
+	cmd.extend(packages)
 	subprocess.call(cmd)
 
 # Install rosinstall, rospkg and rosdep utilities
