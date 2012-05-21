@@ -8,6 +8,8 @@ class FSMVector
 public:
 	FSMVector() { }
 
+	~FSMVector() { Empty(); }
+	
 	/**
 	 * Get the FSM by its index in the array. If nothing is erased from the
 	 * array in the interim, the order of elements accessed by this operator
