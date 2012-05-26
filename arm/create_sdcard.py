@@ -140,7 +140,7 @@ def buildImage():
 	# 0003-Force-MAC-address.patch
 	subprocess.call(['git', 'am', os.path.join(os.path.realpath('..'), 'patches',
 		'omap-image-builder', '0003-Force-MAC-address.patch')])
-
+	
 	#subprocess.call(['git', 'checkout', 'v2012.4-1', '-b', 'v2012.4-1'])
 	
 	# Configure image builder
@@ -157,16 +157,17 @@ def buildImage():
 
 def setupCard():
 	global mmc
+	fs = 'ext4' # btrfs is waaaaaaaaay too slow on a microSD card
 	# Install dependencies
 	subprocess.call(['sudo', 'apt-get', '-y', 'install',
 		'uboot-mkimage', 'wget', 'pv', 'dosfstools', 'btrfs-tools', 'parted'])
-	
+	# Build the image
 	os.chdir('omap-image-builder')
 	os.chdir('deploy')
-	os.chdir('2012-05-18-STABLE') # TODO: Enter last folder
+	os.chdir('2012-05-26-STABLE') # TODO: Enter last folder
 	os.chdir('ubuntu-12.04-r3-minimal-armhf') # TODO: Enter only folder
 	subprocess.call(['sudo', './setup_sdcard.sh', '--mmc', mmc,
-		'--uboot', 'beagle_xm', '--rootfs', 'btrfs',
+		'--uboot', 'beagle_xm', '--rootfs', fs,
 		'--boot_label', 'boot', '--rootfs_label', 'rootfs'])
 	os.chdir('..')
 	os.chdir('..')
