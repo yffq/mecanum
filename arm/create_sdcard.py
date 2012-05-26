@@ -140,6 +140,10 @@ def buildImage():
 	# 0003-Force-MAC-address.patch
 	subprocess.call(['git', 'am', os.path.join(os.path.realpath('..'), 'patches',
 		'omap-image-builder', '0003-Force-MAC-address.patch')])
+	# 0004-Remove-text-from-etc-flash-kernel.conf.patch
+	subprocess.call(['git', 'am', os.path.join(os.path.realpath('..'), 'patches',
+		'omap-image-builder', '0004-Remove-text-from-etc-flash-kernel.conf.patch')])
+	
 	
 	#subprocess.call(['git', 'checkout', 'v2012.4-1', '-b', 'v2012.4-1'])
 	
