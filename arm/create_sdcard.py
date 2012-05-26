@@ -160,7 +160,7 @@ def setupCard():
 	fs = 'ext4' # btrfs is waaaaaaaaay too slow on a microSD card
 	# Install dependencies
 	subprocess.call(['sudo', 'apt-get', '-y', 'install',
-		'uboot-mkimage', 'wget', 'pv', 'dosfstools', 'btrfs-tools', 'parted'])
+		'uboot-mkimage', 'wget', 'pv', 'dosfstools', 'parted'])
 	# Build the image
 	os.chdir('omap-image-builder')
 	os.chdir('deploy')
