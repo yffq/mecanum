@@ -2,7 +2,6 @@
 
 import os, sys
 import shutil # for copyfile
-import fileinput # for inline text replacement
 from xml.etree import ElementTree
 import subprocess
 
@@ -22,17 +21,7 @@ def main():
 	installMobile()
 
 def enabledRestricted():
-	# First, back up the file
-	subprocess.call(['sudo', 'cp', '/etc/apt/sources.list', '/etc/apt/sources.list.bak'])
-	try:
-		for lin in fileinput.input('/etc/apt/sources.list', inplace = 1):
-			if line.endswith('main universe multiverse'):
-				line = line + ' restricted'
-			sys.out.write(line)
-		subprocess.call(['sudo', 'rm', '/etc/apt/sources.list.bak'])
-	except:
-		subprocess.call(['sudo', 'rm', '/etc/apt/sources.list'])
-		subprocess.call(['sudo', 'mv', '/etc/apt/sources.list.bak', '/etc/apt/sources.list'])
+	subprocess.call(['sudo', './arm_enable_restricted.py'])
 
 def installDependencies():
 	# Enable ROS packages -- skip this step because there are no armhf packages
