@@ -5,7 +5,9 @@
 	<fqdn>mecanum</fqdn>
 	<mmc>/dev/mmcblk0</mmc>
 	<packages for="mecanum/avr">arduino-core</packages>
-	<packages for="samba">samba</packages>
+	<!-- todo: does network-manager pull in dbus? -->
+	<packages for="mecanum/wifi">network-manager python-dbus</packages>
+	<!--<packages for="samba">samba</packages>-->
 	<packages for="ROS bootstrap">build-essential python-yaml cmake subversion wget python-setuptools mercurial git-core</packages>
 	<packages for="ROS base">python-yaml libapr1-dev libaprutil1-dev libbz2-dev python-dev libgtest-dev python-paramiko liblog4cxx10-dev pkg-config python-empy python-nose</packages>
 	<!-- ROS base specifies libboost1.40-all-dev -->
