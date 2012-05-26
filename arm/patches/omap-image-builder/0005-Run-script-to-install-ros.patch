@@ -1,0 +1,26 @@
+From fc0281c2aea2cb0c0ba9c641d46493308c636df7 Mon Sep 17 00:00:00 2001
+From: Garrett Brown <garbearucla@gmail.com>
+Date: Sat, 26 May 2012 15:30:10 -0700
+Subject: [PATCH 5/5] Run script to install ros
+
+---
+ tools/fixup.sh |    6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/tools/fixup.sh b/tools/fixup.sh
+index ee72bf0..37303f7 100755
+--- a/tools/fixup.sh
++++ b/tools/fixup.sh
+@@ -92,3 +92,9 @@ rm -f /tmp/*.deb || true
+ rm -rf /usr/src/linux-headers* || true
+ rm -f /rootstock-user-script || true
+ 
++# Run our script to install ROS and set up the environment for our Mecanum Bot
++cd /tmp/
++git clone git://github.com/garbear/mecanum.git
++cd mecanum/arm/
++/usr/bin/env python arm_install_ros.py
++rm -rf /tmp/mecanum/
+-- 
+1.7.9.5
+

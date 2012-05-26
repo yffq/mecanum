@@ -143,7 +143,9 @@ def buildImage():
 	# 0004-Remove-text-from-etc-flash-kernel.conf.patch
 	subprocess.call(['git', 'am', os.path.join(os.path.realpath('..'), 'patches',
 		'omap-image-builder', '0004-Remove-text-from-etc-flash-kernel.conf.patch')])
-	
+	# 0005-Run-script-to-install-ros.patch
+	subprocess.call(['git', 'am', os.path.join(os.path.realpath('..'), 'patches',
+		'omap-image-builder', '0005-Run-script-to-install-ros.patch')])
 	
 	#subprocess.call(['git', 'checkout', 'v2012.4-1', '-b', 'v2012.4-1'])
 	
