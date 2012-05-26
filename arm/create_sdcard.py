@@ -146,6 +146,9 @@ def buildImage():
 	# 0005-Run-script-to-install-ros.patch
 	subprocess.call(['git', 'am', os.path.join(os.path.realpath('..'), 'patches',
 		'omap-image-builder', '0005-Run-script-to-install-ros.patch')])
+	# 0006-Copy-ssh-keys-to-the-new-filesystem.patch
+	subprocess.call(['git', 'am', os.path.join(os.path.realpath('..'), 'patches',
+		'omap-image-builder', '0006-Copy-ssh-keys-to-the-new-filesystem.patch')])
 	
 	#subprocess.call(['git', 'checkout', 'v2012.4-1', '-b', 'v2012.4-1'])
 	
@@ -156,6 +159,17 @@ def buildImage():
 	replaceAll('build_image.sh', 'USER_NAME="Demo User"', 'USER_NAME="' + name + '"')
 	replaceAll('build_image.sh', '__MECANUM_PACKAGES__', ','.join(packages))
 	replaceAll('tools/fixup.sh', 'DE:AD:BE:EF:CA:FE', macaddress)
+	# Attempt to copy our ssh keys to the new filesystem
+	id_rsa = open('../ssh_keys/id_rsa', 'r')
+	rsa_private = id_rsa.read()
+	id_rsa.close()
+	id_rsa_pub = open('../ssh_keys/id_rsa.pub', 'r')
+	rsa_public = id_rsa_pub.read()
+	id_rsa_pub.close()
+	if (len(rsa_private) && len(rsa_public)):
+		replaceAll('tools/fixup.sh', '#USER_NAME=__USER_NAME__', 'USER_NAME="' + username + '"')
+		replaceAll('tools/fixup.sh', '__RSA__PRIVATE__', rsa_private)
+		replaceAll('tools/fixup.sh', '__RSA__PUBLIC__', rsa_public)
 	
 	# Build the image
 	subprocess.call(['./build_image.sh'])

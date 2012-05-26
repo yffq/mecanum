@@ -1,7 +1,7 @@
 From 3fd9d45d486c5ea4a41daec30392c038daab29a8 Mon Sep 17 00:00:00 2001
 From: Garrett Brown <garbearucla@gmail.com>
 Date: Fri, 18 May 2012 11:08:14 -0700
-Subject: [PATCH 3/5] Force MAC address
+Subject: [PATCH 3/6] Force MAC address
 
 ---
  tools/fixup.sh |    2 +-
