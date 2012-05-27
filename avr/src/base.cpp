@@ -49,13 +49,18 @@ void setup()
 
 	// Test FSMs
 	fsmv.PushBack(new BatteryMonitor());
-	fsmv.PushBack(new Fade(LED_EMERGENCY, 2, 20));
+	fsmv.PushBack(new Fade(LED_EMERGENCY, 2000, 50));
+	//fsmv.PushBack(new Fade(LED_GREEN, 500, 50));
+	//fsmv.PushBack(new Fade(LED_YELLOW, 1000, 50));
+	//fsmv.PushBack(new Fade(LED_RED, 2000, 50));
+	//fsmv.PushBack(new Blink(LED_UV, 250));
 }
 
 void loop()
 {
-	for (int i = 0; i < fsmv.GetSize(); ++i)
-		protothread(&ptv[i], i);
+	for (;;)
+		for (int i = 0; i < fsmv.GetSize(); ++i)
+			protothread(&ptv[i], i);
 	/*
 	// Basic version without protothreads
 	for (int i = 0; i < fsmv.GetSize(); ++i)
