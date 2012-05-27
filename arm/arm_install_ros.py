@@ -60,8 +60,8 @@ def installCore():
 	subprocess.call(['sudo', 'make', 'install'])
 	os.chdir('..')
 	os.chdir('..')
-	# Cleanup after ourselves
-	subprocess.call(['rm', '-rf', 'ros-underlay'])
+	# Cleanup after ourselves (sudo make install left some root-owned files)
+	subprocess.call(['sudo', 'rm', '-rf', 'ros-underlay'])
 
 # Higher-level robotics libraries and tools
 # See REP 113 (http://www.ros.org/reps/rep-0113.html) for variants
