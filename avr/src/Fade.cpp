@@ -6,7 +6,7 @@ Fade::Fade(uint8_t pin, unsigned long period, unsigned long updateFrequency) :
 	m_pin(pin), m_dir(true), m_brightness(0), m_delay(1000 / updateFrequency)
 {
 	// Use half the period to calculate brightness increments
-	m_brightnessStep = 255 * updateFrequency * period / 2;
+	m_brightnessStep = 255 * updateFrequency * 2 / period;
 	pinMode(pin, OUTPUT);
 	analogWrite(m_pin, 0);
 }
