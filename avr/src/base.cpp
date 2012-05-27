@@ -1,5 +1,6 @@
 #include "FSMVector.h"
 #include "Blink.h"
+#include "Fade.h"
 #include "BatteryMonitor.h"
 #include "hardware_interface.h"
 
@@ -9,7 +10,7 @@
 static FSMVector fsmv;
 static struct pt ptv[FSMVector::MAX_FSM];
 // Previously this was an int[]. The Arduino would crash after 32 seconds.
-// 32,767 ms is half of 65,355. 65,355 is the upper limit of a 2-byte int.
+// 32,767 ms is half of 65,355; 65,355 is the upper limit of a 2-byte int...
 // Coincidence??
 unsigned long fsm_delay[FSMVector::MAX_FSM];
 
@@ -48,6 +49,7 @@ void setup()
 
 	// Test FSMs
 	fsmv.PushBack(new BatteryMonitor());
+	fsmv.PushBack(new Fade(LED_EMERGENCY, 2, 20));
 }
 
 void loop()
