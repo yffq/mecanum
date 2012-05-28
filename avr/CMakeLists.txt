@@ -7,7 +7,7 @@ set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/arduino-cmake/cmake/Arduino
 # release. A script to detect the arduino-core version might look something like:
 #
 # $ dpkg --get-selections | grep arduino-core
-# arduino-core					install
+# arduino-core		install
 # $ apt-cache show arduino-core | grep -i version
 # Version: 1:1.0+dfsg-9
 #
@@ -28,6 +28,9 @@ set(ARDUINO_DEFAULT_PORT /dev/ttyACM0) # Default Port, when not specified
 # the arduino sdk path) and finding the boardID.build.variant setting.
 include_directories("${ARDUINO_VARIANTS_PATH}/mega")
 
+# Public include files so that programs can interface with the Arduino hardware
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
+
 # Tell CMake where to search for libraries use the link_directories command.
 # The command has to be used before defining any firmware or libraries
 # requiring those libraries. An Arduino library is ***any directory which
@@ -35,12 +38,13 @@ include_directories("${ARDUINO_VARIANTS_PATH}/mega")
 link_directories(${CMAKE_CURRENT_SOURCE_DIR}/libraries)
 
 generate_arduino_firmware(avr_base
-    SRCS src/base.cpp
+    SRCS src/main.cpp
          src/BatteryMonitor.cpp
          src/Blink.cpp
          src/ChristmasTree.cpp
          src/Fade.cpp
          src/FSMVector.cpp
+         src/MecanumMaster.cpp
 #    HDRS src/FiniteStateMachine.h # For project-based systems
 #    LIBS lib/main_lib
 )

@@ -1,10 +1,10 @@
 #include "ChristmasTree.h"
 
-#include "hardware_interface.h"
+#include "AddressBook.h"
 
 #define SPEED 1200 // this gives a period of about 1285ms
 
-ChristmasTree::ChristmasTree() : m_state(SpinningStart), m_spinningTarget(0), m_delay(50)
+ChristmasTree::ChristmasTree() : FiniteStateMachine(FSM_CHRISTMASTREE), m_state(SpinningStart), m_spinningTarget(0), m_delay(50)
 {
 	fader[0] = new Fade(LED_UV, SPEED, m_delay, Fade::LOGARITHMIC);
 	fader[1] = new Fade(LED_RED, SPEED, m_delay, Fade::LOGARITHMIC);

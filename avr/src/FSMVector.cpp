@@ -1,5 +1,15 @@
 #include "FSMVector.h"
 
+FiniteStateMachine* FSMVector::GetById(char id)
+{
+	for (int i = 0; i < m_size; ++i)
+	{
+		if (m_fsmv[i]->ID == id)
+			return m_fsmv[i];
+	}
+	return 0;
+}
+
 
 int FSMVector::PushBack(FiniteStateMachine *fsm)
 {

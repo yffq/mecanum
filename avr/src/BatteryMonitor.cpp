@@ -1,9 +1,9 @@
 #include "BatteryMonitor.h"
-#include "hardware_interface.h"
+#include "AddressBook.h"
 
 #include <Arduino.h>
 
-BatteryMonitor::BatteryMonitor() : m_maxLevel(4), m_currentLevel(0)
+BatteryMonitor::BatteryMonitor() : FiniteStateMachine(FSM_BATTERYMONITOR), m_maxLevel(4), m_currentLevel(0)
 {
 	m_led[0] = LED_BATTERY_EMPTY;
 	m_led[1] = LED_BATTERY_LOW;

@@ -1,5 +1,7 @@
 #include "Fade.h"
 
+#include "AddressBook.h"
+
 #include <Arduino.h>
 #include <avr/pgmspace.h>
 
@@ -26,7 +28,7 @@ prog_uchar luminace[256] PROGMEM =
 };
 
 Fade::Fade(uint8_t pin, unsigned long period, unsigned long delay, LuminanceCurve curve /* = LINEAR */) :
-	m_pin(pin), m_dir(UP), m_curve(curve), m_brightness(0), m_delay(delay), m_enabled(true)
+	FiniteStateMachine(FSM_FADE), m_pin(pin), m_dir(UP), m_curve(curve), m_brightness(0), m_delay(delay), m_enabled(true)
 {
 	// Use half the period to calculate brightness increments
 	m_brightnessStep = 255 * delay * 2 / period;

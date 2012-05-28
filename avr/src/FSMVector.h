@@ -18,6 +18,11 @@ public:
 	FiniteStateMachine* &operator[] (const int i) { return m_fsmv[i]; }
 
 	/**
+	 * Get a FSM by its ID. Returns only the first occurrence in the array.
+	 */
+	FiniteStateMachine* GetById(char id);
+
+	/**
 	 * Get the number of FSMs in the array.
 	 */
 	unsigned int GetSize() const { return m_size; }
