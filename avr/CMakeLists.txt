@@ -38,6 +38,7 @@ generate_arduino_firmware(avr_base
     SRCS src/base.cpp
          src/BatteryMonitor.cpp
          src/Blink.cpp
+         src/ChristmasTree.cpp
          src/Fade.cpp
          src/FSMVector.cpp
 #    HDRS src/FiniteStateMachine.h # For project-based systems

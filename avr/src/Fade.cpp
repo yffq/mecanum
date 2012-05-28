@@ -16,7 +16,8 @@ Fade::~Fade()
 	analogWrite(m_pin, 0);
 }
 
-void Fade::Step()
+// So we have the option to avoid hitting the VTable
+void Fade::StepNoVTable()
 {
 	if (m_enabled)
 	{

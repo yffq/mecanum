@@ -31,6 +31,7 @@ static int protothread(struct pt *pt, int i)
 		fsmv[i]->Step();
 	}
 	PT_END(pt);
+	return 0;
 }
 
 /**

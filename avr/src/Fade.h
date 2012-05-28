@@ -33,7 +33,11 @@ public:
 	 */
 	virtual ~Fade();
 
-	virtual void Step();
+	/**
+	 * StepNoVTable() allows us to bypass the VTable if we have a Fade pointer.
+	 */
+	inline virtual void Step() { StepNoVTable(); }
+	void StepNoVTable();
 
 	virtual unsigned long Delay() const { return m_delay; }
 
