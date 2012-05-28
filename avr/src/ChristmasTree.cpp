@@ -24,7 +24,7 @@ ChristmasTree::~ChristmasTree()
 
 void ChristmasTree::Step()
 {
-	// Look for state transfers
+	// Look for state transitions
 	switch (m_state)
 	{
 	case OffStart:
@@ -69,6 +69,16 @@ void ChristmasTree::Step()
 					done = false;
 					// Just in case the fader is moving in the wrong direction
 					fader[i]->SetDirection(i == m_spinningTarget ? Fade::UP : Fade::DOWN);
+				}
+			}
+			else
+			{
+				// Check to make sure our fader isn't disabled at the wrong brightness
+				if (fader[i]->GetBrightness() != (i == m_spinningTarget ? 255 : 0))
+				{
+					done = false;
+					fader[i]->Enable(true);
+					// If direction is wrong, play a small violin, next pass will fix it
 				}
 			}
 		}
