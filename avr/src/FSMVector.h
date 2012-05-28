@@ -30,12 +30,13 @@ public:
 	 *
 	 * fsmv.PushBack(new Blink(LED_BATTERY_EMPTY, 250));
 	 *
-	 * If the array is full, the FSM will be deleted immediately by PushBack().
-	 * Therefore, the existence of the FSM and the validity of the pointer
-	 * cannot be guaranteed after this function returns.
+	 * If the array is full (or fsm is NULL), the FSM will be deleted
+	 * immediately by PushBack(). Therefore, the existence of the FSM and the
+	 * validity of the pointer cannot be guaranteed after this function
+	 * returns.
 	 *
 	 * The return value is the FSM's index in the array (equal to the new size
-	 * minus 1). If the array is full, -1 is returned.
+	 * minus 1). If the array is full or fsm is NULL, -1 is returned.
 	 */
 	int PushBack(FiniteStateMachine *fsm);
 

@@ -3,7 +3,7 @@
 
 int FSMVector::PushBack(FiniteStateMachine *fsm)
 {
-	if (m_size < MAX_FSM)
+	if (fsm && m_size < MAX_FSM)
 	{
 		m_fsmv[m_size] = fsm;
 		return m_size++; // Return the pre-incremented m_size
