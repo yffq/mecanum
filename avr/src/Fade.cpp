@@ -4,6 +4,7 @@
 #include <avr/pgmspace.h>
 
 // Brightness lookup table stored in PROGMEM instead of SRAM
+// Table is from http://arduino.cc/forum/index.php?topic=96839.0
 prog_uchar luminace[256] PROGMEM =
 {
 	  0,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,

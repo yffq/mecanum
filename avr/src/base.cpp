@@ -7,6 +7,8 @@
 
 #include <Arduino.h>
 #include <pt.h>
+#include <HardwareSerial.h>
+extern HardwareSerial Serial;
 
 static FSMVector fsmv;
 static struct pt ptv[FSMVector::MAX_FSM];
@@ -46,6 +48,8 @@ static int protothread(struct pt *pt, int i)
  */
 void setup()
 {
+	Serial.begin(9600);
+
 	for (int i = 0; i < sizeof(ptv) / sizeof(ptv[0]); ++i)
 		PT_INIT(&ptv[i]);
 
