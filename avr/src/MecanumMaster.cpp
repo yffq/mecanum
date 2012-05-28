@@ -20,6 +20,8 @@ MecanumMaster::MecanumMaster()
 	Serial.begin(115200);
 	Serial.setTimeout(250); // ms
 
+	// fsmDelay[i] is initialized to 0s, which means far in the past
+	
 	// Test FSMs
 	//fsmv.PushBack(new BatteryMonitor());
 	fsmv.PushBack(new ChristmasTree());
