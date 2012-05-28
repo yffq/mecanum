@@ -50,7 +50,7 @@ void setup()
 		PT_INIT(&ptv[i]);
 
 	// Test FSMs
-	fsmv.PushBack(new BatteryMonitor());
+	//fsmv.PushBack(new BatteryMonitor());
 	fsmv.PushBack(new ChristmasTree());
 }
 

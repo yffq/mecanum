@@ -6,7 +6,7 @@
 #define NULL 0
 #endif
 
-ChristmasTree::ChristmasTree() : m_state(SpinningStart), m_spinningTarget(0), m_delay(50)
+ChristmasTree::ChristmasTree() : m_state(SpinningStart), m_spinningTarget(0), m_delay(40)
 {
 	fader[0] = new Fade(LED_UV, 1000, m_delay);
 	fader[1] = new Fade(LED_RED, 1000, m_delay);
@@ -65,6 +65,9 @@ void ChristmasTree::Step()
 		if (done)
 		{
 			fader[m_spinningTarget]->Enable(true);
+			// Increment the target on this step, because next step the fader's
+			// brightness will no longer be 255
+			m_spinningTarget = (m_spinningTarget + 1) % 4;
 			m_state = Spinning;
 		}
 		break;
@@ -73,15 +76,15 @@ void ChristmasTree::Step()
 	{
 		// Check to see if our target spinner reached full brightness
 		if (fader[m_spinningTarget]->GetBrightness() == 255)
-		{
-			// Move on to the next LED (skip emergency fader)
-			m_spinningTarget = (m_spinningTarget + 1) % 4;
-			fader[m_spinningTarget]->Enable(true);
-		}
+			m_spinningTarget = (m_spinningTarget + 1) % 4; // skip emergency fader
+		
 		// Disable faders that reach 0 (no need to check emergency fader)
-		for (int i = 0; 0 < 4; ++i)
+		for (int i = 0; i < 4; ++i)
 		{
-			if (i != m_spinningTarget && fader[i]->GetBrightness() == 0)
+			// Keep the target and non-dimmed faders going
+			if (i == m_spinningTarget || fader[i]->GetBrightness() != 0)
+				fader[i]->Enable(true);
+			else
 				fader[i]->Enable(false);
 		}
 		break;
