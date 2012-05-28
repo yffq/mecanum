@@ -2,17 +2,15 @@
 
 #include "hardware_interface.h"
 
-#ifndef NULL
-#define NULL 0
-#endif
+#define SPEED 1200 // this gives a period of about 1285ms
 
 ChristmasTree::ChristmasTree() : m_state(SpinningStart), m_spinningTarget(0), m_delay(50)
 {
-	fader[0] = new Fade(LED_UV, 1200, m_delay, Fade::LOGARITHMIC);
-	fader[1] = new Fade(LED_RED, 1200, m_delay, Fade::LOGARITHMIC);
-	fader[2] = new Fade(LED_YELLOW, 1200, m_delay, Fade::LOGARITHMIC);
-	fader[3] = new Fade(LED_GREEN, 1200, m_delay, Fade::LOGARITHMIC);
-	fader[4] = new Fade(LED_EMERGENCY, 1200, m_delay, Fade::LOGARITHMIC);
+	fader[0] = new Fade(LED_UV, SPEED, m_delay, Fade::LOGARITHMIC);
+	fader[1] = new Fade(LED_RED, SPEED, m_delay, Fade::LOGARITHMIC);
+	fader[2] = new Fade(LED_YELLOW, SPEED, m_delay, Fade::LOGARITHMIC);
+	fader[3] = new Fade(LED_GREEN, SPEED, m_delay, Fade::LOGARITHMIC);
+	fader[4] = new Fade(LED_EMERGENCY, SPEED, m_delay, Fade::LOGARITHMIC);
 }
 
 ChristmasTree::~ChristmasTree()

@@ -17,6 +17,9 @@ public:
 		DOWN // dimmer
 	};
 
+	/**
+	 * Personally, I prefer LOGARITHMIC because it has a bolder appearance.
+	 */
 	enum LuminanceCurve
 	{
 		LINEAR, // luminance increases linearly
@@ -94,7 +97,7 @@ public:
 
 private:
 	uint8_t m_pin;
-	Direction m_dir; // true = brighter
+	Direction m_dir;
 	LuminanceCurve m_curve;
 	// Previously, this was uint8_t (which makes sense, as it can only be
 	// 0-255). However, for whatever reason, analogWrite() expects an int,
