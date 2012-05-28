@@ -38,6 +38,13 @@ public:
 	virtual unsigned long Delay() const { return m_delay; }
 
 	/**
+	 * Calling Enable(false) will freeze the fader (Step() does nothing).
+	 */
+	void Enable(bool enable = true) { m_enabled = enable; }
+
+	bool IsEnabled() { return m_enabled; }
+
+	/**
 	 * This will return the current "position" of the fader. The position runs
 	 * on a linear scale from 0 to 255. At 255, the direction reverses and the
 	 * fader's position decreases to 0. Because apparent brightness doesn't
@@ -81,6 +88,7 @@ private:
 	int m_brightness;
 	int m_brightnessStep;
 	unsigned long m_delay; // ms
+	bool m_enabled;
 };
 
 #endif // FADE_H

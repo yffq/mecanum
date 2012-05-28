@@ -3,7 +3,7 @@
 #include <Arduino.h>
 
 Fade::Fade(uint8_t pin, unsigned long period, unsigned long delay) :
-	m_pin(pin), m_dir(UP), m_brightness(0), m_delay(delay)
+	m_pin(pin), m_dir(UP), m_brightness(0), m_delay(delay), m_enabled(true)
 {
 	// Use half the period to calculate brightness increments
 	m_brightnessStep = 255 * delay * 2 / period;
@@ -18,24 +18,26 @@ Fade::~Fade()
 
 void Fade::Step()
 {
-	if (m_dir == UP)
+	if (m_enabled)
 	{
-		m_brightness += m_brightnessStep;
-		if (m_brightness >= 255)
+		if (m_dir == UP)
 		{
-			m_brightness = 255;
-			m_dir = DOWN;
+			m_brightness += m_brightnessStep;
+			if (m_brightness >= 255)
+			{
+				m_brightness = 255;
+				m_dir = DOWN;
+			}
 		}
-	}
-	else
-	{
-		m_brightness -= m_brightnessStep;
-		if (m_brightness <= 0)
+		else
 		{
-			m_brightness = 0;
-			m_dir = UP;
+			m_brightness -= m_brightnessStep;
+			if (m_brightness <= 0)
+			{
+				m_brightness = 0;
+				m_dir = UP;
+			}
 		}
+		analogWrite(m_pin, m_brightness);
 	}
-
-	analogWrite(m_pin, m_brightness);
 }
