@@ -66,7 +66,7 @@ public:
 	/**
 	 * A constant specifying the maximum number of FSMs this class can store.
 	 */
-	static const int MAX_FSM = 100;
+	static const int MAX_FSM = 10;
 
 private:
 	// The array
