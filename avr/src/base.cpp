@@ -2,6 +2,7 @@
 #include "Blink.h"
 #include "Fade.h"
 #include "BatteryMonitor.h"
+#include "ChristmasTree.h"
 #include "hardware_interface.h"
 
 #include <Arduino.h>
@@ -49,11 +50,7 @@ void setup()
 
 	// Test FSMs
 	fsmv.PushBack(new BatteryMonitor());
-	fsmv.PushBack(new Fade(LED_EMERGENCY, 2000, 50));
-	//fsmv.PushBack(new Fade(LED_GREEN, 500, 50));
-	//fsmv.PushBack(new Fade(LED_YELLOW, 1000, 50));
-	//fsmv.PushBack(new Fade(LED_RED, 2000, 50));
-	//fsmv.PushBack(new Blink(LED_UV, 250));
+	fsmv.PushBack(new ChristmasTree());
 }
 
 void loop()
