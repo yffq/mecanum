@@ -11,6 +11,11 @@ Fade::Fade(uint8_t pin, unsigned long period, unsigned long delay) :
 	analogWrite(m_pin, 0);
 }
 
+Fade::~Fade()
+{
+	analogWrite(m_pin, 0);
+}
+
 void Fade::Step()
 {
 	if (m_dir == UP)
