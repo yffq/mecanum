@@ -8,6 +8,11 @@ Blink::Blink(uint8_t pin, unsigned long delay) : m_pin(pin), m_enabled(false), m
 	digitalWrite(m_pin, LOW);
 }
 
+Blink::~Blink()
+{
+	digitalWrite(m_pin, LOW);
+}
+
 void Blink::Step()
 {
 	if (m_enabled)

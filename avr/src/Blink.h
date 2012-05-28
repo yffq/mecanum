@@ -15,9 +15,15 @@ public:
 	 * Create a new blinker.
 	 *
 	 * @param pin The digital pin, supposedly connected to an LED
-	 * @param delay The delay -- the blinking period is twice the delay
+	 * @param delay The delay; the blinker's period is twice the delay
 	 */
 	Blink(uint8_t pin, unsigned long delay /* ms */);
+
+	/*
+	 * When this blinker is destructed, the pin is pulled low as a post-
+	 * condition.
+	 */
+	virtual ~Blink();
 
 	virtual void Step();
 
