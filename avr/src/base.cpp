@@ -48,7 +48,7 @@ static int protothread(struct pt *pt, int i)
  */
 void setup()
 {
-	Serial.begin(9600);
+	Serial.begin(115200);
 
 	for (int i = 0; i < sizeof(ptv) / sizeof(ptv[0]); ++i)
 		PT_INIT(&ptv[i]);
@@ -58,6 +58,13 @@ void setup()
 	fsmv.PushBack(new ChristmasTree());
 }
 
+/**
+ * loop() uses an infinite loop to bypass Arduino's main loop. The advantages
+ * here are twofold: we avoid the overhead of a function call, and we skip
+ * Arduino's call to "if (serialEventRun) serialEventRun();" betwixt every
+ * call to loop(). This is desirable because we are using a FSM to process
+ * serial data instead of the serialEvent() callback provided by Arduino.
+ */
 void loop()
 {
 	for (;;)
