@@ -3,7 +3,7 @@
 #include <Arduino.h>
 #include <avr/pgmspace.h>
 
-// Brightness lookup table stored in PROGMEM
+// Brightness lookup table stored in PROGMEM instead of SRAM
 prog_uchar luminace[256] PROGMEM =
 {
 	  0,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
@@ -24,8 +24,8 @@ prog_uchar luminace[256] PROGMEM =
 	219, 221, 224, 226, 228, 231, 233, 235, 238, 240, 243, 245, 248, 250, 253, 255
 };
 
-Fade::Fade(uint8_t pin, unsigned long period, unsigned long delay) :
-	m_pin(pin), m_dir(UP), m_brightness(0), m_delay(delay), m_enabled(true)
+Fade::Fade(uint8_t pin, unsigned long period, unsigned long delay, LuminanceCurve curve /* = LINEAR */) :
+	m_pin(pin), m_dir(UP), m_curve(curve), m_brightness(0), m_delay(delay), m_enabled(true)
 {
 	// Use half the period to calculate brightness increments
 	m_brightnessStep = 255 * delay * 2 / period;
@@ -61,7 +61,10 @@ void Fade::StepNoVTable()
 				m_dir = UP;
 			}
 		}
-		// Calculate the offset in the lookup table
-		analogWrite(m_pin, pgm_read_byte_near(luminace + m_brightness));
+
+		if (m_curve == LINEAR)
+			analogWrite(m_pin, pgm_read_byte_near(luminace + m_brightness));
+		else
+			analogWrite(m_pin, m_brightness);
 	}
 }

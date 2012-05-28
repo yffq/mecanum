@@ -29,6 +29,7 @@ private:
 	};
 
 	State m_state;
+	// The brightness of fader[m_spinningTarget] is guaranteed to be less than 255
 	int m_spinningTarget;
 	unsigned long m_delay;
 

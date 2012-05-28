@@ -6,13 +6,13 @@
 #define NULL 0
 #endif
 
-ChristmasTree::ChristmasTree() : m_state(SpinningStart), m_spinningTarget(0), m_delay(33)
+ChristmasTree::ChristmasTree() : m_state(SpinningStart), m_spinningTarget(0), m_delay(50)
 {
-	fader[0] = new Fade(LED_UV, 800, m_delay);
-	fader[1] = new Fade(LED_RED, 800, m_delay);
-	fader[2] = new Fade(LED_YELLOW, 800, m_delay);
-	fader[3] = new Fade(LED_GREEN, 800, m_delay);
-	fader[4] = new Fade(LED_EMERGENCY, 800, m_delay);
+	fader[0] = new Fade(LED_UV, 1200, m_delay, Fade::LOGARITHMIC);
+	fader[1] = new Fade(LED_RED, 1200, m_delay, Fade::LOGARITHMIC);
+	fader[2] = new Fade(LED_YELLOW, 1200, m_delay, Fade::LOGARITHMIC);
+	fader[3] = new Fade(LED_GREEN, 1200, m_delay, Fade::LOGARITHMIC);
+	fader[4] = new Fade(LED_EMERGENCY, 1200, m_delay, Fade::LOGARITHMIC);
 }
 
 ChristmasTree::~ChristmasTree()
@@ -97,14 +97,13 @@ void ChristmasTree::Step()
 	}
 
 	// Temporary hack to have lights fade out slower than they fade in
-	static bool skip = false;
 	for (int i = 0; i < 5; ++i)
 	{
-		// Skip a step so spinning LEDs fade out slower than they fade in
-		if (skip && m_state == Spinning && i != m_spinningTarget)
-			continue;
 		// We have a Fade pointer, so avoid the vtable where possible
 		fader[i]->StepNoVTable();
+		// Double step to fade the LED in faster. Don't forget that
+		// fader[m_spinningTarget] must be dimmer than 255.
+		if (m_state == Spinning && i == m_spinningTarget && fader[i]->GetBrightness() < 255)
+			fader[i]->StepNoVTable();
 	}
-	skip = !skip;
 }

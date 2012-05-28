@@ -17,15 +17,24 @@ public:
 		DOWN // dimmer
 	};
 
+	enum LuminanceCurve
+	{
+		LINEAR, // luminance increases linearly
+		LOGARITHMIC // voltage increases linearly
+	};
+
 	/**
 	 * Create a new fader on the specified pin.
 	 *
 	 * @param pin The PWM pin, supposedly connected to an LED
-	 * @param period The brightness goes from 0 to 255 to 0 in one period
-	 * @param delay The reciprocal of the update frequency, in ms. A delay of
-	 *              50ms would update 20 times per second.
+	 * @param period (ms) The brightness goes from 0 to 255 to 0 in one period
+	 * @param delay The reciprocal of the update frequency, in ms. A delay
+	 *     of 50ms would update 20 times per second.
+	 * @param curve If LINEAR, the luminance will gradually increase. If
+	 *     LOGARITHMIC, the luminance will increase faster near 0 and slower
+	 *     near full brightness.
 	 */
-	Fade(uint8_t pin, unsigned long period /* ms */, unsigned long delay /* ms */);
+	Fade(uint8_t pin, unsigned long period, unsigned long delay, LuminanceCurve curve = LINEAR);
 
 	/**
 	 * When this fader is destructed, the pin is pulled low as a post-
@@ -86,6 +95,7 @@ public:
 private:
 	uint8_t m_pin;
 	Direction m_dir; // true = brighter
+	LuminanceCurve m_curve;
 	// Previously, this was uint8_t (which makes sense, as it can only be
 	// 0-255). However, for whatever reason, analogWrite() expects an int,
 	// causing overflow problems.
