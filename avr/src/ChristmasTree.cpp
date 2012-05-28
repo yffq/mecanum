@@ -32,19 +32,14 @@ void ChristmasTree::Step()
 		bool done = true;
 		for (int i = 0; i < 5; ++i)
 		{
-			// Faders are enabled if they haven't reached 0 yet
-			if (fader[i]->IsEnabled())
+			if (fader[i]->GetBrightness() == 0)
+				fader[i]->Enable(false);
+			else
 			{
-				// If the fader just reached 0, disable it
-				if (fader[i]->GetBrightness() == 0)
-					fader[i]->Enable(false);
-				else
-				{
-					// Not done yet, still have another fader to reach 0
-					done = false;
-					// Just in case the fader is moving in the wrong direction
-					fader[i]->SetDirection(Fade::DOWN);
-				}
+				// Not done yet, still have another fader to reach 0
+				done = false;
+				fader[i]->Enable(true);
+				fader[i]->SetDirection(Fade::DOWN);
 			}
 		}
 		if (done)
@@ -57,29 +52,14 @@ void ChristmasTree::Step()
 		bool done = true;
 		for (int i = 0; i < 5; ++i)
 		{
-			// Faders are enabled if they haven't reached 0 or 255 yet
-			if (fader[i]->IsEnabled())
-			{
-				// If the fader just reached its goal, disable it
-				if (fader[i]->GetBrightness() == (i == m_spinningTarget ? 255 : 0))
-					fader[i]->Enable(false);
-				else
-				{
-					// Not done yet, another fader needs to reach its goal
-					done = false;
-					// Just in case the fader is moving in the wrong direction
-					fader[i]->SetDirection(i == m_spinningTarget ? Fade::UP : Fade::DOWN);
-				}
-			}
+			// Check to see if our fader is at the right brightness
+			if (fader[i]->GetBrightness() == (i == m_spinningTarget ? 255 : 0))
+				fader[i]->Enable(false); // don't go anywhere
 			else
 			{
-				// Check to make sure our fader isn't disabled at the wrong brightness
-				if (fader[i]->GetBrightness() != (i == m_spinningTarget ? 255 : 0))
-				{
-					done = false;
-					fader[i]->Enable(true);
-					// If direction is wrong, play a small violin, next pass will fix it
-				}
+				done = false;
+				fader[i]->Enable(true);
+				fader[i]->SetDirection(i == m_spinningTarget ? Fade::UP : Fade::DOWN);
 			}
 		}
 		if (done)
@@ -101,9 +81,8 @@ void ChristmasTree::Step()
 		// Disable faders that reach 0 (no need to check emergency fader)
 		for (int i = 0; 0 < 4; ++i)
 		{
-			if (i != m_spinningTarget)
-				if (fader[i]->IsEnabled() && fader[i]->GetBrightness() == 0)
-					fader[i]->Enable(false);
+			if (i != m_spinningTarget && fader[i]->GetBrightness() == 0)
+				fader[i]->Enable(false);
 		}
 		break;
 	}

@@ -29,7 +29,7 @@ private:
 	};
 
 	State m_state;
-	uint8_t m_spinningTarget;
+	int m_spinningTarget;
 	unsigned long m_delay;
 
 	// Starting from the Arduino, going clockwise
