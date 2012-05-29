@@ -45,6 +45,8 @@ generate_arduino_firmware(avr_base
          src/Fade.cpp
          src/FSMVector.cpp
          src/MecanumMaster.cpp
+         src/Mimic.cpp
+         src/Toggle.cpp
 #    HDRS src/FiniteStateMachine.h # For project-based systems
 #    LIBS lib/main_lib
 )
