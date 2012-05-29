@@ -98,10 +98,10 @@ void ChristmasTree::Step()
 	for (int i = 0; i < 5; ++i)
 	{
 		// We have a Fade pointer, so avoid the vtable where possible
-		fader[i]->StepNoVTable();
+		fader[i]->StepAwayFromTheVTable();
 		// Double step to fade the LED in faster. Don't forget that
 		// fader[m_spinningTarget] must be dimmer than 255.
 		if (m_state == Spinning && i == m_spinningTarget && fader[i]->GetBrightness() < 255)
-			fader[i]->StepNoVTable();
+			fader[i]->StepAwayFromTheVTable();
 	}
 }

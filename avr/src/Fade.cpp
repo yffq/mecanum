@@ -1,5 +1,4 @@
 #include "Fade.h"
-
 #include "AddressBook.h"
 
 #include <Arduino.h>
@@ -7,7 +6,7 @@
 
 // Brightness lookup table stored in PROGMEM instead of SRAM
 // Table is from http://arduino.cc/forum/index.php?topic=96839.0
-prog_uchar luminace[256] PROGMEM =
+const unsigned char luminace[256] PROGMEM =
 {
 	  0,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
 	  1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,
@@ -42,7 +41,7 @@ Fade::~Fade()
 }
 
 // So we have the option to avoid hitting the VTable
-void Fade::StepNoVTable()
+void Fade::StepAwayFromTheVTable()
 {
 	if (m_enabled)
 	{
