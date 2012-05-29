@@ -1,9 +1,6 @@
 #include "MecanumMaster.h"
 
 #include <Arduino.h>
-#include <HardwareSerial.h> // for Serial
-
-extern HardwareSerial Serial;
 
 /**
  * We need to declare master as a global variable. When it was declared locally
