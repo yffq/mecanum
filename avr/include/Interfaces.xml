@@ -6,18 +6,18 @@
 /		<interface expansion="6" name="BUTTON_RED" gpio="146"/>
 /		<interface expansion="7" name="BUTTON_YELLOW" gpio="137"/>
 /		<interface expansion="8" name="BUTTON_GREEN" gpio="143"/>
-		<interface expansion="9" name="BRIDGE5" gpio="136"/>
+		<interface expansion="9" name="BRIDGE5" gpio="136"/> <!-- no response -->
 		<interface expansion="10" name="BRIDGE2" gpio="145"/>
 		<interface expansion="11" name="" gpio="135"/>
 		<interface expansion="12" name="BRIDGE6" gpio="158"/>
 		<interface expansion="13" name="" gpio="134"/>
-		<interface expansion="14" name="BRIDGE1" gpio="162"/>
+		<interface expansion="14" name="BRIDGE1" gpio="162"/> <!-- resets arduino -->
 		<interface expansion="15" name="" gpio="133"/>
 		<interface epxansion="16" name="BRIDGE3" gpio="161"/>
 		<interface expansion="17" name="" gpio="132"/>
-		<interface expansion="18" name="BRIDGE4" gpio="159"/>
+		<interface expansion="18" name="BRIDGE4" gpio="159"/> <!-- resets arduino -->
 		<interface expansion="19" name="" gpio="131"/>
-		<interface expansion="20" name="ARDUINO_RESET" gpio="156"/>
+		<interface expansion="20" name="ARDUINO_RESET" gpio="156"/> <!-- write error on BB -->
 		<interface expansion="21" name="IMU_INT0" gpio="130"/>
 		<interface expansion="22" name="IMU_INT1" gpio="157"/>
 		<interface expansion="23" name="IMU_SDA" gpio="183"/>
