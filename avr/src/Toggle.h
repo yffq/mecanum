@@ -32,7 +32,7 @@ public:
 	 * FSM's pin. If provided, the second byte is a bool to enable/disable the
 	 * pin. If the bool is omitted, the pin's state will be toggled.
 	 */
-	virtual void Message(const char* msg, unsigned char length);
+	virtual bool Message(const char* msg, unsigned char length);
 
 private:
 	uint8_t m_pin;

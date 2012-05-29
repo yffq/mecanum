@@ -21,14 +21,16 @@ void Toggle::Step()
 	digitalWrite(m_pin, m_enabled ? HIGH : LOW);
 }
 
-void Toggle::Message(const char* msg, unsigned char length)
+bool Toggle::Message(const char* msg, unsigned char length)
 {
 	// Verify that the message was intended for us
-	if (length && m_pin == static_cast<uint8_t>(msg[0]))
+	if (length >= 1 && m_pin == static_cast<uint8_t>(msg[0]))
 	{
 		if (length >= 2)
 			m_enabled = static_cast<bool>(msg[1]);
 		else
 			m_enabled = !m_enabled;
+		return true;
 	}
+	return false;
 }

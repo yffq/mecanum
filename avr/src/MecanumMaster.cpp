@@ -67,9 +67,22 @@ void MecanumMaster::SerialCallback()
 	{
 		// First byte is the ID of the FSM to message
 		char fsmId = buffer[0];
-		// Send the message to every instance of the FSM
-		for (unsigned char i = 0; i < fsmv.GetSize(); ++i)
-			fsmv[i]->Message(buffer + 1, msgSize - 1); // skip the ID byte
+		if (fsmId == FSM_MASTER)
+			Message(buffer + 1, msgSize - 1); // skip the ID byte
+		else
+		{
+			// Send the message to every instance of the FSM
+			for (unsigned char i = 0; i < fsmv.GetSize(); ++i)
+			{
+				// If Message() returns true, we should do a Step()
+				if (fsmv[i]->ID == fsmId &&
+					fsmv[i]->Message(buffer + 1, msgSize - 1))
+				{
+					fsmv[i]->Step();
+					fsmDelay[i] = fsmv[i]->Delay() + millis();
+				}
+			}
+		}
 	}
 	else
 	{
@@ -77,3 +90,7 @@ void MecanumMaster::SerialCallback()
 	}
 }
 
+void MecanumMaster::Message(const char* msg, unsigned char length)
+{
+	// TODO
+}

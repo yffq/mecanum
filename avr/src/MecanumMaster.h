@@ -19,7 +19,15 @@ public:
 	void Spin();
 
 private:
+	/**
+	 * Fired when serial data is available.
+	 */
 	void SerialCallback();
+
+	/**
+	 * Fired when a new message received.
+	 */
+	void Message(const char* msg, unsigned char length);
 
 	FSMVector fsmv;
 	// Previously this was an int[]. The Arduino would crash after 32 seconds.
