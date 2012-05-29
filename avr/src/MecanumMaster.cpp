@@ -13,23 +13,25 @@
 #include "Toggle.h"
 
 #include <Arduino.h> // for millis()
-#include <HardwareSerial.h> // for Serial
-extern HardwareSerial Serial;
+
 
 MecanumMaster::MecanumMaster()
 {
-	// Set up our serial communications
-	Serial.begin(115200);
-	Serial.setTimeout(250); // ms
-
 	// fsmDelay[i] is initialized to 0s, which means far in the past
-	
+
 	// Test FSMs
 	//fsmv.PushBack(new BatteryMonitor());
-	//fsmv.PushBack(new ChristmasTree());
-	fsmv.PushBack(new Blink(LED_STATUS_GREEN, 500)); // reference
+	fsmv.PushBack(new ChristmasTree());
+	//fsmv.PushBack(new Blink(LED_STATUS_GREEN, 500)); // reference
+	//fsmv.PushBack(new Blink(13, 1000)); // reference
 	fsmv.PushBack(new Toggle(LED_BATTERY_EMPTY, 50));
-	fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE1, LED_STATUS_YELLOW, 50));
+	//fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE1, LED_STATUS_YELLOW, 50));
+}
+
+void MecanumMaster::SetupSerial()
+{
+	Serial.begin(9600);
+	Serial.setTimeout(250); // ms
 }
 
 void MecanumMaster::Spin()
@@ -46,6 +48,7 @@ void MecanumMaster::Spin()
 			{
 				fsmv[i]->Step();
 				fsmDelay[i] = fsmv[i]->Delay() + millis();
+				Serial.print('x');
 			}
 		}
 	}
@@ -55,9 +58,21 @@ void MecanumMaster::SerialCallback()
 {
 	// First character is the size of the subsequent message
 	int msgSize = Serial.read();
+	
+	char msg[1];
+	msg[0] = LED_BATTERY_EMPTY;
+	if (fsmv.GetById(FSM_TOGGLE))
+		fsmv.GetById(FSM_TOGGLE)->Message(msg, 1);
+	
 	// Block until advertised number of bytes is available (timeout set above)
-	size_t readSize = Serial.readBytes(buffer, msgSize);
+	//size_t readSize = Serial.readBytes(buffer, msgSize);
 	// Single byte is OK - the FSM just gets a message of length 0
+	/**
+	if (msgSize == 0)
+	{
+		
+	}
+	/**
 	if (readSize >= 1 && readSize == msgSize)
 	{
 		// First byte is the ID of the FSM to message
@@ -70,4 +85,6 @@ void MecanumMaster::SerialCallback()
 	{
 		// Bad data, notify the host
 	}
+	/**/
 }
+

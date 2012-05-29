@@ -8,6 +8,14 @@ class MecanumMaster
 public:
 	MecanumMaster();
 
+	/**
+	 * Set the baud rate and timeout duration for our serial communication.
+	 */
+	void SetupSerial();
+
+	/**
+	 * Don't get dizzy.
+	 */
 	void Spin();
 
 private:
@@ -20,8 +28,8 @@ private:
 	unsigned long fsmDelay[FSMVector::MAX_FSM];
 
 	// Buffer to receive serial data
-	static const int bufferLength = 20;
-	char buffer[bufferLength];
+	static const int BUFFERLENGTH = 20;
+	char buffer[BUFFERLENGTH];
 };
 
 #endif // MECANUMMASTER_H
