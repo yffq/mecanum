@@ -1,8 +1,8 @@
 #include "FSMVector.h"
 
-FiniteStateMachine* FSMVector::GetById(char id)
+FiniteStateMachine* FSMVector::GetById(unsigned char id)
 {
-	for (int i = 0; i < m_size; ++i)
+	for (unsigned char i = 0; i < m_size; ++i)
 	{
 		if (m_fsmv[i]->ID == id)
 			return m_fsmv[i];
@@ -34,7 +34,7 @@ void FSMVector::PopBack()
 		delete m_fsmv[--m_size];
 }
 
-void FSMVector::Erase(unsigned int i)
+void FSMVector::Erase(unsigned char i)
 {
 	if (i < m_size)
 	{
@@ -45,7 +45,7 @@ void FSMVector::Erase(unsigned int i)
 	}
 }
 
-void FSMVector::QuickErase(unsigned int i)
+void FSMVector::QuickErase(unsigned char i)
 {
 	if (i < m_size)
 	{

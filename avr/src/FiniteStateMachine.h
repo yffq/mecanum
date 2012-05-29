@@ -46,7 +46,7 @@ public:
 	 * the FSM. This will only be called between Delay() and Step(), and not
 	 * between Step() and Delay().
 	 */
-	virtual void Message(const char* msg, int count) { }
+	virtual void Message(const char* msg, unsigned char count) { }
 };
 
 #endif // FINITESTATEMACHINE_H

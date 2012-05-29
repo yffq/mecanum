@@ -15,17 +15,17 @@ public:
 	 * array in the interim, the order of elements accessed by this operator
 	 * will be maintained.
 	 */
-	FiniteStateMachine* &operator[] (const int i) { return m_fsmv[i]; }
+	FiniteStateMachine* &operator[] (const unsigned char i) { return m_fsmv[i]; }
 
 	/**
 	 * Get a FSM by its ID. Returns only the first occurrence in the array.
 	 */
-	FiniteStateMachine* GetById(char id);
+	FiniteStateMachine* GetById(unsigned char id);
 
 	/**
 	 * Get the number of FSMs in the array.
 	 */
-	unsigned int GetSize() const { return m_size; }
+	unsigned char GetSize() const { return m_size; }
 
 	/**
 	 * Add a FSM to the end of the array.
@@ -55,13 +55,13 @@ public:
 	 * elements over by 1, giving an average runtime of O(N) but maintaining
 	 * the FSM ordering.
 	 */
-	void Erase(unsigned int i);
+	void Erase(unsigned char i);
 
 	/**
 	 * Erase the given element in O(1) time. The erased element is simply
 	 * replaced by the FSM at the end of the array.
 	 */
-	void QuickErase(unsigned int i);
+	void QuickErase(unsigned char i);
 
 	/**
 	 * Clear the array. Each FSM is deleted and their destructor is called.
@@ -77,7 +77,7 @@ private:
 	// The array
 	FiniteStateMachine* m_fsmv[MAX_FSM];
 	// The current size
-	unsigned int m_size;
+	unsigned char m_size;
 };
 
 #endif // FSMVECTOR_H

@@ -26,7 +26,7 @@ public:
 	int GetNumCells() { return GetVoltage() > 8.5 ? 3 : 2; }
 
 private:
-	static const int NUM_LED = 4;
+	static const unsigned char NUM_LED = 4;
 	uint8_t m_led[NUM_LED];
 
 	// Current battery level (between 1 and 4)
