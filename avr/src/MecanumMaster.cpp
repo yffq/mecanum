@@ -50,17 +50,16 @@ void MecanumMaster::SerialCallback()
 {
 	// First character is the size of the subsequent message
 	int msgSize = Serial.read();
-	// Block until broadcasted number of bytes is available (timeout set above)
+	// Block until advertised number of bytes is available (timeout set above)
 	size_t readSize = Serial.readBytes(buffer, msgSize);
 	// Single byte is OK - the FSM just gets a message of length 0
 	if (readSize >= 1 && readSize == msgSize)
 	{
 		// First byte is the ID of the FSM to message
 		char fsmId = buffer[0];
-		FiniteStateMachine* fsm = fsmv.GetById(fsmId);
-		// The message comes after the ID
-		if (fsm)
-			fsm->Message(buffer + 1, msgSize - 1);
+		// Send the message to every instance of the FSM
+		for (unsigned char i = 0; i < fsmv.GetSize(); ++i)
+			fsmv[i]->Message(buffer + 1, msgSize - 1); // skip the ID byte
 	}
 	else
 	{
