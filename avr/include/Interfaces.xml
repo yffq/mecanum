@@ -1,0 +1,134 @@
+<interfaces>
+	<bealgeboard>
+/		<interface expansion="3" name="THUMBWHEEL1" gpio="139"/>
+/		<interface expansion="4" name="THUMBWHEEL2" gpio="144"/>
+/		<interface expansion="5" name="THUMBWHEEL4" gpio="138"/>
+/		<interface expansion="6" name="BUTTON_RED" gpio="146"/>
+/		<interface expansion="7" name="BUTTON_YELLOW" gpio="137"/>
+/		<interface expansion="8" name="BUTTON_GREEN" gpio="143"/>
+		<interface expansion="9" name="BRIDGE5" gpio="136"/>
+		<interface expansion="10" name="BRIDGE2" gpio="145"/>
+		<interface expansion="11" name="" gpio="135"/>
+		<interface expansion="12" name="BRIDGE6" gpio="158"/>
+		<interface expansion="13" name="" gpio="134"/>
+		<interface expansion="14" name="BRIDGE1" gpio="162"/>
+		<interface expansion="15" name="" gpio="133"/>
+		<interface epxansion="16" name="BRIDGE3" gpio="161"/>
+		<interface expansion="17" name="" gpio="132"/>
+		<interface expansion="18" name="BRIDGE4" gpio="159"/>
+		<interface expansion="19" name="" gpio="131"/>
+		<interface expansion="20" name="ARDUINO_RESET" gpio="156"/>
+		<interface expansion="21" name="IMU_INT0" gpio="130"/>
+		<interface expansion="22" name="IMU_INT1" gpio="157"/>
+		<interface expansion="23" name="IMU_SDA" gpio="183"/>
+		<interface expansion="24" name="IMU_SCL" gpio="168"/>
+		<interface name="BUTTON_USER" gpio="7"/>
+		<interface name="LED_USR0" gpio="149"/>
+		<interface name="LED_USR1" gpio="150"/>
+	</beagleboard>
+	<arduino>
+		<!-- Digital -->
+		<interface pin="0" name="SERIAL_TX" not-connected="true"/>
+		<interface pin="1" name="SERIAL_RX" not-connected="true"/>
+		<interface pin="2" name="MOTOR3_PWM"/>
+		<interface pin="3" name="MOTOR4_PWM"/>
+		<interface pin="4" name="LED_GREEN"/>
+		<interface pin="5" name="MOTOR1_PWM"/>
+		<interface pin="6" name="MOTOR2_PWM"/>
+		<interface pin="7" name="LED_AMBER"/>
+		<interface pin="8" name="LED_RED"/>
+		<interface pin="9" name="LED_UV"/>
+		<interface pin="10" name="LED_EMERGENCY"/>
+		<!--
+		Top connection is looking from above with the aduino on the buttom left
+		and the beagle board on the bottom right.
+		
+		_ _ _ _ _
+		| 1 | 2 |
+		| 3 | 4 |
+		| 5 | 6 |
+		| 7 | 8 |
+		| 9 | 10|
+		- - - - -
+		
+		1. TOP1 (NC)
+		2. TOP2 (NC)
+		3. TOP3
+		4. TOP4
+		5. TOP5
+		6. TOP6
+		7. TOP7
+		8. TOP8
+		9. 5V (NC)
+		10. GND (NC)
+		
+		TOP3, TOP5 and TOP7 have PWM capabilities on timer 1
+		-->
+		<interface pin="11" name="TOP7"/>
+		<interface pin="12" name="TOP5"/>
+		<interface pin="13" name="TOP3"/>
+		<interface pin="14" name="BRIDGE5"/>
+		<interface pin="15" name="BEAGLEBOARD_RESET"/>
+		<interface pin="16" name="BRIDGE4"/>
+		<interface pin="17" name="BRIDGE2"/>
+		<interface pin="18" name="BRIDGE6"/>
+		<interface pin="19" name="BRIDGE1"/>
+		<interface pin="20" name="BRIDGE3"/>
+		<interface pin="21" name="REGULATOR_ENABLE" not-connected="true"/>
+		
+		<interface pin="23" name="TOP1" not-connected="true"/>
+		<interface pin="25" name="TOP6"/>
+		<interface pin="27" name="TOP8"/>
+		<interface pin="29" name="TOP4"/>
+		<interface pin="31" name="TOP2" not-connected="true"/>
+/		<interface pin="33" name="???"/>
+		
+		<interface pin="22" name="MOTOR1_B"/>
+		<interface pin="24" name="MOTOR3_B"/>
+		<interface pin="26" name="MOTOR1_A"/>
+		<interface pin="28" name="MOTOR2_A"/>
+		<interface pin="30" name="MOTOR3_A"/>
+		<interface pin="32" name="MOTOR4_A"/>
+		<interface pin="34" name="" not-connected="true"/>
+		<interface pin="36" name="MOTOR4_B"/>
+		<interface pin="38" name="MOTOR2_B"/>
+		<interface pin="40" name="TEMPERATURE" not-connected="true"/>
+		
+/		<interface pin="35" name="MOTOR1_ENCODER1"/>
+/		<interface pin="37" name="MOTOR1_ENCODER2"/>
+/		<interface pin="39" name="MOTOR2_ENCODER1"/>
+/		<interface pin="41" name="MOTOR2_ENCODER2"/>
+/		<interface pin="43" name="MOTOR3_ENCODER1"/>
+/		<interface pin="45" name="MOTOR3_ENCODER2"/>
+/		<interface pin="47" name="MOTOR4_ENCODER1"/>
+/		<interface pin="49" name="MOTOR4_ENCODER2"/>
+/		<interface pin="51" name="PROXIMITY_SERVO"/>
+/		<interface pin="53" name="BASE1" not-connected="true"/>
+		
+		<interface pin="42" name="BATTERY_LOW"/>
+		<interface pin="44" name="LED_STATUS_GREEN"/>
+		<interface pin="46" name="LED_STATUS_YELLOW"/>
+		<interface pin="48" name="BATTERY_EMPTY"/>
+		<interface pin="50" name="BATTERY_MEDIUM"/>
+		<interface pin="52" name="BATTERY_HIGH"/>
+		
+		<!-- Analog -->
+		<interface pin="A0" not-connected="true"/>
+		<interface pin="A1" not-connected="true"/>
+/		<interface pin="A2" name="PROXIMITY1"/>
+/		<interface pin="A3" name="PROXIMITY2"/>
+		<interface pin="A4" not-connected="true"/>
+		<interface pin="A5" not-connected="true"/>
+		<interface pin="A6" not-connected="true"/>
+/		<interface pin="A7" name="PROXIMITY3"/>
+/		<interface pin="A8" name="PROXIMITY4"/>
+		<interface pin="A9" not-connected="true"/>
+		<interface pin="A10" not-connected="true"/>
+		<!-- Battery voltage divider: R1 = 16.05k, R2 = 9.87k -->
+		<interface pin="A11" name="BATTERY"/>
+		<interface pin="A12" name="MOTOR4_CS"/>
+		<interface pin="A13" name="MOTOR3_CS"/>
+		<interface pin="A14" name="MOTOR1_CS"/>
+		<interface pin="A15" name="MOTOR2_CS"/>
+	</arduino>
+</interfaces>
