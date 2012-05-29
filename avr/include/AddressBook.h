@@ -23,6 +23,7 @@
 #define LED_BATTERY_LOW    42
 #define LED_BATTERY_MEDIUM 50
 #define LED_BATTERY_HIGH   52
+#define LED_BATTERY_FULL   52 // Alias
 
 // BeagleBoard interface
 #define BEAGLEBOARD_BRIDGE1 19
