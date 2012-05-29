@@ -17,6 +17,18 @@ set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/arduino-cmake/cmake/Arduino
 # On the ARM port of Ubuntu Oneiric, arduino-core was at version 0022. I'm not
 # sure if this was due to the version (Oneiric) or the ARM port. I'll try
 # Precise on the ARM processor and see if arduino-core 1.0 is offered by apt.
+#
+# Oneiric includes gcc-avr 1:4.5.3-3, which may contain bugs. Case in point:
+# The compiler bug (http://gcc.gnu.org/bugzilla/show_bug.cgi?id=45263) has
+# tainted many users (the "-3" on the version means Debian backported the
+# patch, so no more compiler bug).
+#
+# gcc-avr can be updated to 4.7 using Quantal Quetzal's packages. Add the
+# following lines to /etc/apt/sources.list:
+# # Ubuntu Quantal Quetzal Repositories (for gcc-avr 1:4.7.0-2)
+# deb http://ports.ubuntu.com/ubuntu-ports/ quantal main universe
+#
+# Then run apt-get update and sudo apt-get install gcc-avr=1:4.7.0-2.
 
 project(avr)
 
