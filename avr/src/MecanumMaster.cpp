@@ -9,6 +9,8 @@
 #include "Blink.h"
 #include "ChristmasTree.h"
 #include "Fade.h"
+#include "Mimic.h"
+#include "Toggle.h"
 
 #include <Arduino.h> // for millis()
 #include <HardwareSerial.h> // for Serial
