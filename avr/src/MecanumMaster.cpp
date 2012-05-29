@@ -24,7 +24,10 @@ MecanumMaster::MecanumMaster()
 	
 	// Test FSMs
 	//fsmv.PushBack(new BatteryMonitor());
-	fsmv.PushBack(new ChristmasTree());
+	//fsmv.PushBack(new ChristmasTree());
+	fsmv.PushBack(new Blink(LED_STATUS_GREEN, 500)); // reference
+	fsmv.PushBack(new Toggle(LED_BATTERY_EMPTY, 50));
+	fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE1, LED_STATUS_YELLOW, 50));
 }
 
 void MecanumMaster::Spin()
