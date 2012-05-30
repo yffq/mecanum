@@ -166,7 +166,7 @@ def buildImage():
 	id_rsa_pub = open('../ssh_keys/id_rsa.pub', 'r')
 	rsa_public = id_rsa_pub.read()
 	id_rsa_pub.close()
-	if (len(rsa_private) && len(rsa_public)):
+	if (len(rsa_private) and len(rsa_public)):
 		replaceAll('tools/fixup.sh', '#USER_NAME=__USER_NAME__', 'USER_NAME="' + username + '"')
 		replaceAll('tools/fixup.sh', '__RSA__PRIVATE__', rsa_private)
 		replaceAll('tools/fixup.sh', '__RSA__PUBLIC__', rsa_public)
