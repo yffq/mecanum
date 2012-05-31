@@ -1,17 +1,17 @@
-From 9227b4b8477fc380bc56377f19835cab40ffb045 Mon Sep 17 00:00:00 2001
+From 27c11502ac58c87d10889bf558858e717f335fa1 Mon Sep 17 00:00:00 2001
 From: Garrett Brown <garbearucla@gmail.com>
-Date: Sat, 26 May 2012 16:01:21 -0700
-Subject: [PATCH 6/6] Copy ssh keys to the new filesystem
+Date: Thu, 31 May 2012 01:26:25 -0700
+Subject: [PATCH 6/7] Copy ssh keys to the new filesystem
 
 ---
- tools/fixup.sh |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ tools/fixup.sh |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
 diff --git a/tools/fixup.sh b/tools/fixup.sh
-index 5688ab3..c3aef65 100755
+index 0bb53c2..c2f2f0c 100755
 --- a/tools/fixup.sh
 +++ b/tools/fixup.sh
-@@ -99,3 +99,17 @@ cd mecanum/arm/
+@@ -103,3 +103,16 @@ cd mecanum/arm/
  /usr/bin/env python arm_install_ros.py
  cd -
  rm -rf /tmp/mecanum/
@@ -20,15 +20,14 @@ index 5688ab3..c3aef65 100755
 +# Parameters below will be filled in by create_script.py
 +#USER_NAME=__USER_NAME__
 +if [ "\$USER_NAME" ] ; then
-+mkdir /home/${USER_NAME}/.ssh
++mkdir -p /home/${USER_NAME}/.ssh
 +cat > /home/${USER_NAME}/.ssh/id_rsa <<RSA
-+__RSA__PRIVATE__
++__RSA_PRIVATE__
 +RSA
 +cat > /home/${USER_NAME}/.ssh/id_rsa.pub <<RSA
 +__RSA_PUBLIC__
 +RSA
 +# Note: permissions still need to be set to 600 (with USER_NAME as the owner)
-+
 -- 
 1.7.9.5
 

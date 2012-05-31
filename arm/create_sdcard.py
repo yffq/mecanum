@@ -13,17 +13,27 @@ def main():
 	os.chdir(path)
 	loadSettings()
 	#buildKernel()
-	#buildInstallQemu()
+	#buildInstallQemu() # For now, assume this is installed, in the future, detect
 	buildImage()
 	setupCard()
 
 # Utility function
 # http://stackoverflow.com/questions/39086/search-and-replace-a-line-in-a-file-in-python
 def replaceAll(file, searchExp, replaceExp):
-	for line in fileinput.input(file, inplace = 1):
+	for line in fileinput.input(file, inplace=1):
 		if searchExp in line:
 			line = line.replace(searchExp, replaceExp)
 		sys.stdout.write(line)
+
+def gitCleanup():
+	subprocess.call(['git', 'am', '--abort'])
+	subprocess.call(['git', 'add', '.'])
+	subprocess.call(['git', 'commit', '--allow-empty', '-a', '-m', 'empty cleanup commit'])
+	subprocess.call(['git', 'checkout', 'origin/master', '-b', 'tmp-master'])
+	subprocess.call(['git', 'branch', '-D', 'master']) # &>/dev/null || true
+	subprocess.call(['git', 'checkout', 'origin/master', '-b', 'master'])
+	subprocess.call(['git', 'branch', '-D', 'tmp-master']) # &>/dev/null || true
+	subprocess.call(['git', 'pull'])
 
 def loadSettings():
 	global username, name, password, fqdn, mmc, macaddress, packages
@@ -70,7 +80,7 @@ def buildKernel():
 		os.chdir('stable-kernel')
 	else:
 		os.chdir('stable-kernel')
-		subprocess.call(['git', 'pull', 'origin'])
+		gitCleanup()
 	
 	# Configure the kernel build script
 	shutil.copyfile('system.sh.sample', 'system.sh') # Overwrites existing file
@@ -108,7 +118,7 @@ def buildInstallQemu():
 	else:
 		os.chdir('linaro-tools')
 		subprocess.call(['git', 'reset', '--hard', 'HEAD'])
-		subprocess.call(['git', 'pull', 'origin'])
+		subprocess.call(['git', 'pull'])
 	
 	# Build and install qemu
 	os.chdir('qemu') # MUST CD INTO DIRECTORY
@@ -116,9 +126,24 @@ def buildInstallQemu():
 	os.chdir('..')
 	os.chdir('..')
 
-# Observed: 42 minutes to build image on Core i7 (before adding extra packages)
 def buildImage():
 	global username, name, password, fqdn, packages
+	
+	# Look for a kernel image
+	imgpath = False # Discovered image goes here
+	for path in ['images', os.path.join('stable-kernel', 'deploy')]:
+		if not os.path.exists(path):
+			continue
+		files = sorted(os.listdir(path), reverse=True)
+		for f in files:
+			if f.endswith('.deb') and 'image' in f:
+				imgpath = os.path.realpath(os.path.join(path, f))
+				print('Found kernel image: ' + imgpath)
+				print('rootstock will use this local image instead of http://rcn-ee.net')
+				break
+		if imgpath:
+			break
+	
 	# Clone RCN's git repository
 	print('Building Ubuntu image')
 	if not os.path.isdir('omap-image-builder'):
@@ -128,29 +153,24 @@ def buildImage():
 	else:
 		os.chdir('omap-image-builder')
 		subprocess.call(['git', 'reset', '--hard', 'HEAD'])
-		subprocess.call(['git', 'checkout', 'master'])
-		#subprocess.call(['git', 'pull', 'origin', 'master'])
+		gitCleanup()
 		subprocess.call(['git', 'branch', '-D', 'mecanum'])
 		subprocess.call(['git', 'checkout', '-b', 'mecanum'])
 	
-	# 0001-Only-build-Precise-image.patch
-	subprocess.call(['git', 'am', os.path.join(os.path.realpath('..'), 'patches',
-		'omap-image-builder', '0001-Only-build-Precise-image.patch')])
-	# 0002-Include-additional-packages-specified-in-settings.xm.patch
-	subprocess.call(['git', 'am', os.path.join(os.path.realpath('..'), 'patches',
-		'omap-image-builder', '0002-Include-additional-packages-specified-in-settings.xm.patch')])
-	# 0003-Force-MAC-address.patch
-	subprocess.call(['git', 'am', os.path.join(os.path.realpath('..'), 'patches',
-		'omap-image-builder', '0003-Force-MAC-address.patch')])
-	# 0004-Remove-text-from-etc-flash-kernel.conf.patch
-	subprocess.call(['git', 'am', os.path.join(os.path.realpath('..'), 'patches',
-		'omap-image-builder', '0004-Remove-text-from-etc-flash-kernel.conf.patch')])
-	# 0005-Run-script-to-install-ros.patch
-	subprocess.call(['git', 'am', os.path.join(os.path.realpath('..'), 'patches',
-		'omap-image-builder', '0005-Run-script-to-install-ros.patch')])
-	# 0006-Copy-ssh-keys-to-the-new-filesystem.patch
-	subprocess.call(['git', 'am', os.path.join(os.path.realpath('..'), 'patches',
-		'omap-image-builder', '0006-Copy-ssh-keys-to-the-new-filesystem.patch')])
+	patches = [
+		'0001-Only-build-Precise-image.patch',
+		'0002-Include-additional-packages-specified-in-settings.xm.patch',
+		'0003-Force-MAC-address.patch',
+		'0004-Remove-text-from-etc-flash-kernel.conf.patch',
+		'0005-Run-script-to-install-ros.patch',
+		'0006-Copy-ssh-keys-to-the-new-filesystem.patch']
+	
+	if imgpath:
+		patches.append('0007-Primary-kernel-is-on-local-filesystem.patch')
+	
+	for p in patches:
+		subprocess.call(['git', 'am', os.path.join(os.path.realpath('..'), 'patches',
+			'omap-image-builder', p)])
 	
 	#subprocess.call(['git', 'checkout', 'v2012.4-1', '-b', 'v2012.4-1'])
 	
@@ -160,6 +180,10 @@ def buildImage():
 	replaceAll('build_image.sh', 'USER_PASS="temppwd"', 'USER_PASS="' + password + '"')
 	replaceAll('build_image.sh', 'USER_NAME="Demo User"', 'USER_NAME="' + name + '"')
 	replaceAll('build_image.sh', '__MECANUM_PACKAGES__', ','.join(packages))
+	#linux-image-3.2.18-x12_1.0precise_armhf.deb
+	replaceAll('build_image.sh', '__KERNEL_DEB_FILE__', os.path.join(os.path.realpath('..'),
+		'stable-kernel', 'deploy', 'linux-image-3.2.18-x12.1+_1.0cross_armel.deb'))
+	
 	replaceAll('tools/fixup.sh', 'DE:AD:BE:EF:CA:FE', macaddress)
 	# Attempt to copy our ssh keys to the new filesystem
 	id_rsa = open('../ssh_keys/id_rsa', 'r')
@@ -170,10 +194,12 @@ def buildImage():
 	id_rsa_pub.close()
 	if (len(rsa_private) and len(rsa_public)):
 		replaceAll('tools/fixup.sh', '#USER_NAME=__USER_NAME__', 'USER_NAME="' + username + '"')
-		replaceAll('tools/fixup.sh', '__RSA__PRIVATE__', rsa_private)
-		replaceAll('tools/fixup.sh', '__RSA__PUBLIC__', rsa_public)
+		replaceAll('tools/fixup.sh', '__RSA_PRIVATE__', rsa_private)
+		replaceAll('tools/fixup.sh', '__RSA_PUBLIC__', rsa_public)
 	
 	# Build the image
+	replaceAll('build_image.sh', 'minimal_armel\n', '#minimal_armel\n')
+	replaceAll('build_image.sh', 'compression\n', '#compression\n')
 	subprocess.call(['./build_image.sh'])
 	os.chdir('..')
 
@@ -184,10 +210,26 @@ def setupCard():
 	subprocess.call(['sudo', 'apt-get', '-y', 'install',
 		'uboot-mkimage', 'wget', 'pv', 'dosfstools', 'parted'])
 	# Build the image
-	os.chdir('omap-image-builder')
-	os.chdir('deploy')
-	os.chdir('2012-05-26-STABLE') # TODO: Enter last folder
-	os.chdir('ubuntu-12.04-r3-minimal-armhf') # TODO: Enter only folder
+	deploy = os.path.join('omap-image-builder', 'deploy')
+	if not os.path.exists(deploy):
+		print('Error: omap-image-builder directory doesn\'t exist. Try running buildImage()')
+		return
+	os.chdir(deploy)
+	for f in sorted(os.listdir('.'), reverse=True):
+		if not os.path.isfile(f):
+			os.chdir(f)
+			break
+	else:
+		print('Error: images not found. Try running buildImage()')
+		return
+	# Enter the only folder
+	for f in os.listdir('.'):
+		if not os.path.isfile(f):
+			os.chdir(f)
+			break
+	else:
+		print('Error: images not found. Try running buildImage()')
+		return
 	subprocess.call(['sudo', './setup_sdcard.sh', '--mmc', mmc,
 		'--uboot', 'beagle_xm', '--rootfs', fs,
 		'--boot_label', 'boot', '--rootfs_label', 'rootfs'])
@@ -199,4 +241,3 @@ def setupCard():
 
 if __name__ == "__main__":
 	main()
-

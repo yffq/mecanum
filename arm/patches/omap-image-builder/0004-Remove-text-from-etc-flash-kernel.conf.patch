@@ -1,14 +1,14 @@
-From c9a475adb614461f10eafa57878a9aaeaaceeebc Mon Sep 17 00:00:00 2001
+From d9955ade37afa151507f82560af543f80aec6525 Mon Sep 17 00:00:00 2001
 From: Garrett Brown <garbearucla@gmail.com>
 Date: Sat, 26 May 2012 15:04:27 -0700
-Subject: [PATCH 4/6] Remove text from /etc/flash-kernel.conf
+Subject: [PATCH 4/7] Remove text from /etc/flash-kernel.conf
 
 ---
  tools/fixup.sh |    3 ---
  1 file changed, 3 deletions(-)
 
 diff --git a/tools/fixup.sh b/tools/fixup.sh
-index a62d4a8..ee72bf0 100755
+index 9ea7c37..98e5be0 100755
 --- a/tools/fixup.sh
 +++ b/tools/fixup.sh
 @@ -27,9 +27,6 @@ cat > /etc/flash-kernel.conf <<FK

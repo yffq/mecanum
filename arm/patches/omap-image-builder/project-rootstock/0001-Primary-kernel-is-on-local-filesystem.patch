@@ -1,0 +1,47 @@
+From e49df4beb5132544ac59c618a4f9d802d18ecc56 Mon Sep 17 00:00:00 2001
+From: Garrett Brown <garbearucla@gmail.com>
+Date: Wed, 30 May 2012 16:27:29 -0700
+Subject: [PATCH] Primary kernel is on local filesystem
+
+---
+ rootstock |   13 +++----------
+ 1 file changed, 3 insertions(+), 10 deletions(-)
+
+diff --git a/rootstock b/rootstock
+index bcdeee2..91a6de8 100755
+--- a/rootstock
++++ b/rootstock
+@@ -542,9 +542,7 @@ use_swap()
+ 
+ setup_kernel_image()
+ {
+-    log "I: Downloading kernel image (deb) from external site"
+-
+-    KERNEL_IMG=${KERNEL_URL##*/}
++    KERNEL_IMG=$(basename $KERNEL_URL)
+     test -d $ROOTFS/tmp/ || mkdir -p $ROOTFS/tmp/
+ 
+     if [ "$RESTORE_PACKAGE_CACHE" ] && \
+@@ -552,17 +550,12 @@ setup_kernel_image()
+         log "I: Found cached $KERNEL_IMG, skipping download"
+         cp $CACHEDIR/kernel/$KERNEL_IMG $ROOTFS/tmp
+     else
+-        KERNELDIR=$(mktemp -d)
+-        log "I: wget --directory-prefix=$KERNELDIR $KERNEL_URL"
+-        wget --directory-prefix=$KERNELDIR --quiet $KERNEL_URL
+-        log "I: $KERNEL_IMG download complete"
+-        cp $KERNELDIR/$KERNEL_IMG $ROOTFS/tmp
++        cp $KERNEL_URL $ROOTFS/tmp
+ 
+         if [ "$COPY_PACKAGE_CACHE" ];then
+             mkdir -p $CACHEDIR/kernel
+-            cp $KERNELDIR/$KERNEL_IMG $CACHEDIR/kernel
++            cp $KERNEL_URL $CACHEDIR/kernel
+         fi
+-        rm -rf $KERNELDIR
+     fi
+ 
+     #Hack dpkg -i fails, no postinstall script is run anyways, so lets just extract it.
+-- 
+1.7.9.5
+

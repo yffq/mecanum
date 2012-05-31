@@ -4,3 +4,8 @@
 /omap-image-builder
 /ros-underlay
 /stable-kernel
+
+# Folder for generated images
+/images/*
+!.gitignore
+

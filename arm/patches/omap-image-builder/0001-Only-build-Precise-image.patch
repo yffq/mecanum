@@ -1,14 +1,14 @@
-From 7e54b38bbba6888b0d5139820c0dbafa2153368b Mon Sep 17 00:00:00 2001
+From e1ad838641aa6e29c62b2a5de5cd06859463774d Mon Sep 17 00:00:00 2001
 From: Garrett Brown <garbearucla@gmail.com>
 Date: Fri, 18 May 2012 10:27:19 -0700
-Subject: [PATCH 1/6] Only build Precise image
+Subject: [PATCH 1/7] Only build Precise image
 
 ---
  build_image.sh |   12 ++++++------
  1 file changed, 6 insertions(+), 6 deletions(-)
 
 diff --git a/build_image.sh b/build_image.sh
-index 09e2910..56ea5b9 100755
+index 5f17df1..d3a7941 100755
 --- a/build_image.sh
 +++ b/build_image.sh
 @@ -427,14 +427,14 @@ SECONDARY_KERNEL_SEL="STABLE"

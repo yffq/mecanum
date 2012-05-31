@@ -1,17 +1,17 @@
-From 16c7470fdfa8f12b5774e98c0c982d145e4e5c04 Mon Sep 17 00:00:00 2001
+From c8b9cba8df13a22f01561e4ff4c92eaa676b6da4 Mon Sep 17 00:00:00 2001
 From: Garrett Brown <garbearucla@gmail.com>
 Date: Sat, 26 May 2012 15:50:59 -0700
-Subject: [PATCH 5/6] Run script to install ros
+Subject: [PATCH 5/7] Run script to install ros
 
 ---
  tools/fixup.sh |    7 +++++++
  1 file changed, 7 insertions(+)
 
 diff --git a/tools/fixup.sh b/tools/fixup.sh
-index ee72bf0..5688ab3 100755
+index 98e5be0..0bb53c2 100755
 --- a/tools/fixup.sh
 +++ b/tools/fixup.sh
-@@ -92,3 +92,10 @@ rm -f /tmp/*.deb || true
+@@ -96,3 +96,10 @@ rm -f /tmp/*.deb || true
  rm -rf /usr/src/linux-headers* || true
  rm -f /rootstock-user-script || true
  

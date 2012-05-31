@@ -1,0 +1,72 @@
+From fecb4fbc4de1b9b48a3c0055ac40ff910938e555 Mon Sep 17 00:00:00 2001
+From: Garrett Brown <garbearucla@gmail.com>
+Date: Wed, 30 May 2012 23:55:45 -0700
+Subject: [PATCH 7/7] Primary kernel is on local filesystem
+
+---
+ build_image.sh |   40 +++++++++++++++-------------------------
+ 1 file changed, 15 insertions(+), 25 deletions(-)
+
+diff --git a/build_image.sh b/build_image.sh
+index 858174b..0135e70 100755
+--- a/build_image.sh
++++ b/build_image.sh
+@@ -146,8 +146,22 @@ function dl_rootstock {
+  fi
+ 
+  cd ${DIR}/git/project-rootstock
++
++ # Patch rootstock to use primary kernel on local filesystem
++ git am --abort || echo "git tree is clean..."
++ git add .
++ git commit --allow-empty -a -m 'empty cleanup commit'
++
++ git checkout origin/master -b tmp-master
++ git branch -D master &>/dev/null || true
++
++ git checkout origin/master -b master
++ git branch -D tmp-master &>/dev/null || true
++
+  git pull
+ 
++ git am "${DIR}/../patches/omap-image-builder/project-rootstock/0001-Primary-kernel-is-on-local-filesystem.patch"
++
+  cd ${DIR}/deploy/
+ }
+ 
+@@ -217,31 +231,7 @@ fi
+ 
+ function kernel_select {
+ 
+-unset OVERRIDE
+-#OVERRIDE="v3.2.17-x11"
+-
+-if [ ! "${OVERRIDE}" ] ; then
+-
+-if [ -f /tmp/LATEST-${SUBARCH} ] ; then
+-	rm -f /tmp/LATEST-${SUBARCH}
+-fi
+-
+-wget --no-verbose --directory-prefix=/tmp/ http://rcn-ee.net/deb/${DIST}-${ARCH}/LATEST-${SUBARCH}
+-FTP_DIR=$(cat /tmp/LATEST-${SUBARCH} | grep "ABI:1 ${PRIMARY_KERNEL_SEL}" | awk '{print $3}')
+-FTP_DIR=$(echo ${FTP_DIR} | awk -F'/' '{print $6}')
+-else
+-FTP_DIR=${OVERRIDE}
+-fi
+-
+-if [ -f /tmp/index.html ] ; then
+-	rm -f /tmp/index.html
+-fi
+-
+-wget --no-verbose --directory-prefix=/tmp/ http://rcn-ee.net/deb/${DIST}-${ARCH}/${FTP_DIR}/
+-ACTUAL_DEB_FILE=$(cat /tmp/index.html | grep linux-image | awk -F "\"" '{print $2}')
+-
+-PRIMARY_KERNEL="--kernel-image ${DEB_MIRROR}/${DIST}-${ARCH}/${FTP_DIR}/${ACTUAL_DEB_FILE}"
+-
++PRIMARY_KERNEL="--kernel-image __KERNEL_DEB_FILE__"
+ echo "Using: ${PRIMARY_KERNEL}"
+ 
+ }
+-- 
+1.7.9.5
+
