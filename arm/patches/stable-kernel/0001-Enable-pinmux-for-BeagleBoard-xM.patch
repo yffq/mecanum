@@ -1,0 +1,76 @@
+From 311e0e32474368ceb7ef42b68616adfd5b9a7cd3 Mon Sep 17 00:00:00 2001
+From: Garrett Brown <garbearucla@gmail.com>
+Date: Wed, 30 May 2012 15:15:04 -0700
+Subject: [PATCH] Enable pinmux for BeagleBoard xM
+
+---
+ arch/arm/mach-omap2/board-omap3beagle.c |   53 +++++++++++++++++++++++++++++++
+ 1 file changed, 53 insertions(+)
+
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 7be8d65..9c4605e 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -469,6 +469,59 @@ static const struct usbhs_omap_board_data usbhs_bdata __initconst = {
+ 
+ #ifdef CONFIG_OMAP_MUX
+ static struct omap_board_mux board_mux[] __initdata = {
++	/*
++	 * Pin  GPIO  Ball (SRM)   Mode (SRM)  Mode (CBB/CBP)
++	 *   3   139       AE3     MMC2_DAT7     SDMMC2_DAT7
++	 *   4   144      AB26     UART2_CTS       UART2_CTS
++	 *   5   138       AF3     MMC2_DAT6     SDMMC2_DAT6
++	 *   6   146      AA25      UART2_TX        UART2_TX
++	 *   7   137       AH3     MMC2_DAT5     SDMMC2_DAT5
++	 *   8   143       AE5    MCBSP3_FSX      MCBSP3_FSX
++	 *   9   136       AE4     MMC2_DAT4     SDMMC2_DAT4
++	 *  10   145      AB25     UART2_RTS       UART2_RTS
++	 *  11   135       AF4     MMC2_DAT3     SDMMC2_DAT3
++	 *  12   158       V21     McBSP1_DX       MCBSP1_DX
++	 *  13   134       AG4     MMC2_DAT2     SDMMC2_DAT2
++	 *  14   162       W21   McBSP1_CLKX     MCBSP1_CLKX
++	 *  15   133       AH4     MMC2_DAT1     SDMMC2_DAT1
++	 *  16   161       K26    McBSP1_FSX      MCBSP1_FSX
++	 *  17   132       AH5     MMC2_DAT0     SDMMC2_DAT0
++	 *  18   159       U21     McBSP1_DR       MCBSP1_DR
++	 *  19   131       AG5      MMC2_CMD      SDMMC2_CMD
++	 *  20   156       Y21   McBSP1_CLKR     MCBSP1_CLKR
++	 *  21   130       AE2     MMC2_CLKO      SDMMC2_CLK
++	 *  22   157      AA21    McBSP1_FSR      MCBSP1_FSR
++	 *  23   183      AE15      I2C2_SDA        I2C2_SDA
++	 *  24   168      AF15      I2C2_SCL        I2C2_SCL
++	 */
++
++#define GPIO_MODE OMAP_MUX_MODE4 | OMAP_PIN_INPUT_PULLUP
++#define I2C_MODE  OMAP_MUX_MODE0 | OMAP_INPUT_EN
++
++	/*  3 */ OMAP3_MUX(SDMMC2_DAT7, GPIO_MODE),
++	/*  4 */ OMAP3_MUX(UART2_CTS, GPIO_MODE),
++	/*  5 */ OMAP3_MUX(SDMMC2_DAT6, GPIO_MODE),
++	/*  6 */ OMAP3_MUX(UART2_TX, GPIO_MODE),
++	/*  7 */ OMAP3_MUX(SDMMC2_DAT5, GPIO_MODE),
++	/*  8 */ OMAP3_MUX(MCBSP3_FSX, GPIO_MODE),
++	/*  9 */ OMAP3_MUX(SDMMC2_DAT4, GPIO_MODE),
++	/* 10 */ OMAP3_MUX(UART2_RTS, GPIO_MODE),
++	/* 11 */ OMAP3_MUX(SDMMC2_DAT3, GPIO_MODE),
++	/* 12 */ OMAP3_MUX(MCBSP1_DX, GPIO_MODE),
++	/* 13 */ OMAP3_MUX(SDMMC2_DAT2, GPIO_MODE),
++	/* 14 */ OMAP3_MUX(MCBSP1_CLKX, GPIO_MODE),
++	/* 15 */ OMAP3_MUX(SDMMC2_DAT1, GPIO_MODE),
++	/* 16 */ OMAP3_MUX(MCBSP1_FSX, GPIO_MODE),
++	/* 17 */ OMAP3_MUX(SDMMC2_DAT0, GPIO_MODE),
++	/* 18 */ OMAP3_MUX(MCBSP1_DR, GPIO_MODE),
++	/* 19 */ OMAP3_MUX(SDMMC2_CMD, GPIO_MODE),
++	/* 20 */ OMAP3_MUX(MCBSP1_CLKR, GPIO_MODE),
++	/* 21 */ OMAP3_MUX(SDMMC2_CLK, GPIO_MODE),
++	/* 22 */ OMAP3_MUX(MCBSP1_FSR, GPIO_MODE),
++	/* 23 */ OMAP3_MUX(I2C2_SDA, I2C_MODE),
++	/* 24 */ OMAP3_MUX(I2C2_SCL, I2C_MODE),
++	
++	/* And I'm spent */
+ 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+ };
+ #endif
+-- 
+1.7.9.5
+

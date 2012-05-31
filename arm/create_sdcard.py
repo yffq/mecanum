@@ -83,13 +83,15 @@ def buildKernel():
 	# This is very useful during an intial 'rc0' merge.
 	# It is never supported... Enable at your own risk
 	#file.write('LATEST_GIT=1' + '\n')
+	file.write('LOCAL_PATCH_DIR=' + os.path.join(os.path.realpath('..'),
+		'patches', 'stable-kernel') + '\n')
 	file.close()
 	# Adding the CC parameter is a little more complex... we need to seek out
 	# the config line and uncomment it.
 	replaceAll('system.sh', '#CC=arm-linux-gnueabi-', 'CC=arm-linux-gnueabi-')
 	
 	# Build the kernel
-	subprocess.call(['./build_kernel.sh'])
+	subprocess.call(['./build_deb.sh'])
 	os.chdir('..')
 
 def buildInstallQemu():
