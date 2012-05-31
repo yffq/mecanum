@@ -1,0 +1,24 @@
+From a7e37ab2981b9ef34cbef448d4707337325098d4 Mon Sep 17 00:00:00 2001
+From: Garrett Brown <garbearucla@gmail.com>
+Date: Thu, 31 May 2012 03:14:50 -0700
+Subject: [PATCH] Change boot delay to 0 seconds
+
+---
+ include/configs/omap3_beagle.h |    3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/include/configs/omap3_beagle.h b/include/configs/omap3_beagle.h
+index b891ee4..f01e249 100644
+--- a/include/configs/omap3_beagle.h
++++ b/include/configs/omap3_beagle.h
+@@ -447,4 +447,7 @@
+ #define CONFIG_SYS_SPL_MALLOC_START	0x80208000
+ #define CONFIG_SYS_SPL_MALLOC_SIZE	0x100000
+ 
++#undef CONFIG_BOOTDELAY
++#define CONFIG_BOOTDELAY 0
++
+ #endif /* __CONFIG_H */
+-- 
+1.7.9.5
+

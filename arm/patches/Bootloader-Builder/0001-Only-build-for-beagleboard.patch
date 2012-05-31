@@ -1,0 +1,34 @@
+From a885ff82db2cf4b4aba0d1b121596193b3fe9aff Mon Sep 17 00:00:00 2001
+From: Garrett Brown <garbearucla@gmail.com>
+Date: Thu, 31 May 2012 02:56:19 -0700
+Subject: [PATCH 1/2] Only build for beagleboard
+
+---
+ build.sh |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/build.sh b/build.sh
+index 48429c3..a76b41d 100755
+--- a/build.sh
++++ b/build.sh
+@@ -426,11 +426,11 @@ set_cross_compiler
+ 
+ #at91sam9xeek
+ 
+-am3517crane
++#am3517crane
+ beagleboard
+-beaglebone
+-igep00x0
+-mx51evk
+-mx53loco
+-pandaboard
++#beaglebone
++#igep00x0
++#mx51evk
++#mx53loco
++#pandaboard
+ 
+-- 
+1.7.9.5
+

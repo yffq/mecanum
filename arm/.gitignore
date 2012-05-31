@@ -1,4 +1,5 @@
 # Git repositories downloaded by create_sdcard.py
+/Bootloader-Builder
 /linaro-tools
 /linux-stable
 /omap-image-builder

@@ -12,6 +12,7 @@ def main():
 	path = os.path.dirname(os.path.realpath(__file__))
 	os.chdir(path)
 	loadSettings()
+	#buildBootloader()
 	#buildKernel()
 	#buildInstallQemu() # For now, assume this is installed, in the future, detect
 	buildImage()
@@ -57,6 +58,28 @@ def loadSettings():
 	print('MMC: ' + mmc)
 	print('MAC address: ' + macaddress)
 	print('Packages: ' + ' '.join(packages))
+
+def buildBootloader():
+	# Clone RCN's git repository
+	print('Building bootloader')
+	if not os.path.isdir('Bootloader-Builder'):
+		subprocess.call(['git', 'clone', 'git://github.com/RobertCNelson/Bootloader-Builder.git', 'Bootloader-Builder'])
+		os.chdir('Bootloader-Builder')
+	else:
+		os.chdir('Bootloader-Builder')
+		gitCleanup()
+	
+	# Patch the bootloader
+	patches = [
+		'0001-Only-build-for-beagleboard.patch',
+		'0002-Add-patch-to-change-boot-delay-to-0-seconds.patch']
+	for patch in patches:
+		subprocess.call(['git', 'am', os.path.join(os.path.realpath('..'), 'patches',
+			'Bootloader-Builder', patch)])
+	
+	# Build the bootloader
+	subprocess.call(['./build.sh'])
+	os.chdir('..')
 
 def buildKernel():
 	global mmc

@@ -1,0 +1,26 @@
+From 4275bcd9c7f8823950691a9c114e0422fcca5b36 Mon Sep 17 00:00:00 2001
+From: Garrett Brown <garbearucla@gmail.com>
+Date: Thu, 31 May 2012 03:17:12 -0700
+Subject: [PATCH 2/2] Add patch to change boot delay to 0 seconds
+
+---
+ build.sh |    3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/build.sh b/build.sh
+index a76b41d..153137b 100755
+--- a/build.sh
++++ b/build.sh
+@@ -221,6 +221,9 @@ function build_u-boot {
+ 		git pull ${GIT_OPTS} git://github.com/RobertCNelson/u-boot.git am335xpsp_04.06.00.08
+ 	fi
+ 
++	# Patches for Mecanum Bot
++	git am "${DIR}/../patches/Bootloader-Builder/u-boot/0001-Change-boot-delay-to-0-seconds.patch"
++
+ 	make ARCH=arm CROSS_COMPILE=${CC} ${UBOOT_CONFIG}
+ 	echo "Building u-boot: ${BOARD}-${UGIT_VERSION}${RELEASE_VER}"
+ 	time make ARCH=arm CROSS_COMPILE="${CCACHE} ${CC}" > /dev/null
+-- 
+1.7.9.5
+
