@@ -1,4 +1,4 @@
-From fecb4fbc4de1b9b48a3c0055ac40ff910938e555 Mon Sep 17 00:00:00 2001
+From 26af2e90cb81c30341191a517b9e28607b97c98e Mon Sep 17 00:00:00 2001
 From: Garrett Brown <garbearucla@gmail.com>
 Date: Wed, 30 May 2012 23:55:45 -0700
 Subject: [PATCH 7/7] Primary kernel is on local filesystem

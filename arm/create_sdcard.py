@@ -187,7 +187,7 @@ def buildImage():
 		'0003-Force-MAC-address.patch',
 		'0004-Remove-text-from-etc-flash-kernel.conf.patch',
 		#'0005-Run-script-to-install-ros.patch',
-		'0006-Copy-ssh-keys-to-the-new-filesystem.patch']
+		'0006-Copy-keys-to-the-new-filesystem.patch']
 	
 	if imgpath:
 		patches.append('0007-Primary-kernel-is-on-local-filesystem.patch')

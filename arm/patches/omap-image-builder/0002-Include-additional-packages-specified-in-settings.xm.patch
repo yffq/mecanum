@@ -1,4 +1,4 @@
-From 49244d32b8332e1a6b73f2a09b23fd7bbe0758cd Mon Sep 17 00:00:00 2001
+From 57e0014145f7bac8f7cbd759ea8e33424445e8d1 Mon Sep 17 00:00:00 2001
 From: Garrett Brown <garbearucla@gmail.com>
 Date: Fri, 18 May 2012 11:04:41 -0700
 Subject: [PATCH 2/7] Include additional packages specified in settings.xml

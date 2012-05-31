@@ -1,4 +1,4 @@
-From c8b9cba8df13a22f01561e4ff4c92eaa676b6da4 Mon Sep 17 00:00:00 2001
+From 2d0d604f26e65a5f5c3b4099a031a48635d8d175 Mon Sep 17 00:00:00 2001
 From: Garrett Brown <garbearucla@gmail.com>
 Date: Sat, 26 May 2012 15:50:59 -0700
 Subject: [PATCH 5/7] Run script to install ros
