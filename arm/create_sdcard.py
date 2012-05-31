@@ -70,6 +70,7 @@ def buildBootloader():
 		gitCleanup()
 	
 	# Patch the bootloader
+	# GPIO mux settings can be found in u-boot/board/ti/beagle/beagle.h
 	patches = [
 		'0001-Only-build-for-beagleboard.patch',
 		'0002-Add-patch-to-change-boot-delay-to-0-seconds.patch']
