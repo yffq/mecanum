@@ -228,9 +228,40 @@ def buildImage():
 def setupCard():
 	global mmc
 	fs = 'ext4' # btrfs is waaaaaaaaay too slow on a microSD card
+	
 	# Install dependencies
 	subprocess.call(['sudo', 'apt-get', '-y', 'install',
 		'uboot-mkimage', 'wget', 'pv', 'dosfstools', 'parted'])
+	
+	# Look for u-boot and MLO
+	useStable = True # as opposed to latest GIT
+	uboot = False
+	mlo = False
+	ubootdir = os.path.join('Bootloader-Builder', 'deploy', 'beagleboard')
+	if os.path.exists(ubootdir):
+		found = useStable
+		for f in sorted(os.listdir(ubootdir), reverse=True):
+			if os.path.isfile(os.path.join(ubootdir, f)) and 'MLO' in f:
+				# Stable will end in -r1. GIT will end in -def (three hex chars)
+				# Therefore, in the real stable image comes last and the latest
+				# GIT will be second-to-last. Simply use "useStable" as a flag
+				# to target the second-to-last.
+				if found:
+					mlo = os.path.realpath(os.path.join(ubootdir, f))
+					print('Found MLO: ' + mlo)
+					break
+				else:
+					found = True
+		found = useStable
+		for f in sorted(os.listdir(ubootdir), reverse=True):
+			if os.path.isfile(os.path.join(ubootdir, f)) and 'u-boot' in f:
+				if found:
+					uboot = os.path.realpath(os.path.join(ubootdir, f))
+					print('Found u-boot: ' + uboot)
+					break
+				else:
+					found = True
+	
 	# Build the image
 	deploy = os.path.join('omap-image-builder', 'deploy')
 	if not os.path.exists(deploy):
@@ -252,9 +283,12 @@ def setupCard():
 	else:
 		print('Error: images not found. Try running buildImage()')
 		return
-	subprocess.call(['sudo', './setup_sdcard.sh', '--mmc', mmc,
+	cmd = ['sudo', './setup_sdcard.sh', '--mmc', mmc,
 		'--uboot', 'beagle_xm', '--rootfs', fs,
-		'--boot_label', 'boot', '--rootfs_label', 'rootfs'])
+		'--boot_label', 'boot', '--rootfs_label', 'rootfs']
+	if uboot and mlo:
+		cmd.extend(['--bootloader', uboot, '--spl', mlo])
+	subprocess.call(cmd)
 	os.chdir('..')
 	os.chdir('..')
 	os.chdir('..')
