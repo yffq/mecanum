@@ -180,9 +180,9 @@ def buildImage():
 	replaceAll('build_image.sh', 'USER_PASS="temppwd"', 'USER_PASS="' + password + '"')
 	replaceAll('build_image.sh', 'USER_NAME="Demo User"', 'USER_NAME="' + name + '"')
 	replaceAll('build_image.sh', '__MECANUM_PACKAGES__', ','.join(packages))
-	#linux-image-3.2.18-x12_1.0precise_armhf.deb
-	replaceAll('build_image.sh', '__KERNEL_DEB_FILE__', os.path.join(os.path.realpath('..'),
-		'stable-kernel', 'deploy', 'linux-image-3.2.18-x12.1+_1.0cross_armel.deb'))
+	if imgpath:
+		# Kernel image, e.g. linux-image-3.2.18-x12_1.0precise_armhf.deb
+		replaceAll('build_image.sh', '__KERNEL_DEB_FILE__', imgpath)
 	
 	replaceAll('tools/fixup.sh', 'DE:AD:BE:EF:CA:FE', macaddress)
 	# Attempt to copy our ssh keys to the new filesystem
@@ -198,8 +198,6 @@ def buildImage():
 		replaceAll('tools/fixup.sh', '__RSA_PUBLIC__', rsa_public)
 	
 	# Build the image
-	replaceAll('build_image.sh', 'minimal_armel\n', '#minimal_armel\n')
-	replaceAll('build_image.sh', 'compression\n', '#compression\n')
 	subprocess.call(['./build_image.sh'])
 	os.chdir('..')
 
