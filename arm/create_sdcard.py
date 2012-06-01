@@ -228,6 +228,7 @@ def buildImage():
 def setupCard():
 	global mmc
 	fs = 'ext4' # btrfs is waaaaaaaaay too slow on a microSD card
+	swap = 512 # MB (equal to amount of RAM, set to zero to disable)
 	
 	# Install dependencies
 	subprocess.call(['sudo', 'apt-get', '-y', 'install',
@@ -288,6 +289,8 @@ def setupCard():
 		'--boot_label', 'boot', '--rootfs_label', 'rootfs']
 	if uboot and mlo:
 		cmd.extend(['--bootloader', uboot, '--spl', mlo])
+	if swap:
+		cmd.extend(['--swap_file', swap])
 	subprocess.call(cmd)
 	os.chdir('..')
 	os.chdir('..')
