@@ -1,11 +1,11 @@
 <interfaces>
 	<bealgeboard>
-		<interface expansion="3" name="BUTTON_GREEN" gpio="139"/> <!-- works -->
-		<interface expansion="4" name="THUMBWHEEL1" gpio="144"/> <!-- always 0 value -->
-		<interface expansion="5" name="BUTTON_YELLOW" gpio="138"/> <!-- works -->
-		<interface expansion="6" name="BUTTON_RED" gpio="146"/> <!-- always 0 value, 1.8V -->
-		<interface expansion="7" name="THUMBWHEEL4" gpio="137"/> <!-- works -->
-		<interface expansion="8" name="THUMBWHEEL2" gpio="143"/> <!-- always 0 value -->
+		<interface expansion="3" name="BUTTON_GREEN" gpio="139"/>
+		<interface expansion="4" name="" gpio="144"/> <!-- always 0 value -->
+		<interface expansion="5" name="BUTTON_YELLOW" gpio="138"/>
+		<interface expansion="6" name="THUMBWHEEL2" gpio="146"/>
+		<interface expansion="7" name="THUMBWHEEL4" gpio="137"/>
+		<interface expansion="8" name="BUTTON_RED" gpio="143"/>
 		<interface expansion="9" name="BRIDGE5" gpio="136"/> <!-- works -->
 		<interface expansion="10" name="BRIDGE2" gpio="145"/> <!-- always 1.8V -->
 		<interface expansion="11" name="" gpio="135"/> <!-- doesn't seem to work -->
@@ -16,7 +16,7 @@
 		<interface epxansion="16" name="BRIDGE3" gpio="161"/> <!-- works -->
 		<interface expansion="17" name="" gpio="132"/>
 		<interface expansion="18" name="BRIDGE4" gpio="159"/> <!-- works -->
-		<interface expansion="19" name="" gpio="131"/>
+		<interface expansion="19" name="THUMBWHEEL1" gpio="131"/> <!-- always 0 value -->
 		<interface expansion="20" name="ARDUINO_RESET" gpio="156"/> <!-- write error on BB, always low -->
 		<interface expansion="21" name="IMU_INT0" gpio="130"/>
 		<interface expansion="22" name="IMU_INT1" gpio="157"/>
