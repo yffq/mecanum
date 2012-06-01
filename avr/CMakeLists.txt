@@ -29,6 +29,8 @@ set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/arduino-cmake/cmake/Arduino
 # deb http://ports.ubuntu.com/ubuntu-ports/ quantal main universe
 #
 # Then run apt-get update and sudo apt-get install gcc-avr=1:4.7.0-2.
+#
+# In retrospect, avr-libc v1.8.0 breaks arduino-core. Probably don't upgrade.
 
 project(avr)
 
