@@ -65,7 +65,7 @@ public:
 	 * deleted by the master. Also, don't use a message class, use a FSM's
 	 * SUBSCRIBER header.
 	 */
-	virtual bool Message(const char* msg, unsigned char length) { }
+	virtual bool Message(const char* msg, unsigned char length) { return false; }
 };
 
 #endif // FINITESTATEMACHINE_H
