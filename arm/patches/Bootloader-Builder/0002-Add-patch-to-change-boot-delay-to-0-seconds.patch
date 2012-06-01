@@ -1,7 +1,7 @@
-From 4275bcd9c7f8823950691a9c114e0422fcca5b36 Mon Sep 17 00:00:00 2001
+From aea353a9a137a073ffa02066514cd6fd137bcf43 Mon Sep 17 00:00:00 2001
 From: Garrett Brown <garbearucla@gmail.com>
 Date: Thu, 31 May 2012 03:17:12 -0700
-Subject: [PATCH 2/2] Add patch to change boot delay to 0 seconds
+Subject: [PATCH 2/3] Add patch to change boot delay to 0 seconds
 
 ---
  build.sh |    3 +++

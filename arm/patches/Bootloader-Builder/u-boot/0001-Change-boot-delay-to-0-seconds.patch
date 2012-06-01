@@ -1,7 +1,7 @@
-From a7e37ab2981b9ef34cbef448d4707337325098d4 Mon Sep 17 00:00:00 2001
+From dc423b2023e212ef09d47741e405c828d89371d9 Mon Sep 17 00:00:00 2001
 From: Garrett Brown <garbearucla@gmail.com>
 Date: Thu, 31 May 2012 03:14:50 -0700
-Subject: [PATCH] Change boot delay to 0 seconds
+Subject: [PATCH 1/2] Change boot delay to 0 seconds
 
 ---
  include/configs/omap3_beagle.h |    3 +++
