@@ -13,8 +13,8 @@
  * uint8 length (5)
  * uint8 ID (FSM_ANALOGPUBLISHER)
  * uint8 pin
- * uint8 high byte (value >> 8)
- * uint8 low byte (value & 0xFF)
+ * uint8 highByte (value >> 8)
+ * uint8 lowByte (value & 0xFF)
  */
 class AnalogPublisher : public FiniteStateMachine
 {
