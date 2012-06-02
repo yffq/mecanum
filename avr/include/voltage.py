@@ -41,7 +41,7 @@ def main():
 	file.write('Seconds,Volts\n')
 	start = time.time()
 	
-	for i in range(10):
+	while True:
 		voltage = str(getVoltage())
 		seconds = int(time.time() - start)
 		file.write(str(seconds) + ',' + voltage + '\n')
