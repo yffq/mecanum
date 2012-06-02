@@ -28,7 +28,7 @@ def getVoltage():
 	lowByte  = ord(arduino.read())
 	R1 = 16.05 # kOhm
 	R2 = 9.87  # kOhm
-	offset = 1.0
+	offset = 0.98343
 	voltage = ((highByte << 8) + lowByte) * 5.0 / 1024 * (R1 + R2) / R2 * offset
 	return voltage
 
