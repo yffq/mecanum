@@ -53,9 +53,11 @@ link_directories(${CMAKE_CURRENT_SOURCE_DIR}/libraries)
 
 generate_arduino_firmware(avr_base
     SRCS src/main.cpp
+         src/AnalogPublisher.cpp
          src/BatteryMonitor.cpp
          src/Blink.cpp
          src/ChristmasTree.cpp
+         src/DigitalPublisher.cpp
          src/Fade.cpp
          src/FSMVector.cpp
          src/MecanumMaster.cpp

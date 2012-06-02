@@ -1,5 +1,4 @@
 #include "Mimic.h"
-
 #include "AddressBook.h"
 
 #include <Arduino.h>
@@ -9,8 +8,6 @@ Mimic::Mimic(uint8_t source, uint8_t dest, unsigned long delay)
 {
 	pinMode(m_source, INPUT);
 	pinMode(m_dest, OUTPUT);
-	// Start mimicking immediately
-	Step();
 }
 
 void Mimic::Step()

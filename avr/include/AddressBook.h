@@ -1,13 +1,15 @@
 #ifndef ADDRESSBOOK_H
 #define ADDRESSBOOK_H
 
-#define FSM_MASTER         0
-#define FSM_BATTERYMONITOR 1
-#define FSM_BLINK          2
-#define FSM_CHRISTMASTREE  3
-#define FSM_FADE           4
-#define FSM_MIMIC          5
-#define FSM_TOGGLE         6
+#define FSM_MASTER           0
+#define FSM_BATTERYMONITOR   1
+#define FSM_BLINK            2
+#define FSM_CHRISTMASTREE    3
+#define FSM_FADE             4
+#define FSM_MIMIC            5
+#define FSM_TOGGLE           6
+#define FSM_DIGITALPUBLISHER 7
+#define FSM_ANALOGPUBLISHER  8
 
 // PWM LEDs
 #define LED_GREEN     4
@@ -85,9 +87,9 @@
 #define TOP8 27
 
 // Battery voltage divider: R1 = 16.05k, R2 = 9.87k
-#define BATTERY_DETECT 11 // Analog
-#define BATTERY_R1     16.05 // kOhm
-#define BATTERY_R2     9.87  // kOhm
+#define BATTERY_VOLTAGE 11    // Analog
+#define BATTERY_R1      16.05 // kOhm
+#define BATTERY_R2      9.87  // kOhm
 
 // Not Connected
 #define REGULATOR_ENABLE 21

@@ -5,9 +5,11 @@
 #include "Publishers.h"
 
 // Finite state machines
+#include "AnalogPublisher.h"
 #include "BatteryMonitor.h"
 #include "Blink.h"
 #include "ChristmasTree.h"
+#include "DigitalPublisher.h"
 #include "Fade.h"
 #include "Mimic.h"
 #include "Toggle.h"
@@ -15,20 +17,23 @@
 #include <Arduino.h> // for millis()
 #include <HardwareSerial.h> // for Serial
 
+#define FOREVER 1000L * 60L * 60L * 24L * 7L // 1 week
+
 extern HardwareSerial Serial;
 
 MecanumMaster::MecanumMaster()
 {
 	// Test FSMs
 	fsmv.PushBack(new ChristmasTree());
+	fsmv.PushBack(new AnalogPublisher(BATTERY_VOLTAGE, FOREVER));
 	//fsmv.PushBack(new BatteryMonitor());
 	//fsmv.PushBack(new Toggle(LED_BATTERY_EMPTY, 50));
-	fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE1, LED_STATUS_YELLOW, 50));
-	fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE2, LED_STATUS_GREEN, 50));
-	fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE3, LED_BATTERY_EMPTY, 50));
-	fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE4, LED_BATTERY_LOW, 50));
-	fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE5, LED_BATTERY_MEDIUM, 50));
-	fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE6, LED_BATTERY_HIGH, 50));
+	//fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE1, LED_STATUS_YELLOW, 50));
+	//fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE2, LED_STATUS_GREEN, 50));
+	//fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE3, LED_BATTERY_EMPTY, 50));
+	//fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE4, LED_BATTERY_LOW, 50));
+	//fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE5, LED_BATTERY_MEDIUM, 50));
+	//fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE6, LED_BATTERY_HIGH, 50));
 }
 
 void MecanumMaster::SetupSerial()
@@ -74,9 +79,8 @@ void MecanumMaster::SerialCallback()
 			// Send the message to every instance of the FSM
 			for (unsigned char i = 0; i < fsmv.GetSize(); ++i)
 			{
-				// If Message() returns true, we should do a Step()
-				if (fsmv[i]->ID == fsmId &&
-					fsmv[i]->Message(buffer + 1, msgSize - 1))
+				// If Message() returns true, we should do a Step() and Delay()
+				if (fsmv[i]->ID == fsmId && fsmv[i]->Message(buffer + 1, msgSize - 1))
 				{
 					fsmv[i]->Step();
 					fsmDelay[i] = fsmv[i]->Delay() + millis();
