@@ -1,8 +1,8 @@
 #include "MecanumMaster.h"
 
 #include "AddressBook.h"
-#include "Subscribers.h"
-#include "Publishers.h"
+//#include "Subscribers.h"
+//#include "Publishers.h"
 
 // Finite state machines
 #include "AnalogPublisher.h"
@@ -27,7 +27,7 @@ MecanumMaster::MecanumMaster()
 	fsmv.PushBack(new ChristmasTree());
 	fsmv.PushBack(new AnalogPublisher(BATTERY_VOLTAGE, FOREVER));
 	//fsmv.PushBack(new BatteryMonitor());
-	//fsmv.PushBack(new Toggle(LED_BATTERY_EMPTY, 50));
+	//fsmv.PushBack(new Toggle(LED_BATTERY_EMPTY, FOREVER));
 	//fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE1, LED_STATUS_YELLOW, 50));
 	//fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE2, LED_STATUS_GREEN, 50));
 	//fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE3, LED_BATTERY_EMPTY, 50));
@@ -38,7 +38,7 @@ MecanumMaster::MecanumMaster()
 
 void MecanumMaster::SetupSerial()
 {
-	Serial.begin(9600);
+	Serial.begin(115200);
 	Serial.setTimeout(250); // ms
 }
 
@@ -63,24 +63,25 @@ void MecanumMaster::Spin()
 
 void MecanumMaster::SerialCallback()
 {
-	// First character is the size of the subsequent message
+	// First character is the size of the entire message
 	int msgSize = Serial.read();
+
 	// Block until advertised number of bytes is available (timeout set above)
-	size_t readSize = Serial.readBytes(buffer, msgSize);
+	size_t readSize = Serial.readBytes(buffer, msgSize - 1);
 	// Single byte is OK - the FSM just gets a message of length 0
-	if (readSize && readSize == msgSize)
+	if (readSize && readSize == msgSize - 1)
 	{
 		// First byte is the ID of the FSM to message
 		char fsmId = buffer[0];
 		if (fsmId == FSM_MASTER)
-			Message(buffer + 1, msgSize - 1); // skip the ID byte
+			Message(buffer + 1, readSize - 1); // skip the ID byte
 		else
 		{
 			// Send the message to every instance of the FSM
 			for (unsigned char i = 0; i < fsmv.GetSize(); ++i)
 			{
 				// If Message() returns true, we should do a Step() and Delay()
-				if (fsmv[i]->ID == fsmId && fsmv[i]->Message(buffer + 1, msgSize - 1))
+				if (fsmv[i]->ID == fsmId && fsmv[i]->Message(buffer + 1, readSize - 1))
 				{
 					fsmv[i]->Step();
 					fsmDelay[i] = fsmv[i]->Delay() + millis();
