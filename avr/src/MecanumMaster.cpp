@@ -24,16 +24,34 @@ extern HardwareSerial Serial;
 MecanumMaster::MecanumMaster()
 {
 	// Test FSMs
-	fsmv.PushBack(new ChristmasTree());
+	//fsmv.PushBack(new ChristmasTree());
 	fsmv.PushBack(new AnalogPublisher(BATTERY_VOLTAGE, FOREVER));
 	//fsmv.PushBack(new BatteryMonitor());
 	//fsmv.PushBack(new Toggle(LED_BATTERY_EMPTY, FOREVER));
-	//fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE1, LED_STATUS_YELLOW, 50));
-	//fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE2, LED_STATUS_GREEN, 50));
-	//fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE3, LED_BATTERY_EMPTY, 50));
-	//fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE4, LED_BATTERY_LOW, 50));
-	//fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE5, LED_BATTERY_MEDIUM, 50));
 	//fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE6, LED_BATTERY_HIGH, 50));
+
+	// Everything on full brightness
+	uint8_t leds[] = {
+		// PWM LEDs
+		LED_GREEN,
+		LED_YELLOW,
+		LED_RED,
+		LED_UV,
+		LED_EMERGENCY,
+		// Digital LEDs
+		LED_STATUS_GREEN,
+		LED_STATUS_YELLOW,
+		LED_BATTERY_EMPTY,
+		LED_BATTERY_LOW,
+		LED_BATTERY_MEDIUM,
+		LED_BATTERY_HIGH
+	};
+	for (char i = 0; i < sizeof(leds) / sizeof(leds[0]); ++i)
+	{
+		pinMode(leds[i], OUTPUT);
+		digitalWrite(leds[i], HIGH);
+	}
+
 }
 
 void MecanumMaster::SetupSerial()
