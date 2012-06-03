@@ -6,7 +6,7 @@ import shutil
 
 from common import getScriptDir, loadSettings, getSetting, ensureDependencies
 
-def setupCard():
+def createCard():
 	os.chdir(getScriptDir())
 	loadSettings()
 	
@@ -82,4 +82,4 @@ def setupCard():
 	os.chdir('..')
 
 if __name__ == '__main__':
-	setupCard()
+	createCard()
