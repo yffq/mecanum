@@ -51,21 +51,30 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 # contains a header named after the directory.***
 link_directories(${CMAKE_CURRENT_SOURCE_DIR}/libraries)
 
-generate_arduino_firmware(avr_base
-    SRCS src/main.cpp
-         src/AnalogPublisher.cpp
-         src/BatteryMonitor.cpp
-         src/Blink.cpp
-         src/ChristmasTree.cpp
-         src/DigitalPublisher.cpp
-         src/Fade.cpp
-         src/FSMVector.cpp
-         src/MecanumMaster.cpp
-         src/Mimic.cpp
-         src/Toggle.cpp
-#    HDRS src/FiniteStateMachine.h # For project-based systems
+set(mecanum_srcs src/main.cpp
+                 src/AnalogPublisher.cpp
+                 src/BatteryMonitor.cpp
+                 src/Blink.cpp
+                 src/ChristmasTree.cpp
+                 src/DigitalPublisher.cpp
+                 src/Fade.cpp
+                 src/FSMVector.cpp
+                 src/MecanumMaster.cpp
+                 src/Mimic.cpp
+                 src/Toggle.cpp)
+
+#set(debug_srcs   ${mecanum_srcs})
+
+generate_arduino_firmware(mecanum
+    SRCS ${mecanum_srcs}
 #    LIBS lib/main_lib
 )
+
+#generate_arduino_firmware(debug
+#    SRCS ${debug_srcs}
+#    HDRS src/FiniteStateMachine.h # For project-based systems
+#    LIBS lib/main_lib
+#)
 
 #catkin_project(${PROJECT_NAME}
 #  INCLUDE_DIRS include # avr includes don't do much good
