@@ -22,7 +22,7 @@ def main():
 	installCore()
 
 def enabledRestricted():
-	subprocess.call(['./arm_enable_restricted.py'])
+	subprocess.call(['./enableRestricted.py'])
 	subprocess.call(['apt-get', 'update'])	
 
 def installDependencies():
