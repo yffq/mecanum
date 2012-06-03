@@ -24,12 +24,13 @@ extern HardwareSerial Serial;
 MecanumMaster::MecanumMaster()
 {
 	// Test FSMs
-	//fsmv.PushBack(new ChristmasTree());
+	fsmv.PushBack(new ChristmasTree());
 	fsmv.PushBack(new AnalogPublisher(BATTERY_VOLTAGE, FOREVER));
 	//fsmv.PushBack(new BatteryMonitor());
 	//fsmv.PushBack(new Toggle(LED_BATTERY_EMPTY, FOREVER));
 	//fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE6, LED_BATTERY_HIGH, 50));
 
+	/*
 	// Everything on full brightness
 	uint8_t leds[] = {
 		// PWM LEDs
@@ -51,7 +52,7 @@ MecanumMaster::MecanumMaster()
 		pinMode(leds[i], OUTPUT);
 		digitalWrite(leds[i], HIGH);
 	}
-
+	*/
 }
 
 void MecanumMaster::SetupSerial()
