@@ -1,0 +1,10 @@
+# Git repositories downloaded by host scripts
+/Bootloader-Builder
+/linaro-tools
+/linux-stable
+/omap-image-builder
+/ros-underlay
+/stable-kernel
+
+# Git repositories downloaded by arm scripts
+/ros-underlay

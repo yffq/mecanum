@@ -1,0 +1,29 @@
+From 2c00e7ce0ff23737e4c0c987d21091b3dd6143ef Mon Sep 17 00:00:00 2001
+From: Garrett Brown <garbearucla@gmail.com>
+Date: Sun, 3 Jun 2012 04:54:54 -0700
+Subject: [PATCH 7/7] Run script to install ros
+
+---
+ tools/fixup.sh |    9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/tools/fixup.sh b/tools/fixup.sh
+index 55dfdf0..8d9ea16 100755
+--- a/tools/fixup.sh
++++ b/tools/fixup.sh
+@@ -111,3 +111,12 @@ __RSA_PUBLIC__
+ RSA
+ fi
+ 
++
++# Run our script to install ROS and set up the environment for our Mecanum Bot
++cd /tmp/
++git clone git://github.com/garbear/mecanum.git
++cd mecanum/arm/scripts/
++python installRos.py
++cd /tmp/
++rm -rf /tmp/mecanum/
++
+-- 
+1.7.9.5
+

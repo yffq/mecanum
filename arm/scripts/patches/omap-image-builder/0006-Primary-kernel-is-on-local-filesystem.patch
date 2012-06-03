@@ -1,14 +1,14 @@
-From 26af2e90cb81c30341191a517b9e28607b97c98e Mon Sep 17 00:00:00 2001
+From 5955085a702009a9b928f8c274aace750d94fa12 Mon Sep 17 00:00:00 2001
 From: Garrett Brown <garbearucla@gmail.com>
 Date: Wed, 30 May 2012 23:55:45 -0700
-Subject: [PATCH 7/7] Primary kernel is on local filesystem
+Subject: [PATCH 6/7] Primary kernel is on local filesystem
 
 ---
  build_image.sh |   40 +++++++++++++++-------------------------
  1 file changed, 15 insertions(+), 25 deletions(-)
 
 diff --git a/build_image.sh b/build_image.sh
-index 858174b..0135e70 100755
+index 80ee535..9b62088 100755
 --- a/build_image.sh
 +++ b/build_image.sh
 @@ -146,8 +146,22 @@ function dl_rootstock {

@@ -1,20 +1,20 @@
-From 5fd7081d845d2228300d9c76eb84e043190c148a Mon Sep 17 00:00:00 2001
+From 240eeba918ba22eaacbc9c8c4c3d7d5579433c62 Mon Sep 17 00:00:00 2001
 From: Garrett Brown <garbearucla@gmail.com>
-Date: Thu, 31 May 2012 04:38:21 -0700
-Subject: [PATCH 6/7] Copy keys to the new filesystem
+Date: Sun, 3 Jun 2012 04:50:58 -0700
+Subject: [PATCH 5/7] Copy keys to the new filesystem
 
 ---
- tools/fixup.sh |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ tools/fixup.sh |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
 diff --git a/tools/fixup.sh b/tools/fixup.sh
-index 0bb53c2..1fe02da 100755
+index 98e5be0..55dfdf0 100755
 --- a/tools/fixup.sh
 +++ b/tools/fixup.sh
-@@ -103,3 +103,17 @@ cd mecanum/arm/
- /usr/bin/env python arm_install_ros.py
- cd -
- rm -rf /tmp/mecanum/
+@@ -96,3 +96,18 @@ rm -f /tmp/*.deb || true
+ rm -rf /usr/src/linux-headers* || true
+ rm -f /rootstock-user-script || true
+ 
 +
 +# Copy ssh keys to new filesystem
 +# Note: permissions still need to be set to 600 (with USER_NAME as the owner)
@@ -29,6 +29,7 @@ index 0bb53c2..1fe02da 100755
 +__RSA_PUBLIC__
 +RSA
 +fi
++
 -- 
 1.7.9.5
 

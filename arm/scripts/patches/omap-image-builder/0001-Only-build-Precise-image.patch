@@ -1,34 +1,30 @@
-From c709d14b6ecb39905782577763e0ddc0bf1cd461 Mon Sep 17 00:00:00 2001
+From bc0e971a139722cee324a2f787ae955588233dff Mon Sep 17 00:00:00 2001
 From: Garrett Brown <garbearucla@gmail.com>
 Date: Fri, 18 May 2012 10:27:19 -0700
 Subject: [PATCH 1/7] Only build Precise image
 
 ---
- build_image.sh |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ build_image.sh |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/build_image.sh b/build_image.sh
-index 5f17df1..d3a7941 100755
+index 8fbb510..d20e332 100755
 --- a/build_image.sh
 +++ b/build_image.sh
-@@ -427,14 +427,14 @@ SECONDARY_KERNEL_SEL="STABLE"
+@@ -445,12 +445,12 @@ SECONDARY_KERNEL_SEL="STABLE"
  #SECONDARY_KERNEL_SEL="TESTING"
  #SECONDARY_KERNEL_SEL="EXPERIMENTAL"
  
 -ARCH=armel
 -oneiric_release
--if [ "-${HOST_ARCH}-" == "-armv7l-" ] ; then
--squeeze_release
--fi
 +#ARCH=armel
 +#oneiric_release
-+#if [ "-${HOST_ARCH}-" == "-armv7l-" ] ; then
-+#squeeze_release
-+#fi
  
  ARCH=armhf
  precise_release
+-quantal_release
 -wheezy_release
++#quantal_release
 +#wheezy_release
  
  
