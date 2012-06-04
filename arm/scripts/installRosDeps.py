@@ -4,7 +4,7 @@ import os
 import subprocess
 import urllib2
 
-from common import getScriptDir
+from common import getScriptDir, gitCloneAndEnter
 
 def installRosDeps():
 	# Make sure our current working dir is the script's location
@@ -15,8 +15,11 @@ def installRosDeps():
 	os.chdir('rosdeps')
 	
 	# yaml-cpp
-	# TODO: if 0.3.0 doesn't work, use https://github.com/wg-debs/yaml_cpp-release (0.2.7)
-	if not os.path.exists('yaml-cpp'):
+	# Required by the navigation stack
+	# If 0.3.0 doesn't work, use https://github.com/wg-debs/yaml_cpp-release (0.2.7)
+	if not os.path.exists('/usr/local/lib/libyaml-cpp.a'):
+		if os.path.exists('yaml-cpp'):
+			subprocess.call(['rm', '-rf', 'yaml-cpp'])
 		get('http://yaml-cpp.googlecode.com/files/yaml-cpp-0.3.0.tar.gz')
 		os.chdir('yaml-cpp')
 		os.makedirs('build')
@@ -26,6 +29,28 @@ def installRosDeps():
 		subprocess.call(['sudo', 'make', 'install'])
 		os.chdir('..')
 		os.chdir('..')
+		subprocess.call(['rm', '-rf', 'yaml-cpp'])
+	
+	# ros-fuerte-pcl
+	# Required by the perception_pcl stack
+	if not os.path.exists('/usr/local/lib/libpcl_common.so'):
+		# Install build dependencies (others may be required)
+		subprocess.call(['sudo', 'apt-get', 'install', 'libflann-dev'])
+		if os.path.exists('pcl'):
+			subprocess.call(['rm', '-rf', 'pcl'])
+		gitCloneAndEnter('git://github.com/wg-debs/pcl.git')
+		os.makedirs('build')
+		os.chdir('build')
+		subprocess.call(['cmake', '-DUSE_ROS=ON', '..'])
+		subprocess.call(['make'])
+		subprocess.call(['sudo', 'make', 'install'])
+		os.chdir('..')
+		os.chdir('..')
+		subprocess.call(['rm', '-rf', 'pcl'])
+	
+	# All done
+	os.chdir('..')
+	subprocess.call(['rm', '-rf', 'rosdeps'])
 
 def get(url):
 	download = urllib2.urlopen(url)
