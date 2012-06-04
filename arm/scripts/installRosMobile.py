@@ -37,15 +37,19 @@ def installMobile():
 	subprocess.call(['rosinstall', os.path.expanduser(target), url])
 	
 	# Environment setup
-	addBashSource('/opt/ros/fuerte/setup.bash')
+	addBash('source /opt/ros/fuerte/setup.bash')
 	# Update the environment so that the changes take effect immediately
 	if not os.environ.has_key('ROS_ROOT'):
 		updateEnvironment('/opt/ros/fuerte/setup.bash')
 	# Bug: Why does this get a newline after ~ ?
 	targetsrc = os.path.expanduser(target + '/setup.bash').replace('\n', '')
-	addBashSource(targetsrc)
+	addBash('source ' + targetsrc)
 	if not os.environ.has_key('ROS_WORKSPACE'):
 		updateEnvironment(targetsrc)
+	ROS_WORKSPACE = os.path.expanduser('~/ros').replace('\n', '')
+	addBash('export ROS_PACKAGE_PATH=' + ROS_WORKSPACE + r':$ROS_PACKAGE_PATH')
+	# TODO: Should this be ~/ros or ~/fuerte?
+	#addBash('export ROS_WORKSPACE=' + ROS_WORKSPACE')
 	
 	# Build higher-level libraries and tools
 	subprocess.call(['sudo', 'rosdep', 'init'])
@@ -57,13 +61,12 @@ def installMobile():
 	# Build the ROS stacks using rosmake
 	subprocess.call(['rosmake', '-a'])
 
-def addBashSource(sourcetarget):
-	envstr = 'source ' + sourcetarget + '\n'
+def addBash(line):
 	# Bug: sometimes, path get a newline after ~
 	bashrc = os.path.expanduser('~/.bashrc').replace('\n', '')
-	if not contains(bashrc, envstr):
+	if not contains(bashrc, line + '\n'):
 		file = open(bashrc, 'a')
-		file.write(envstr)
+		file.write(line + '\n')
 		file.close()
 	return
 
