@@ -2,6 +2,7 @@
 
 import os
 import fileinput
+import subprocess
 
 from common import getScriptDir
 
