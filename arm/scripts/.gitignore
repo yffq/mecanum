@@ -8,3 +8,4 @@
 
 # Git repositories downloaded by arm scripts
 /ros-underlay
+/rosdeps

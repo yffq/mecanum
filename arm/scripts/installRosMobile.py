@@ -2,8 +2,6 @@
 
 import os
 import fileinput
-import subprocess
-import urllib2
 
 from common import getScriptDir
 
@@ -89,6 +87,9 @@ def updateEnvironment(source):
 	return
 
 def installDependencies():
+	# Install dependences without armhf binaries
+	subprocess.call(['./installRosDeps'])
+	
 	# Install system dependencies
 	subprocess.call(['rosdep', 'install', '-a']) # -ay
 
