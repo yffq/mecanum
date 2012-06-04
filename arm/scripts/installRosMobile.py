@@ -89,7 +89,7 @@ def updateEnvironment(source):
 
 def installDependencies():
 	# Install dependences without armhf binaries
-	subprocess.call(['./installRosDeps'])
+	subprocess.call(['./installRosDeps.py'])
 	
 	# Install system dependencies
 	subprocess.call(['rosdep', 'install', '-a']) # -ay
