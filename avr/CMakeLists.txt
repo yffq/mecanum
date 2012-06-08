@@ -52,16 +52,17 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
 link_directories(${CMAKE_CURRENT_SOURCE_DIR}/libraries)
 
 set(mecanum_srcs src/main.cpp
-                 src/AnalogPublisher.cpp
-                 src/BatteryMonitor.cpp
+#                 src/AnalogPublisher.cpp
+#                 src/BatteryMonitor.cpp
                  src/Blink.cpp
-                 src/ChristmasTree.cpp
-                 src/DigitalPublisher.cpp
-                 src/Fade.cpp
-                 src/FSMVector.cpp
+#                 src/ChristmasTree.cpp
+#                 src/DigitalPublisher.cpp
+#                 src/Fade.cpp
+#                 src/FSMVector.cpp
                  src/MecanumMaster.cpp
-                 src/Mimic.cpp
-                 src/Toggle.cpp)
+#                 src/Mimic.cpp
+#                 src/Toggle.cpp
+)
 
 #set(debug_srcs   ${mecanum_srcs})
 

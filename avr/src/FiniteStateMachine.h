@@ -1,6 +1,8 @@
 #ifndef FINITESTATEMACHINE_H
 #define FINITESTATEMACHINE_H
 
+#include "ByteArray.h"
+
 /**
  * A FiniteStateMachine represents a model of how a particular component should
  * function. Two functions are required: Step(), which transitions the FSM to
@@ -9,23 +11,39 @@
  */
 class FiniteStateMachine
 {
+protected:
+	/**
+	 *
+	 */
+	ByteArray parameters;
+
 public:
 	/**
-	 * ID of the FSM; used to determine the identify of the derived class.
+	 *
 	 */
-	const unsigned char ID;
+	FiniteStateMachine() { }
 
-	/**
-	 * The constructor must be called with the FSM's ID. For a list of IDs,
-	 * see AddressBook.h.
-	 */
-	FiniteStateMachine(unsigned char id) : ID(id) { }
+	FiniteStateMachine(const ByteArray params) : parameters(params) { }
 
 	/**
 	 * The destructor is declared virtual so that subclasses can optionally
-	 * override it to clean up their resources.
+	 * override it to clean up their resources or fulfill postconditions.
 	 */
 	virtual ~FiniteStateMachine() { }
+
+	/**
+	 * ID of the FSM; used to determine the identify of the derived class.
+	 */
+	unsigned char ID() const { return parameters[0]; }
+
+	/**
+	 * A FSM is uniquely identified by its parameters. A FSM should not alter
+	 * parameters after instantiation, because it would in effect transform
+	 * itself into a dissimilar FSM.
+	 */
+	bool operator==(const FiniteStateMachine &other) const { return parameters == other.parameters; }
+
+	const ByteArray &Describe() const { return parameters; }
 
 	/**
 	 * Take action and/or transition to the next state.
@@ -65,7 +83,7 @@ public:
 	 * deleted by the master. Also, don't use a message class, use a FSM's
 	 * SUBSCRIBER header.
 	 */
-	virtual bool Message(const char* msg, unsigned char length) { return false; }
+	virtual bool Message(const ByteArray msg) { return false; }
 };
 
 #endif // FINITESTATEMACHINE_H

@@ -19,6 +19,10 @@ public:
 	 */
 	Blink(uint8_t pin, unsigned long delay /* ms */);
 
+	Blink(const ByteArray &params);
+
+	void Init();
+
 	/*
 	 * When this blinker is destructed, the pin is pulled low as a post-
 	 * condition.
@@ -30,9 +34,14 @@ public:
 	virtual unsigned long Delay() const { return m_delay; }
 
 private:
-	uint8_t m_pin;
+	/**
+	 * Statically allocate our parameters array. The FiniteStateMachine
+	 * superclass is made aware of this array to populate its protected
+	 * ByteArray member variable.
+	 */
+	unsigned char m_params[6];
+	const unsigned long m_delay; // ms
 	bool m_enabled;
-	unsigned long m_delay; // ms
 };
 
 #endif // BLINK_H

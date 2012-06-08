@@ -8,24 +8,19 @@ class FSMVector
 public:
 	FSMVector() { }
 
-	~FSMVector() { Empty(); }
+	~FSMVector() { Clear(); }
 	
 	/**
 	 * Get the FSM by its index in the array. If nothing is erased from the
 	 * array in the interim, the order of elements accessed by this operator
 	 * will be maintained.
 	 */
-	FiniteStateMachine* &operator[] (const unsigned char i) { return m_fsmv[i]; }
-
-	/**
-	 * Get a FSM by its ID. Returns only the first occurrence in the array.
-	 */
-	FiniteStateMachine* GetById(unsigned char id);
+	FiniteStateMachine *&operator[] (unsigned char i) const { return m_fsmv[i]; }
 
 	/**
 	 * Get the number of FSMs in the array.
 	 */
-	unsigned char GetSize() const { return m_size; }
+	unsigned char Size() const { return m_size; }
 
 	/**
 	 * Add a FSM to the end of the array.
@@ -56,22 +51,30 @@ public:
 	 * the FSM ordering.
 	 */
 	void Erase(unsigned char i);
+	void Erase(const ByteArray &params) { Erase(GetIndex(params)); }
+	void Erase(const FiniteStateMachine &fsm) { Erase(GetIndex(fsm)); }
 
 	/**
 	 * Erase the given element in O(1) time. The erased element is simply
 	 * replaced by the FSM at the end of the array.
 	 */
 	void QuickErase(unsigned char i);
+	void QuickErase(const ByteArray &params) { QuickErase(GetIndex(params)); }
+	void QuickErase(const FiniteStateMachine &fsm) { QuickErase(GetIndex(fsm)); }
 
 	/**
 	 * Clear the array. Each FSM is deleted and their destructor is called.
 	 */
-	void Empty();
+	void Clear() { while (m_size) PopBack(); }
 
 	/**
 	 * A constant specifying the maximum number of FSMs this class can store.
 	 */
 	static const int MAX_FSM = 10;
+
+protected:
+	unsigned char GetIndex(const ByteArray &params) const;
+	unsigned char GetIndex(const FiniteStateMachine &fsm) const;
 
 private:
 	// The array

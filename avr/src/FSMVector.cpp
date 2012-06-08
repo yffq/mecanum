@@ -1,16 +1,5 @@
 #include "FSMVector.h"
 
-FiniteStateMachine* FSMVector::GetById(unsigned char id)
-{
-	for (unsigned char i = 0; i < m_size; ++i)
-	{
-		if (m_fsmv[i]->ID == id)
-			return m_fsmv[i];
-	}
-	return 0;
-}
-
-
 int FSMVector::PushBack(FiniteStateMachine *fsm)
 {
 	if (fsm && m_size < MAX_FSM)
@@ -36,7 +25,7 @@ void FSMVector::PopBack()
 
 void FSMVector::Erase(unsigned char i)
 {
-	if (i < m_size)
+	if (0 <= i && i < m_size)
 	{
 		delete m_fsmv[i];
 		while (++i < m_size)
@@ -56,9 +45,18 @@ void FSMVector::QuickErase(unsigned char i)
 	}
 }
 
-void FSMVector::Empty()
+unsigned char FSMVector::GetIndex(const ByteArray &params) const
 {
-	while (m_size)
-		PopBack();
+	for (unsigned char i = 0; i < m_size; ++i)
+		if (m_fsmv[i]->Describe() == params)
+			return i;
+	return -1;
 }
 
+unsigned char FSMVector::GetIndex(const FiniteStateMachine &fsm) const
+{
+	for (unsigned char i = 0; i < m_size; ++i)
+		if (m_fsmv[i] == fsm)
+			return i;
+	return -1;
+}
