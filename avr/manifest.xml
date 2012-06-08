@@ -12,6 +12,7 @@ avr
   <url>http://ros.org/wiki/rostime</url>
 
   <export>
-  <!-- cpp exports -->
+    <!--<cpp cflags="-I${prefix}/include" lflags="-L${prefix}/lib -Wl,-rpath,${prefix}/lib -llibax3500.a -lboost_system -lboost_thread"/>-->
+    <cpp cflags="-I${prefix}/include"/>
   </export>
 </package>

@@ -85,10 +85,14 @@ void MecanumMaster::SerialCallback()
 	// First character is the size of the entire message
 	int msgSize = Serial.read();
 
-	// Block until advertised number of bytes is available (timeout set above)
-	size_t readSize = Serial.readBytes(buffer, msgSize - 1);
+	// If msgSize is too large, we have no choice but to drop data
+	if (msgSize > BUFFERLENGTH + 1)
+		msgSize = BUFFERLENGTH + 1;
 
-	ByteArray msg(buffer, readSize);
+	// Block until advertised number of bytes is available (timeout set above)
+	size_t readSize = Serial.readBytes(reinterpret_cast<char*>(buffer_bytes), msgSize - 1);
+
+	ByteArray msg(buffer_bytes, static_cast<unsigned char>(readSize));
 
 	// Single byte is OK - the FSM just gets a message of length 0
 	if (readSize && readSize == msgSize - 1)
@@ -96,18 +100,14 @@ void MecanumMaster::SerialCallback()
 		// First byte is the ID of the FSM to message
 		char fsmId = msg[0];
 		if (fsmId == FSM_MASTER)
-		{
-			// Skip the ID byte
-			msg >> 1;
-			Message(msg);
-		}
+			Message(msg >> 1); // Skip the ID byte
 		else
 		{
 			// Send the message to every instance of the FSM
 			for (unsigned char i = 0; i < fsmv.Size(); ++i)
 			{
 				// If Message() returns true, we should do a Step() and Delay()
-				if (fsmv[i]->ID == fsmId && fsmv[i]->Message(msg))
+				if (fsmv[i]->ID() == fsmId && fsmv[i]->Message(msg))
 				{
 					fsmv[i]->Step();
 					fsmDelay[i] = fsmv[i]->Delay() + millis();
@@ -123,8 +123,12 @@ void MecanumMaster::SerialCallback()
 
 void MecanumMaster::Message(ByteArray &msg)
 {
+	if (!msg.Length())
+		return;
+
 	unsigned char msgID = msg[0];
 	msg >> 1;
+
 	// Message 0 is create FSM
 	// Message 1 is delete FSM
 	// Message 2 is dump FSMs
@@ -155,6 +159,30 @@ void MecanumMaster::Message(ByteArray &msg)
 		case 2:
 		{
 			// Dump a list of FSMs to the serial port
+			// Repurpose buffer_bytes as a send buffer (msg is no longer consistent now)
+			ByteArray sendBuffer(buffer_bytes, 1); // first byte is msg length (set later)
+
+			for (unsigned char i = 0; i < fsmv.Size(); ++i)
+			{
+				// Remember, the first byte is parameter count (length)
+				unsigned int peekAhead = fsmv[i]->Describe().Length() + 1;
+				// Avoid buffer and integer overflows
+				if (static_cast<unsigned int>(sendBuffer.Length()) + peekAhead > BUFFERLENGTH)
+				{
+					// Clear the buffer and start fresh
+					sendBuffer[0] = sendBuffer.Length();
+					Serial.flush();
+					Serial.write(static_cast<uint8_t*>(buffer_bytes), sendBuffer.Length());
+					sendBuffer.SetLength(1); // Reset to 1
+				}
+				// We have the go-ahead to copy our params into the send buffer
+				sendBuffer << peekAhead;
+				fsmv[i]->Describe().PrependLength(buffer_bytes + sendBuffer.Length());
+			}
+			sendBuffer[0] = sendBuffer.Length();
+			// Flush the buffer so that our next write doesn't overflow
+			Serial.flush();
+			Serial.write(static_cast<uint8_t*>(buffer_bytes), sendBuffer.Length());
 			break;
 		}
 		default:

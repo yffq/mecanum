@@ -35,9 +35,9 @@ private:
 	// Coincidence??
 	unsigned long fsmDelay[FSMVector::MAX_FSM];
 
-	// Buffer to receive serial data
-	static const int BUFFERLENGTH = 20;
-	char buffer[BUFFERLENGTH];
+	// Buffer to send and receive serial data. Must be <= 0xFE
+	static const int BUFFERLENGTH = 64; // #define RX_BUFFER_SIZE 64 in HardwareSerial.cpp (line 44)
+	unsigned char buffer_bytes[BUFFERLENGTH];
 };
 
 #endif // MECANUMMASTER_H

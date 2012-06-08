@@ -36,7 +36,7 @@ void FSMVector::Erase(unsigned char i)
 
 void FSMVector::QuickErase(unsigned char i)
 {
-	if (i < m_size)
+	if (0 <= i && i < m_size)
 	{
 		delete m_fsmv[i];
 		// Only swap in the last element if we still have a last element
@@ -56,7 +56,7 @@ unsigned char FSMVector::GetIndex(const ByteArray &params) const
 unsigned char FSMVector::GetIndex(const FiniteStateMachine &fsm) const
 {
 	for (unsigned char i = 0; i < m_size; ++i)
-		if (m_fsmv[i] == fsm)
+		if (*m_fsmv[i] == fsm)
 			return i;
 	return -1;
 }

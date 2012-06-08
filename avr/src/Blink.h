@@ -40,7 +40,7 @@ private:
 	 * ByteArray member variable.
 	 */
 	unsigned char m_params[6];
-	const unsigned long m_delay; // ms
+	unsigned long m_delay; // ms
 	bool m_enabled;
 };
 

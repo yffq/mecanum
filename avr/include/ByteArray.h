@@ -11,73 +11,51 @@ public:
 
 	ByteArray(const ByteArray &other) : bytes(other.bytes), length(other.length) { }
 
-	ByteArray &operator=(const ByteArray &src)
-	{
-		if (this != &src)
-		{
-			bytes = src.bytes;
-			length = src.length;
-		}
-		return *this;
-	}
+	ByteArray &operator=(const ByteArray &src);
 
 	~ByteArray() { }
 
-	bool operator==(const ByteArray &other) const
-	{
-		if (length != other.length)
-			return false;
-		for (unsigned char i = 0; i < length; ++i)
-			if (bytes[i] != other.bytes[i])
-				return false;
-		return true;
-	}
+	bool operator==(const ByteArray &other) const;
 
-	unsigned char* &operator[](unsigned char i) const { return bytes[i]; }
+	unsigned char &operator[](unsigned char i) const { return bytes[i]; }
 
-	void operator>>(unsigned char i) { Shift(i); }
+	/**
+	 * Decrease the size of the buffer. The byte array is shifted to match the
+	 * decreased size (bytes are popped off the front of the array).
+	 */
+	ByteArray &operator>>(unsigned char i) { Shift(i); return *this; }
 
-	void Shift(unsigned char i)
-	{
-		if (i > length) i = length;
-		bytes += i;
-		length -= i;
-	}
+	/**
+	 * Increase the size of the buffer. This does NOT shift the byte array.
+	 * Additional padding is pushed onto the back. Ensure that the buffer is
+	 * large enough to handle the increased size (I know yo mamma is).
+	 *
+	 * The maximum size is 255 (0xFF); if i pushes the size over the limit,
+	 * the length is clipped at 255.
+	 */
+	ByteArray &operator<<(unsigned char i);
+
+	void Shift(unsigned char i);
 
 	/**
 	 * Buffer's length equals this object's Length() plus one.
-	 *
-	void PrependLength(unsigned char *buffer)
-	{
-		buffer[0] = length;
-		for (unsigned char i = 0; i < length; ++i)
-			buffer[i + 1] = bytes[i];
-	}
-	/**/
+	 */
+	void PrependLength(unsigned char *buffer) const;
 
 	unsigned char Length() const { return length; }
+	void SetLength(unsigned char newLength) { length = newLength; }
 
 	/**
 	 * Precondition: buffer's size is at least 4. To achieve compatibility with
 	 * 8-bit processors, only the lowest 4 bytes of n are serialized.
 	 * Postcondition: buffer contains n in big endian format.
 	 */
-	static void Serialize(unsigned long n, unsigned char *buffer)
-	{
-		n &= 0xFFFFFFFF;
-		buffer[0] = n >> 24; // big endian
-		buffer[1] = n >> 16 & 0xFF;
-		buffer[2] = n >> 8 & 0xFF;
-		buffer[3] = n & 0xFF;
-	}
+	static void Serialize(unsigned long n, unsigned char *buffer);
 
 	/**
-	 * The pre- and post-conditions are similar to above, but reversed.
+	 * The pre- and post-conditions are similar to above, but probably reversed.
 	 */
-	static void Deserialize(const unsigned char *buffer, unsigned long &n)
-	{
-		n = buffer[0] << 24 | buffer[1] << 16 | buffer[2] << 8 | buffer[3];
-	}
+	static void Deserialize(const unsigned char *buffer, unsigned long &n);
 
 private:
 	unsigned char *bytes;

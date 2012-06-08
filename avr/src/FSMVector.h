@@ -15,7 +15,7 @@ public:
 	 * array in the interim, the order of elements accessed by this operator
 	 * will be maintained.
 	 */
-	FiniteStateMachine *&operator[] (unsigned char i) const { return m_fsmv[i]; }
+	FiniteStateMachine * const &operator[] (unsigned char i) const { return m_fsmv[i]; }
 
 	/**
 	 * Get the number of FSMs in the array.
@@ -70,7 +70,7 @@ public:
 	/**
 	 * A constant specifying the maximum number of FSMs this class can store.
 	 */
-	static const int MAX_FSM = 10;
+	static const int MAX_FSM = 20;
 
 protected:
 	unsigned char GetIndex(const ByteArray &params) const;
