@@ -1,0 +1,14 @@
+<package>
+  <description brief="avr_controller">
+
+     avr_controller
+
+  </description>
+  <author>Garrett Brown</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/avr_controller</url>
+  <depend package="rospy"/>
+  <depend package="avr"/>
+
+</package>

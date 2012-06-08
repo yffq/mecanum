@@ -4,9 +4,10 @@
 cmake_minimum_required(VERSION 2.8)
 
 # ROSMAKE Code
-
 include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
+list(APPEND CPACK_SOURCE_IGNORE_FILES /avr_controller)
 rosbuild_make_distribution(1.0)
+
 
 # CATKIN Code
 
