@@ -23,104 +23,12 @@
 #ifndef AVRCONTROLLER_H_
 #define AVRCONTROLLER_H_
 
+//#include <boost/asio.hpp>
+
+#include "AVR_FSM.h"
+#include <vector>
 #include <boost/asio.hpp>
-
-
-/**
- * The representation of a FiniteStateMachine on the Arduino can be broken down
- * into two pieces: the parameters of how the state machine operates, and the
- * state itself. We use these parameters to uniquely identify an individual
- * FSM. Due to this, the constraint that a FSM not modify its own parameters
- * during operation is loosely enforced, as this would then constitute a
- * different FSM. The Arduino would then become out of sync with the
- * AVRController, necessitating communication if the Arduino decides to shuffle
- * its own FSMs.
- */
-class AVR_FSM
-{
-	AVR_FSM(unsigned char *properties, unsigned int length) : m_length(length)
-	{
-		m_properties = new unsigned char[m_length];
-		for (size_t i = 0; i < m_length; ++i)
-			m_properties[i] = properties[i];
-	}
-
-	/**
-	 * Rule of three.
-	 */
-	AVR_FSM(const AVR_FSM &other) : m_length(other.m_length)
-	{
-		m_properties = new unsigned char[m_length];
-		for (size_t i = 0; i < m_length; ++i)
-			m_properties[i] = other.m_properties[i];
-	}
-
-	/**
-	 * Rule of three.
-	 */
-	AVR_FSM &operator=(const AVR_FSM &src)
-	{
-		if (this != &src)
-		{
-			// 1. Free all memory in the target instance
-			delete[] m_properties;
-
-			// 2. Reallocate memory for the target instance
-			m_properties = new unsigned char[src.m_length];
-
-			// 3. Copy data from src into the target instance
-			for (size_t i = 0; i < src.m_length; ++i)
-				m_properties[i] = src.m_properties[i];
-			m_length = src.m_length;
-		}
-		// 4. Return a reference to the target instance
-		return *this;
-	}
-
-	/**
-	 * Rule of three.
-	 */
-	~AVR_FSM() { delete[] m_properties; }
-
-	/**
-	 * Straight-forward comparison of two objects.
-	 */
-	bool operator==(const AVR_FSM &other) const
-	{
-		if (m_length != other.m_length)
-			return false;
-		for (size_t i = 0; i < m_length; ++i)
-			if (m_properties[i] != other.m_properties[i])
-				return false;
-		return true;
-	}
-
-	/**
-	 * The difference between GetProperty() and the array index operator is
-	 * that the latter allows the element to be modified.
-	 */
-	unsigned char GetProperty(unsigned int i) const { return m_properties[i]; }
-	unsigned char &operator[](unsigned int i) const { return m_properties[i]; }
-
-	/**
-	 * Convenience function: the first parameter is the FSM's ID.
-	 */
-	unsigned char GetID() const { return m_properties[0]; }
-
-	/**
-	 * Returns the total number of parameters (including the initial ID).
-	 */
-	unsigned int GetLength() const { return m_length; }
-
-private:
-	unsigned char *m_properties;
-	unsigned int m_length;
-};
-
-
-
-
-
+#include <stddef.h> // for size_t
 
 class AVRController
 {
@@ -197,9 +105,7 @@ public:
 
 
 
-
-
-protected:
+public: // protected
 	/**
 	 * Get a (unique) list of FSMs registered for the specified pin (selected
 	 * from subset of FSMs that can be registered to a pin).
@@ -259,7 +165,7 @@ private:
 	boost::asio::io_service  m_io;
 	boost::asio::serial_port m_port;
 	// A deadline_timer object allows us to set a serial timeout
-	boost::asio::deadline_timer m_timeout;
+	//boost::asio::deadline_timer m_timeout;
 
 	//std::vector<int> responseQueue;
 

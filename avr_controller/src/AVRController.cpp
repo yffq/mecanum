@@ -23,19 +23,22 @@
 // RoboteQ AX3500 motor controller multi-threaded interface
 
 #include "AVRController.h"
-
-#include "/home/garrett/ros/mecanum/avr/include/AddressBook.h"
+#include "AddressBook.h"
+//#include "ByteArray.h"
 
 //#include <boost/bind.hpp>
-#include <boost/asio.hpp>
+//#include <boost/asio.hpp>
 //#include <boost/shared_ptr.hpp>
 //#include <boost/shared_array.hpp>
-//#include <boost/thread.hpp>
+#include <boost/thread.hpp>
 //#include <boost/thread/condition.hpp>
 //#include <boost/tuple/tuple.hpp>
+#include <boost/date_time/posix_time/posix_time_types.hpp> // for boost::posix_time::milliseconds
+
 
 #include <iostream>
-#include <vector>
+
+using namespace std;
 
 AVRController::AVRController() : m_io(), m_port(m_io)
 {
@@ -50,6 +53,8 @@ bool AVRController::Open(const std::string &device)
 {
 	Close();
 
+	cout << "Opening port..." << endl;
+
 	m_port.open(device.c_str());
 	if (!m_port.is_open())
 		return false;
@@ -61,9 +66,16 @@ bool AVRController::Open(const std::string &device)
 	m_port.set_option(asio_serial::parity(asio_serial::parity::none));
 	m_port.set_option(asio_serial::flow_control(asio_serial::flow_control::none));
 
+	cout << "Port opened, sleeping..." << endl;
+
+	boost::this_thread::sleep(boost::posix_time::milliseconds(3000));
+
+	cout << "Querying FSMs" << endl;
+
 	// Initialize v_fsm with the list of FSMs currently running on the Arduino
 	QueryAllFromAVR(v_fsm);
 
+	cout << "Retrieved " << v_fsm.size() << " FSM" << (v_fsm.size() > 1 ? "s" : "") << endl;
 	m_deviceName = device;
 	return true;
 }
@@ -78,12 +90,14 @@ void AVRController::Close()
 
 bool AVRController::Reset()
 {
-	return Open(m_deviceName);
+	bool b = Open(m_deviceName);
+	return b;
 }
 
 bool AVRController::IsOpen()
 {
-	return m_port.is_open();
+	bool b = m_port.is_open();
+	return b;
 }
 
 void AVRController::DigitalWrite(unsigned char pin, bool value)
@@ -216,7 +230,38 @@ bool AVRController::ResetAndLoadAll()
 
 void AVRController::QueryAllFromAVR(std::vector<AVR_FSM> &fsmv)
 {
-	// Ask FSM_MASTER for a list of its FSMs and build the array into fsmv
+	unsigned char cmd[] = {3, // size of this message
+	                      FSM_MASTER, // target FSM
+	                      2}; // dump FSMs command
+	write(m_port, boost::asio::buffer(cmd, cmd[0]));
+
+	unsigned char msg_size[1];
+	unsigned char buffer[255];
+	unsigned char *marker = buffer;
+	do
+	{
+		// Get the message size
+		size_t bytesRead = read(m_port, boost::asio::buffer(msg_size, 1));
+		if (bytesRead != 1)
+			break;
+		// Single byte message delineates the message chain
+		if (msg_size[0] > 1)
+		{
+			// Get the payload
+			size_t bytesLeft = read(m_port, boost::asio::buffer(buffer, msg_size[0]));
+			while (bytesLeft)
+			{
+				unsigned char fsm_size = marker[0];
+				v_fsm.push_back(AVR_FSM(marker + 1, fsm_size));
+				bytesLeft -= fsm_size;
+				marker += fsm_size; // Advance the buffer
+			}
+		}
+
+		// Reset the marker
+		marker = buffer;
+
+	} while (msg_size[0] > 1);
 }
 
 void AVRController::UnloadFSM(const AVR_FSM &fsm)
@@ -243,15 +288,6 @@ bool AVRController::MessageFSM(const AVR_FSM &fsm, unsigned char *msg, size_t le
 
 	return true;
 }
-
-
-
-
-
-
-
-
-
 
 
 

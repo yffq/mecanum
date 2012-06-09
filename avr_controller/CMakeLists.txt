@@ -21,7 +21,10 @@ rosbuild_genmsg()
 #uncomment if you have defined services
 rosbuild_gensrv()
 
-set(AVRCONTROLLER_SRCS src/AVRController.cpp)
+set(AVRCONTROLLER_SRCS src/AVRController.cpp
+                       src/AVR_FSM.cpp
+#                       ../avr/src/ByteArray.cpp
+)
 
 #common commands for building c++ executables and libraries
 rosbuild_add_library(${PROJECT_NAME} ${AVRCONTROLLER_SRCS})
@@ -31,3 +34,6 @@ rosbuild_link_boost(${PROJECT_NAME} system thread)
 
 rosbuild_add_executable(avr_node src/AVRNode.cpp)
 target_link_libraries(avr_node ${PROJECT_NAME})
+
+rosbuild_add_executable(main src/main.cpp)
+target_link_libraries(main ${PROJECT_NAME})
