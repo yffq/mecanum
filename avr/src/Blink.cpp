@@ -5,13 +5,15 @@
 
 #include <Arduino.h>
 
-#define PARAM_PIN 1
+#define PARAM_ID    0
+#define PARAM_PIN   1
+#define PARAM_DELAY 2
 
 Blink::Blink(uint8_t pin, unsigned long delay) : m_delay(delay), m_enabled(false)
 {
-	m_params[0] = FSM_BLINK;
-	m_params[1] = pin;
-	ByteUtils::Serialize(delay, m_params + 2);
+	m_params[PARAM_ID] = FSM_BLINK;
+	m_params[PARAM_PIN] = pin;
+	ByteUtils::Serialize(delay, m_params + PARAM_DELAY);
 
 	//  Make the super class aware of our params array
 	parameters = ByteArray(m_params, sizeof(m_params));
@@ -26,8 +28,11 @@ Blink::Blink(const ByteArray &params) : m_enabled(false)
 
 	// Why do we need a temporary variable here?
 	unsigned long n;
-	ByteUtils::Deserialize(m_params + 2, n);
+	ByteUtils::Deserialize(m_params + PARAM_DELAY, n);
 	m_delay = n;
+
+	//  Make the super class aware of our params array
+	parameters = ByteArray(m_params, sizeof(m_params));
 
 	Init();
 }

@@ -29,7 +29,7 @@ MecanumMaster::MecanumMaster()
 	//fsmv.PushBack(new BatteryMonitor());
 	//fsmv.PushBack(new Toggle(LED_BATTERY_EMPTY, FOREVER));
 	//fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE6, LED_BATTERY_HIGH, 50));
-	fsmv.PushBack(new Blink(LED_EMERGENCY, 500));
+	fsmv.PushBack(new Blink(LED_EMERGENCY, 200));
 	/*
 	// Everything on full brightness
 	uint8_t leds[] = {
@@ -100,7 +100,10 @@ void MecanumMaster::SerialCallback()
 		// First byte is the ID of the FSM to message
 		char fsmId = msg[0];
 		if (fsmId == FSM_MASTER)
-			Message(msg >> 1); // Skip the ID byte
+		{
+			msg >> 1;
+			Message(msg); // Skip the ID byte
+		}
 		else
 		{
 			// Send the message to every instance of the FSM
@@ -126,81 +129,82 @@ void MecanumMaster::Message(ByteArray &msg)
 	if (!msg.Length())
 		return;
 
+	// Message IDs are defined in AddressBook.h
 	unsigned char msgID = msg[0];
 	msg >> 1;
 
-	// Message 0 is create FSM
-	// Message 1 is delete FSM
-	// Message 2 is dump FSMs
-	if (msg.Length() >= 1)
+	switch (msgID)
 	{
-		switch (msgID)
+	case MSG_MASTER_CREATE_FSM:
+	{
+		// Create a new FSM. msg is the parameters to be passed to the
+		// FSM's constructor.
+		// TODO: Allow deletion of multiple FSMs
+		if (msg.Length())
 		{
-		case MSG_MASTER_CREATE_FSM:
-		{
-			// Create a new FSM. msg is the parameters to be passed to the
-			// FSM's constructor.
-			// TODO: Allow deletion of multiple FSMs
-			switch (msg[0])
+			unsigned char fsm_id = msg[0];
+			switch (fsm_id)
 			{
 			case FSM_BLINK:
 				if (msg.Length() >= 6)
 					fsmv.PushBack(new Blink(msg));
 				break;
 			}
-			break;
 		}
-		case MSG_MASTER_DESTROY_FSM:
+		break;
+	}
+	case MSG_MASTER_DESTROY_FSM:
+	{
+		// Annihilate a FSM. msg is the fingerprint of the FSM to delete
+		//fsmv.QuickErase(msg);
+		fsmv.Clear();
+		break;
+	}
+	case MSG_MASTER_LIST_FSM:
+	{
+		// Dump a list of FSMs to the serial port.
+
+		// Repurpose buffer_bytes as a send buffer. Initial length = 2;
+		// first byte is msg length, second byte is FSM ID (FSM_MASTER)
+		ByteArray sendBuffer(buffer_bytes, 2);
+		sendBuffer[1] = FSM_MASTER;
+
+		// Currently, Serial.write() will block until enough data has been
+		// written such that the buffer is full. The current buffer size is:
+		// #define RX_BUFFER_SIZE 64 in HardwareSerial.cpp (line 44)
+		// Note, the buffer size used to be 128 but was changed recently.
+		// Also, Serial.write() may someday change to return a value less
+		// than the number of bytes specified, indicating that some bytes
+		// were dropped.
+
+		for (unsigned char i = 0; i < fsmv.Size(); ++i)
 		{
-			// Annihilate a FSM. msg is the fingerprint of the FSM to delete
-			fsmv.QuickErase(msg);
-			break;
-		}
-		case MSG_MASTER_LIST_FSM:
-		{
-			// Dump a list of FSMs to the serial port.
+			ByteArray fsm(fsmv[i]->Describe());
 
-			// Repurpose buffer_bytes as a send buffer. Initial length = 2;
-			// first byte is msg length, second byte is FSM ID (FSM_MASTER)
-			ByteArray sendBuffer(buffer_bytes, 2);
-			sendBuffer[1] = FSM_MASTER;
-
-			// Currently, Serial.write() will block until enough data has been
-			// written such that the buffer is full. The current buffer size is:
-			// #define RX_BUFFER_SIZE 64 in HardwareSerial.cpp (line 44)
-			// Note, the buffer size used to be 128 but was changed recently.
-			// Also, Serial.write() may someday change to return a value less
-			// than the number of bytes specified, indicating that some bytes
-			// were dropped.
-
-			for (unsigned char i = 0; i < fsmv.Size(); ++i)
+			// Use unsigned int to avoid integer overflows
+			// +1 because size is prepended to fsm byte array
+			if (static_cast<unsigned int>(sendBuffer.Length()) +
+				static_cast<unsigned int>(fsm.Length()) + 1 > BUFFERLENGTH)
 			{
-				ByteArray fsm(fsmv[i]->Describe());
-
-				// Use unsigned int to avoid integer overflows
-				// +1 because size is prepended
-				if (static_cast<unsigned int>(sendBuffer.Length()) +
-				    static_cast<unsigned int>(fsm.Length()) + 1 > BUFFERLENGTH)
-				{
-					// Message is too large. Send what we've got.
-					sendBuffer[0] = sendBuffer.Length();
-					Serial.write(static_cast<uint8_t*>(buffer_bytes), sendBuffer.Length());
-					sendBuffer.SetLength(2); // Reset
-				}
-
-				fsm.Dump(buffer_bytes + sendBuffer.Length());
-				sendBuffer << fsm.Length() + 1; // +1 because size is prepended
+				// Message is too large. Send what we've got.
+				sendBuffer[0] = sendBuffer.Length();
+				Serial.write(static_cast<uint8_t*>(buffer_bytes), sendBuffer.Length());
+				sendBuffer.SetLength(2); // Reset
 			}
-			sendBuffer[0] = sendBuffer.Length();
-			Serial.write(static_cast<uint8_t*>(buffer_bytes), sendBuffer.Length());
-			// For now, to let the host know we're finished
-			sendBuffer[0] = 2;
-			Serial.write(static_cast<uint8_t*>(buffer_bytes), sendBuffer.Length());
 
-			break;
+			fsm.Dump(buffer_bytes + sendBuffer.Length());
+			sendBuffer << fsm.Length() + 1; // +1 because size is prepended
 		}
-		default:
-			break;
-		}
+		sendBuffer[0] = sendBuffer.Length();
+		Serial.write(static_cast<uint8_t*>(buffer_bytes), sendBuffer.Length());
+
+		// For now, to let the host know we're finished
+		sendBuffer[0] = 2;
+		Serial.write(static_cast<uint8_t*>(buffer_bytes), sendBuffer.Length());
+
+		break;
+	}
+	default:
+		break;
 	}
 }

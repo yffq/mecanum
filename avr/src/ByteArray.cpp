@@ -30,7 +30,7 @@ ByteArray &ByteArray::operator>>(unsigned char i)
 void ByteArray::Dump(unsigned char *buffer) const
 {
 	// Copy from end to beginning so that we can prepend the length to ourselves
-	for (unsigned char i = length; i > 0; ++i)
+	for (unsigned char i = length; i > 0; --i)
 		buffer[i] = bytes[i - 1];
 	buffer[0] = length + 1;
 }
