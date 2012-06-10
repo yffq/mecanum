@@ -136,7 +136,7 @@ void MecanumMaster::Message(ByteArray &msg)
 	{
 		switch (msgID)
 		{
-		case 0:
+		case MSG_MASTER_CREATE_FSM:
 		{
 			// Create a new FSM. msg is the parameters to be passed to the
 			// FSM's constructor.
@@ -150,39 +150,53 @@ void MecanumMaster::Message(ByteArray &msg)
 			}
 			break;
 		}
-		case 1:
+		case MSG_MASTER_DESTROY_FSM:
 		{
-			// Annihilate a FSM. msg is the fingerprint of the FSM to delete.
+			// Annihilate a FSM. msg is the fingerprint of the FSM to delete
 			fsmv.QuickErase(msg);
 			break;
 		}
-		case 2:
+		case MSG_MASTER_LIST_FSM:
 		{
-			// Dump a list of FSMs to the serial port
-			// Repurpose buffer_bytes as a send buffer (msg is no longer consistent now)
-			ByteArray sendBuffer(buffer_bytes, 1); // first byte is msg length (set later)
+			// Dump a list of FSMs to the serial port.
+
+			// Repurpose buffer_bytes as a send buffer. Initial length = 2;
+			// first byte is msg length, second byte is FSM ID (FSM_MASTER)
+			ByteArray sendBuffer(buffer_bytes, 2);
+			sendBuffer[1] = FSM_MASTER;
+
+			// Currently, Serial.write() will block until enough data has been
+			// written such that the buffer is full. The current buffer size is:
+			// #define RX_BUFFER_SIZE 64 in HardwareSerial.cpp (line 44)
+			// Note, the buffer size used to be 128 but was changed recently.
+			// Also, Serial.write() may someday change to return a value less
+			// than the number of bytes specified, indicating that some bytes
+			// were dropped.
 
 			for (unsigned char i = 0; i < fsmv.Size(); ++i)
 			{
-				// Remember, the first byte is parameter count (length)
-				unsigned int peekAhead = fsmv[i]->Describe().Length() + 1;
-				// Avoid buffer and integer overflows
-				if (static_cast<unsigned int>(sendBuffer.Length()) + peekAhead > BUFFERLENGTH)
+				ByteArray fsm(fsmv[i]->Describe());
+
+				// Use unsigned int to avoid integer overflows
+				// +1 because size is prepended
+				if (static_cast<unsigned int>(sendBuffer.Length()) +
+				    static_cast<unsigned int>(fsm.Length()) + 1 > BUFFERLENGTH)
 				{
-					// Clear the buffer and start fresh
+					// Message is too large. Send what we've got.
 					sendBuffer[0] = sendBuffer.Length();
-					Serial.flush();
 					Serial.write(static_cast<uint8_t*>(buffer_bytes), sendBuffer.Length());
-					sendBuffer.SetLength(1); // Reset to 1
+					sendBuffer.SetLength(2); // Reset
 				}
-				// We have the go-ahead to copy our params into the send buffer
-				sendBuffer << peekAhead;
-				fsmv[i]->Describe().PrependLength(buffer_bytes + sendBuffer.Length());
+
+				fsm.Dump(buffer_bytes + sendBuffer.Length());
+				sendBuffer << fsm.Length() + 1; // +1 because size is prepended
 			}
 			sendBuffer[0] = sendBuffer.Length();
-			// Flush the buffer so that our next write doesn't overflow
-			Serial.flush();
 			Serial.write(static_cast<uint8_t*>(buffer_bytes), sendBuffer.Length());
+			// For now, to let the host know we're finished
+			sendBuffer[0] = 2;
+			Serial.write(static_cast<uint8_t*>(buffer_bytes), sendBuffer.Length());
+
 			break;
 		}
 		default:

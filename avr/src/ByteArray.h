@@ -23,7 +23,7 @@ public:
 	 * Decrease the size of the buffer. The byte array is shifted to match the
 	 * decreased size (bytes are popped off the front of the array).
 	 */
-	ByteArray &operator>>(unsigned char i) { Shift(i); return *this; }
+	ByteArray &operator>>(unsigned char i);
 
 	/**
 	 * Increase the size of the buffer. This does NOT shift the byte array.
@@ -31,31 +31,22 @@ public:
 	 * large enough to handle the increased size (I know yo mamma is).
 	 *
 	 * The maximum size is 255 (0xFF); if i pushes the size over the limit,
-	 * the length is clipped at 255.
+	 * the length will overflow and actually shorted the byte array.
 	 */
-	ByteArray &operator<<(unsigned char i);
-
-	void Shift(unsigned char i);
+	ByteArray &operator<<(unsigned char i) { length += i; return *this; }
 
 	/**
-	 * Buffer's length equals this object's Length() plus one.
+	 * Copy the byte array into buffer, with the first byte set to the array's
+	 * length.  Buffer's length must be greater than this object's Length()
+	 * plus one.
+	 *
+	 * Note: Doogie
 	 */
-	void PrependLength(unsigned char *buffer) const;
+	void Dump(unsigned char *buffer) const;
+	//void PrependLengthToSelf() { Dump(bytes); }
 
 	unsigned char Length() const { return length; }
 	void SetLength(unsigned char newLength) { length = newLength; }
-
-	/**
-	 * Precondition: buffer's size is at least 4. To achieve compatibility with
-	 * 8-bit processors, only the lowest 4 bytes of n are serialized.
-	 * Postcondition: buffer contains n in big endian format.
-	 */
-	static void Serialize(unsigned long n, unsigned char *buffer);
-
-	/**
-	 * The pre- and post-conditions are similar to above, but probably reversed.
-	 */
-	static void Deserialize(const unsigned char *buffer, unsigned long &n);
 
 private:
 	unsigned char *bytes;

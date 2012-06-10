@@ -1,6 +1,7 @@
 #include "Blink.h"
 
 #include "AddressBook.h"
+#include "ByteUtils.h"
 
 #include <Arduino.h>
 
@@ -10,7 +11,7 @@ Blink::Blink(uint8_t pin, unsigned long delay) : m_delay(delay), m_enabled(false
 {
 	m_params[0] = FSM_BLINK;
 	m_params[1] = pin;
-	ByteArray::Serialize(delay, m_params + 2);
+	ByteUtils::Serialize(delay, m_params + 2);
 
 	//  Make the super class aware of our params array
 	parameters = ByteArray(m_params, sizeof(m_params));
@@ -25,7 +26,7 @@ Blink::Blink(const ByteArray &params) : m_enabled(false)
 
 	// Why do we need a temporary variable here?
 	unsigned long n;
-	ByteArray::Deserialize(m_params + 2, n);
+	ByteUtils::Deserialize(m_params + 2, n);
 	m_delay = n;
 
 	Init();

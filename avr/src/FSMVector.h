@@ -15,7 +15,7 @@ public:
 	 * array in the interim, the order of elements accessed by this operator
 	 * will be maintained.
 	 */
-	FiniteStateMachine * const &operator[] (unsigned char i) const { return m_fsmv[i]; }
+	FiniteStateMachine *const &operator[] (unsigned char i) const { return m_fsmv[i]; }
 
 	/**
 	 * Get the number of FSMs in the array.

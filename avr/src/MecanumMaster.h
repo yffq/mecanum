@@ -36,7 +36,7 @@ private:
 	unsigned long fsmDelay[FSMVector::MAX_FSM];
 
 	// Buffer to send and receive serial data. Must be <= 0xFE
-	static const int BUFFERLENGTH = 64; // #define RX_BUFFER_SIZE 64 in HardwareSerial.cpp (line 44)
+	static const unsigned int BUFFERLENGTH = 0xFF;
 	unsigned char buffer_bytes[BUFFERLENGTH];
 };
 
