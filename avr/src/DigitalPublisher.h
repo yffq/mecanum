@@ -20,6 +20,8 @@ class DigitalPublisher : public FiniteStateMachine
 public:
 	DigitalPublisher(uint8_t pin, unsigned long delay /* ms */);
 
+	static DigitalPublisher *NewFromArray(const ByteArray &params);
+
 	virtual ~DigitalPublisher() { }
 
 	virtual void Step();
@@ -34,7 +36,7 @@ public:
 	virtual bool Message(const char* msg, unsigned char length);
 
 private:
-	uint8_t m_pin;
+	unsigned char m_params[6];
 	unsigned long m_delay; // ms
 };
 

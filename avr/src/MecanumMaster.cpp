@@ -9,7 +9,7 @@
 #include "BatteryMonitor.h"
 #include "Blink.h"
 #include "ChristmasTree.h"
-//#include "DigitalPublisher.h"
+#include "DigitalPublisher.h"
 //#include "Fade.h"
 //#include "Mimic.h"
 //#include "Toggle.h"
@@ -163,7 +163,7 @@ void MecanumMaster::Message(ByteArray &msg)
 				//fsmv.PushBack(Toggle::NewFromArray(msg));
 				break;
 			case FSM_DIGITALPUBLISHER:
-				//fsmv.PushBack(DigitalPublisher::NewFromArray(msg));
+				fsmv.PushBack(DigitalPublisher::NewFromArray(msg));
 				break;
 			case FSM_ANALOGPUBLISHER:
 				fsmv.PushBack(AnalogPublisher::NewFromArray(msg));

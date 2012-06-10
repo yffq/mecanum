@@ -10,7 +10,7 @@
 AnalogPublisher::AnalogPublisher(uint8_t pin, unsigned long delay) : m_delay(delay)
 {
 	//  Make the super class aware of our parameters
-	m_params[PARAM_ID] = FSM_BLINK;
+	m_params[PARAM_ID] = FSM_ANALOGPUBLISHER;
 	m_params[PARAM_PIN] = pin;
 	ByteArray::Serialize(m_delay, m_params + PARAM_DELAY);
 	DeclareParameters(m_params, sizeof(m_params));
