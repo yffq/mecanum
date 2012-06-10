@@ -17,6 +17,13 @@ public:
 	 */
 	BatteryMonitor();
 
+	static BatteryMonitor *NewFromArray(const ByteArray &params);
+
+	/*
+	 * When this FSM is destructed the battery LEDs are left in an off state.
+	 */
+	virtual ~BatteryMonitor();
+
 	virtual void Step();
 
 	virtual unsigned long Delay() const;
@@ -26,6 +33,8 @@ public:
 	int GetNumCells() { return GetVoltage() > 8.5 ? 3 : 2; }
 
 private:
+	unsigned char m_params[1];
+
 	static const unsigned char NUM_LED = 4;
 	uint8_t m_led[NUM_LED];
 

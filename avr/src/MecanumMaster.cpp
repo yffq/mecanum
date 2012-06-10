@@ -6,7 +6,7 @@
 
 // Finite state machines
 #include "AnalogPublisher.h"
-//#include "BatteryMonitor.h"
+#include "BatteryMonitor.h"
 #include "Blink.h"
 #include "ChristmasTree.h"
 //#include "DigitalPublisher.h"
@@ -145,7 +145,7 @@ void MecanumMaster::Message(ByteArray &msg)
 			switch (fsm_id)
 			{
 			case FSM_BATTERYMONITOR:
-				//fsmv.PushBack(BatteryMonitor::NewFromArray(msg));
+				fsmv.PushBack(BatteryMonitor::NewFromArray(msg));
 				break;
 			case FSM_BLINK:
 				fsmv.PushBack(Blink::NewFromArray(msg));

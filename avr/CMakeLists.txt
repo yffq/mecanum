@@ -53,7 +53,7 @@ link_directories(${CMAKE_CURRENT_SOURCE_DIR}/libraries)
 
 set(mecanum_srcs src/main.cpp
                  src/AnalogPublisher.cpp
-#                 src/BatteryMonitor.cpp
+                 src/BatteryMonitor.cpp
                  src/Blink.cpp
                  src/ByteArray.cpp
                  src/ChristmasTree.cpp
