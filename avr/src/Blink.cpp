@@ -23,7 +23,7 @@ Blink::Blink(uint8_t pin, unsigned long delay) : m_delay(delay), m_enabled(false
 
 Blink *Blink::NewFromArray(const ByteArray &params)
 {
-	if (params.Length() >= 6 && params[PARAM_ID] == FSM_BLINK)
+	if (params.Length() >= sizeof(m_params) && params[PARAM_ID] == FSM_BLINK)
 	{
 		unsigned long delay;
 		ByteArray::Deserialize(&params[PARAM_DELAY], delay);

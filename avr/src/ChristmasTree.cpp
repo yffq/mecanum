@@ -18,7 +18,7 @@ ChristmasTree::ChristmasTree() : m_state(SpinningStart), m_spinningTarget(0), m_
 
 ChristmasTree *ChristmasTree::NewFromArray(const ByteArray &params)
 {
-	if (params.Length() >= 1 && params[0] == FSM_CHRISTMASTREE)
+	if (params.Length() >= sizeof(m_params) && params[0] == FSM_CHRISTMASTREE)
 		return new ChristmasTree();
 	return 0;
 }

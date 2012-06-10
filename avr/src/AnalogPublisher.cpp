@@ -16,6 +16,17 @@ AnalogPublisher::AnalogPublisher(uint8_t pin, unsigned long delay) : m_delay(del
 	DeclareParameters(m_params, sizeof(m_params));
 }
 
+AnalogPublisher *AnalogPublisher::NewFromArray(const ByteArray &params)
+{
+	if (params.Length() >= sizeof(m_params) && params[PARAM_ID] == FSM_ANALOGPUBLISHER)
+	{
+		unsigned long delay;
+		ByteArray::Deserialize(&params[PARAM_DELAY], delay);
+		return new AnalogPublisher(params[PARAM_PIN], delay);
+	}
+	return 0;
+}
+
 void AnalogPublisher::Step()
 {
 	int value = analogRead(m_params[PARAM_PIN]);

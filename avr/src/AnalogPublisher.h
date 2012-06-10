@@ -21,6 +21,8 @@ class AnalogPublisher : public FiniteStateMachine
 public:
 	AnalogPublisher(uint8_t pin, unsigned long delay);
 
+	static AnalogPublisher *NewFromArray(const ByteArray &params);
+
 	virtual ~AnalogPublisher() { }
 
 	virtual void Step();

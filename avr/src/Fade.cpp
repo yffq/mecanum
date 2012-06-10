@@ -50,7 +50,7 @@ Fade::Fade(uint8_t pin, unsigned long period, unsigned long delay, LuminanceCurv
 
 Fade *Fade::NewFromArray(const ByteArray &params)
 {
-	if (params.Length() >= 11 && params[0] == FSM_FADE)
+	if (params.Length() >= sizeof(m_params) && params[0] == FSM_FADE)
 	{
 		unsigned long period, delay;
 		ByteArray::Deserialize(&params[PARAM_PERIOD], period);

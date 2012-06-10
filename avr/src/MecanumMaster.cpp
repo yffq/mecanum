@@ -166,7 +166,7 @@ void MecanumMaster::Message(ByteArray &msg)
 				//fsmv.PushBack(DigitalPublisher::NewFromArray(msg));
 				break;
 			case FSM_ANALOGPUBLISHER:
-				//fsmv.PushBack(AnalogPublisher::NewFromArray(msg));
+				fsmv.PushBack(AnalogPublisher::NewFromArray(msg));
 				break;
 			}
 		}
