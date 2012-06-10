@@ -1,0 +1,3 @@
+#!/bin/sh
+# In stack directory...
+rosmake --target=eclipse-project --specified-only *
