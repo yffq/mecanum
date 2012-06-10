@@ -68,9 +68,9 @@ bool AVRController::Open(const std::string &device)
 
 	cout << "Port opened, sleeping..." << endl;
 
-	boost::this_thread::sleep(boost::posix_time::milliseconds(3000));
+	boost::this_thread::sleep(boost::posix_time::milliseconds(4000));
 
-	cout << "Querying FSMs" << endl;
+	cout << "Querying FSMs..." << endl;
 
 	// Initialize v_fsm with the list of FSMs currently running on the Arduino
 	QueryAllFromAVR(v_fsm);
@@ -220,11 +220,22 @@ bool AVRController::ResetAndLoadAll()
 	return true;
 }
 
+void dump(const unsigned char *bytes, int length)
+{
+	for (int i = 0; i < length; ++i)
+	{
+		cout << (int)bytes[i];
+		if (i != length - 1)
+			cout << ", ";
+	}
+}
+
 void AVRController::QueryAllFromAVR(std::vector<AVR_FSM> &fsmv)
 {
 	unsigned char cmd[] = {3, // size of this message
 	                      FSM_MASTER, // target FSM
 	                      2}; // dump FSMs command
+
 	write(m_port, boost::asio::buffer(cmd, cmd[0]));
 
 	unsigned char msg_size[1];
@@ -242,6 +253,11 @@ void AVRController::QueryAllFromAVR(std::vector<AVR_FSM> &fsmv)
 		size_t payloadSize = read(m_port, boost::asio::buffer(buffer, msg_size[0] - 1));
 		if (payloadSize == 0)
 			break;
+
+		// Include msg_size in the payload
+		cout << "Read payload: {" << (int)msg_size[0] << ", ";
+		dump(buffer, payloadSize);
+		cout << "}" << endl;
 
 		// Skip the FSM id (FSM_MASTER)
 		unsigned char fsm_id = marker[0];
