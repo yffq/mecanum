@@ -76,6 +76,7 @@ bool AVRController::Open(const std::string &device)
 	QueryAllFromAVR(v_fsm);
 
 	cout << "Retrieved " << v_fsm.size() << " FSM" << (v_fsm.size() > 1 ? "s" : "") << endl;
+
 	m_deviceName = device;
 	return true;
 }
@@ -112,15 +113,6 @@ void AVRController::DigitalWrite(unsigned char pin, bool value)
 
 
 
-
-
-
-
-
-
-
-
-
 void AVRController::GetByPin(unsigned char pin, std::vector<AVR_FSM> &fsmv) const
 {
 	for (std::vector<AVR_FSM>::const_iterator it = v_fsm.begin(); it != v_fsm.end(); ++it)
@@ -134,7 +126,7 @@ void AVRController::GetByPin(unsigned char pin, std::vector<AVR_FSM> &fsmv) cons
 		case FSM_MIMIC:
 		case FSM_TOGGLE:
 			// These FSMs use the next property to specify the pin ID
-			if (it->GetProperty(1) == pin && !Contains(fsmv, *it))
+			if ((*it)[1] == pin && !Contains(fsmv, *it))
 				fsmv.push_back(*it);
 			break;
 		case FSM_CHRISTMASTREE:
@@ -236,32 +228,38 @@ void AVRController::QueryAllFromAVR(std::vector<AVR_FSM> &fsmv)
 	write(m_port, boost::asio::buffer(cmd, cmd[0]));
 
 	unsigned char msg_size[1];
-	unsigned char buffer[255];
-	unsigned char *marker = buffer;
+	unsigned char buffer[255 - 1];
 	do
 	{
+		unsigned char *marker = buffer;
+
 		// Get the message size
 		size_t bytesRead = read(m_port, boost::asio::buffer(msg_size, 1));
 		if (bytesRead != 1)
 			break;
-		// Single byte message delineates the message chain
-		if (msg_size[0] > 1)
+
+		// Get the payload
+		size_t payloadSize = read(m_port, boost::asio::buffer(buffer, msg_size[0] - 1));
+		if (payloadSize == 0)
+			break;
+
+		// Skip the FSM id (FSM_MASTER)
+		unsigned char fsm_id = marker[0];
+		--payloadSize;
+		++marker;
+
+		while (payloadSize)
 		{
-			// Get the payload
-			size_t bytesLeft = read(m_port, boost::asio::buffer(buffer, msg_size[0]));
-			while (bytesLeft)
-			{
-				unsigned char fsm_size = marker[0];
-				v_fsm.push_back(AVR_FSM(marker + 1, fsm_size));
-				bytesLeft -= fsm_size;
-				marker += fsm_size; // Advance the buffer
-			}
+			unsigned char fsm_size = marker[0] - 1;
+			--payloadSize;
+			++marker;
+
+			v_fsm.push_back(AVR_FSM(marker, fsm_size));
+			payloadSize -= fsm_size;
+			marker += fsm_size;
 		}
 
-		// Reset the marker
-		marker = buffer;
-
-	} while (msg_size[0] > 1);
+	} while (msg_size[0] > 2);
 }
 
 void AVRController::UnloadFSM(const AVR_FSM &fsm)

@@ -40,7 +40,6 @@ public:
 	 * The difference between GetProperty() and the array index operator is
 	 * that the latter allows the element to be modified.
 	 */
-	unsigned char GetProperty(unsigned int i) const { return m_properties[i]; }
 	unsigned char &operator[](unsigned int i) const { return m_properties[i]; }
 
 	/**
@@ -54,7 +53,6 @@ public:
 	unsigned int GetLength() const { return m_length; }
 
 private:
-	//ByteArray properties;
 	unsigned char *m_properties;
 	unsigned int m_length;
 };

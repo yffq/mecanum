@@ -23,7 +23,6 @@ rosbuild_gensrv()
 
 set(AVRCONTROLLER_SRCS src/AVRController.cpp
                        src/AVR_FSM.cpp
-#                       ../avr/src/ByteArray.cpp
 )
 
 #common commands for building c++ executables and libraries
