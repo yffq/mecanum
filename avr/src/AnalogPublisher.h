@@ -32,10 +32,10 @@ public:
 	 * message is sent to it (and the message's pin matches its pin), it will
 	 * emit the analog value to the serial port on command.
 	 */
-	virtual bool Message(const char* msg, unsigned char length);
+	virtual bool Message(const ByteArray &msg);
 
 private:
-	uint8_t m_pin;
+	unsigned char m_params[6];
 	unsigned long m_delay; // ms
 };
 

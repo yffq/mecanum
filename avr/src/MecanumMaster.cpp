@@ -5,7 +5,7 @@
 //#include "Publishers.h"
 
 // Finite state machines
-//#include "AnalogPublisher.h"
+#include "AnalogPublisher.h"
 //#include "BatteryMonitor.h"
 #include "Blink.h"
 #include "ChristmasTree.h"
