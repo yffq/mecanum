@@ -56,9 +56,9 @@ set(mecanum_srcs src/main.cpp
 #                 src/BatteryMonitor.cpp
                  src/Blink.cpp
                  src/ByteArray.cpp
-#                 src/ChristmasTree.cpp
+                 src/ChristmasTree.cpp
 #                 src/DigitalPublisher.cpp
-#                 src/Fade.cpp
+                 src/Fade.cpp
                  src/FSMVector.cpp
                  src/MecanumMaster.cpp
 #                 src/Mimic.cpp

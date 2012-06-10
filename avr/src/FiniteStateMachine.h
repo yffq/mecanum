@@ -11,19 +11,8 @@
  */
 class FiniteStateMachine
 {
-protected:
-	/**
-	 *
-	 */
-	ByteArray parameters;
-
 public:
-	/**
-	 *
-	 */
-	FiniteStateMachine() { }
-
-	FiniteStateMachine(const ByteArray params) : parameters(params) { }
+	FiniteStateMachine *NewFromMsg(ByteArray msg);
 
 	/**
 	 * The destructor is declared virtual so that subclasses can optionally
@@ -36,14 +25,14 @@ public:
 	 */
 	unsigned char ID() const { return parameters[0]; }
 
+	const ByteArray &Describe() const { return parameters; }
+
 	/**
 	 * A FSM is uniquely identified by its parameters. A FSM should not alter
 	 * parameters after instantiation, because it would in effect transform
 	 * itself into a dissimilar FSM.
 	 */
 	bool operator==(const FiniteStateMachine &other) const { return parameters == other.parameters; }
-
-	const ByteArray &Describe() const { return parameters; }
 
 	/**
 	 * Take action and/or transition to the next state.
@@ -83,7 +72,16 @@ public:
 	 * deleted by the master. Also, don't use a message class, use a FSM's
 	 * SUBSCRIBER header.
 	 */
-	virtual bool Message(const ByteArray msg) { return false; }
+	virtual bool Message(const ByteArray &msg) { return false; }
+
+protected:
+	void DeclareParameters(unsigned char *params, unsigned char len) { parameters = ByteArray(params, len); }
+
+private:
+	/**
+	 *
+	 */
+	ByteArray parameters;
 };
 
 #endif // FINITESTATEMACHINE_H

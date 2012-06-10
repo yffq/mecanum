@@ -22,8 +22,8 @@ public:
 	 */
 	enum LuminanceCurve
 	{
-		LINEAR, // luminance increases linearly
-		LOGARITHMIC // voltage increases linearly
+		LINEAR = 0, // luminance increases linearly
+		LOGARITHMIC = 1 // voltage increases linearly
 	};
 
 	/**
@@ -38,6 +38,12 @@ public:
 	 *     near full brightness.
 	 */
 	Fade(uint8_t pin, unsigned long period, unsigned long delay, LuminanceCurve curve = LINEAR);
+
+	/**
+	 * Performs parameter validation and instantiates a new object. If the
+	 * parameters are invalid or allocation fails, this function returns 0.
+	 */
+	static Fade *NewFromArray(const ByteArray &params);
 
 	/**
 	 * When this fader is destructed, the pin is pulled low as a post-
@@ -96,9 +102,9 @@ public:
 	void SetDirection(Direction dir) { m_dir = dir; }
 
 private:
-	uint8_t m_pin;
+	unsigned char m_params[11];
+
 	Direction m_dir;
-	LuminanceCurve m_curve;
 	// Previously, this was uint8_t (which makes sense, as it can only be
 	// 0-255). However, for whatever reason, analogWrite() expects an int,
 	// causing overflow problems.

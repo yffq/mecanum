@@ -8,7 +8,7 @@
 //#include "AnalogPublisher.h"
 //#include "BatteryMonitor.h"
 #include "Blink.h"
-//#include "ChristmasTree.h"
+#include "ChristmasTree.h"
 //#include "DigitalPublisher.h"
 //#include "Fade.h"
 //#include "Mimic.h"
@@ -24,12 +24,12 @@ extern HardwareSerial Serial;
 MecanumMaster::MecanumMaster()
 {
 	// Test FSMs
-	//fsmv.PushBack(new ChristmasTree());
+	fsmv.PushBack(new ChristmasTree());
 	//fsmv.PushBack(new AnalogPublisher(BATTERY_VOLTAGE, FOREVER));
 	//fsmv.PushBack(new BatteryMonitor());
 	//fsmv.PushBack(new Toggle(LED_BATTERY_EMPTY, FOREVER));
 	//fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE6, LED_BATTERY_HIGH, 50));
-	fsmv.PushBack(new Blink(LED_EMERGENCY, 200));
+	fsmv.PushBack(new Blink(LED_BATTERY_HIGH, 250));
 	/*
 	// Everything on full brightness
 	uint8_t leds[] = {
@@ -139,15 +139,34 @@ void MecanumMaster::Message(ByteArray &msg)
 	{
 		// Create a new FSM. msg is the parameters to be passed to the
 		// FSM's constructor.
-		// TODO: Allow deletion of multiple FSMs
 		if (msg.Length())
 		{
 			unsigned char fsm_id = msg[0];
 			switch (fsm_id)
 			{
+			case FSM_BATTERYMONITOR:
+				//fsmv.PushBack(BatteryMonitor::NewFromArray(msg));
+				break;
 			case FSM_BLINK:
-				if (msg.Length() >= 6)
-					fsmv.PushBack(new Blink(msg));
+				fsmv.PushBack(Blink::NewFromArray(msg));
+				break;
+			case FSM_CHRISTMASTREE:
+				fsmv.PushBack(ChristmasTree::NewFromArray(msg));
+				break;
+			case FSM_FADE:
+				fsmv.PushBack(Fade::NewFromArray(msg));
+				break;
+			case FSM_MIMIC:
+				//fsmv.PushBack(Mimic::NewFromArray(msg));
+				break;
+			case FSM_TOGGLE:
+				//fsmv.PushBack(Toggle::NewFromArray(msg));
+				break;
+			case FSM_DIGITALPUBLISHER:
+				//fsmv.PushBack(DigitalPublisher::NewFromArray(msg));
+				break;
+			case FSM_ANALOGPUBLISHER:
+				//fsmv.PushBack(AnalogPublisher::NewFromArray(msg));
 				break;
 			}
 		}
@@ -156,8 +175,7 @@ void MecanumMaster::Message(ByteArray &msg)
 	case MSG_MASTER_DESTROY_FSM:
 	{
 		// Annihilate a FSM. msg is the fingerprint of the FSM to delete
-		//fsmv.QuickErase(msg);
-		fsmv.Clear();
+		fsmv.QuickErase(msg);
 		break;
 	}
 	case MSG_MASTER_LIST_FSM:
@@ -198,9 +216,9 @@ void MecanumMaster::Message(ByteArray &msg)
 		sendBuffer[0] = sendBuffer.Length();
 		Serial.write(static_cast<uint8_t*>(buffer_bytes), sendBuffer.Length());
 
-		// For now, to let the host know we're finished
+		// Delineate a multi-message list with an empty 2-character response
 		sendBuffer[0] = 2;
-		Serial.write(static_cast<uint8_t*>(buffer_bytes), sendBuffer.Length());
+		Serial.write(static_cast<uint8_t*>(buffer_bytes), 2);
 
 		break;
 	}

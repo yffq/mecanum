@@ -4,13 +4,23 @@
 
 #define SPEED 1200 // this gives a period of about 1285ms
 
-ChristmasTree::ChristmasTree() : FiniteStateMachine(FSM_CHRISTMASTREE), m_state(SpinningStart), m_spinningTarget(0), m_delay(50)
+ChristmasTree::ChristmasTree() : m_state(SpinningStart), m_spinningTarget(0), m_delay(50)
 {
+	m_params[0] = FSM_CHRISTMASTREE;
+	DeclareParameters(m_params, sizeof(m_params));
+
 	fader[0] = new Fade(LED_UV, SPEED, m_delay, Fade::LOGARITHMIC);
 	fader[1] = new Fade(LED_RED, SPEED, m_delay, Fade::LOGARITHMIC);
 	fader[2] = new Fade(LED_YELLOW, SPEED, m_delay, Fade::LOGARITHMIC);
 	fader[3] = new Fade(LED_GREEN, SPEED, m_delay, Fade::LOGARITHMIC);
 	fader[4] = new Fade(LED_EMERGENCY, SPEED, m_delay, Fade::LOGARITHMIC);
+}
+
+ChristmasTree *ChristmasTree::NewFromArray(const ByteArray &params)
+{
+	if (params.Length() >= 1 && params[0] == FSM_CHRISTMASTREE)
+		return new ChristmasTree();
+	return 0;
 }
 
 ChristmasTree::~ChristmasTree()

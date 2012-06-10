@@ -48,6 +48,18 @@ public:
 	unsigned char Length() const { return length; }
 	void SetLength(unsigned char newLength) { length = newLength; }
 
+	/**
+	 * Precondition: buffer's size is at least 4. To achieve compatibility with
+	 * 8-bit processors, only the lowest 4 bytes of n are serialized.
+	 * Postcondition: buffer contains n in big endian format.
+	 */
+	static void Serialize(unsigned long n, unsigned char *buffer);
+
+	/**
+	 * The pre- and post-conditions are similar to above, but probably reversed.
+	 */
+	static void Deserialize(const unsigned char *buffer, unsigned long &n);
+
 private:
 	unsigned char *bytes;
 	unsigned char length;

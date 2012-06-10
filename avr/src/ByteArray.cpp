@@ -34,3 +34,18 @@ void ByteArray::Dump(unsigned char *buffer) const
 		buffer[i] = bytes[i - 1];
 	buffer[0] = length + 1;
 }
+
+void ByteArray::Serialize(unsigned long n, unsigned char *buffer)
+{
+	buffer[0] = n >> 24; // big endian
+	buffer[1] = n >> 16 & 0xFF;
+	buffer[2] = n >> 8 & 0xFF;
+	buffer[3] = n & 0xFF;
+}
+
+void ByteArray::Deserialize(const unsigned char *buffer, unsigned long &n)
+{
+	n = static_cast<unsigned long>(buffer[0]) << 24 |
+	    static_cast<unsigned long>(buffer[1]) << 16 |
+	    static_cast<unsigned long>(buffer[2]) << 8 | buffer[3];
+}

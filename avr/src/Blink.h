@@ -19,9 +19,11 @@ public:
 	 */
 	Blink(uint8_t pin, unsigned long delay /* ms */);
 
-	Blink(const ByteArray &params);
-
-	void Init();
+	/**
+	 * Performs parameter validation and instantiates a new object. If the
+	 * parameters are invalid or allocation fails, this function returns 0.
+	 */
+	static Blink *NewFromArray(const ByteArray &params);
 
 	/*
 	 * When this blinker is destructed, the pin is pulled low as a post-

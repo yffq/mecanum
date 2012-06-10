@@ -26,18 +26,43 @@ const unsigned char luminace[256] PROGMEM =
 	219, 221, 224, 226, 228, 231, 233, 235, 238, 240, 243, 245, 248, 250, 253, 255
 };
 
+#define PARAM_ID     0
+#define PARAM_PIN    1
+#define PARAM_CURVE  2
+#define PARAM_PERIOD 3
+#define PARAM_DELAY  7
+
 Fade::Fade(uint8_t pin, unsigned long period, unsigned long delay, LuminanceCurve curve /* = LINEAR */) :
-	FiniteStateMachine(FSM_FADE), m_pin(pin), m_dir(UP), m_curve(curve), m_brightness(0), m_delay(delay), m_enabled(true)
+	m_dir(UP), m_brightness(0), m_delay(delay), m_enabled(true)
 {
+	m_params[PARAM_ID] = FSM_FADE;
+	m_params[PARAM_PIN] = pin;
+	m_params[PARAM_CURVE] = curve;
+	ByteArray::Serialize(period, m_params + PARAM_PERIOD);
+	ByteArray::Serialize(m_delay, m_params + PARAM_DELAY);
+	DeclareParameters(m_params, sizeof(m_params));
+
 	// Use half the period to calculate brightness increments
 	m_brightnessStep = 255 * delay * 2 / period;
-	pinMode(pin, OUTPUT);
-	analogWrite(m_pin, 0);
+	pinMode(m_params[PARAM_PIN], OUTPUT);
+	analogWrite(m_params[PARAM_PIN], 0);
+}
+
+Fade *Fade::NewFromArray(const ByteArray &params)
+{
+	if (params.Length() >= 11 && params[0] == FSM_FADE)
+	{
+		unsigned long period, delay;
+		ByteArray::Deserialize(&params[PARAM_PERIOD], period);
+		ByteArray::Deserialize(&params[PARAM_DELAY], delay);
+		return new Fade(params[PARAM_PIN], period, delay, static_cast<LuminanceCurve>(params[PARAM_CURVE]));
+	}
+	return 0;
 }
 
 Fade::~Fade()
 {
-	analogWrite(m_pin, 0);
+	analogWrite(m_params[PARAM_PIN], 0);
 }
 
 // So we have the option to avoid hitting the VTable
@@ -64,9 +89,9 @@ void Fade::StepAwayFromTheVTable()
 			}
 		}
 
-		if (m_curve == LINEAR)
-			analogWrite(m_pin, pgm_read_byte_near(luminace + m_brightness));
+		if (m_params[PARAM_CURVE] == LINEAR)
+			analogWrite(m_params[PARAM_PIN], pgm_read_byte_near(luminace + m_brightness));
 		else
-			analogWrite(m_pin, m_brightness);
+			analogWrite(m_params[PARAM_PIN], m_brightness);
 	}
 }
