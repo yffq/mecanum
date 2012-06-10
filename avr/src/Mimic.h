@@ -15,6 +15,12 @@ class Mimic : public FiniteStateMachine
 public:
 	Mimic(uint8_t source, uint8_t dest, unsigned long delay /* ms */);
 
+	/**
+	 * Performs parameter validation and instantiates a new object. If the
+	 * parameters are invalid or allocation fails, this function returns 0.
+	 */
+	static Mimic *NewFromArray(const ByteArray &params);
+
 	/*
 	 * When this FSM is destructed, the destination pin is left at whatever
 	 * value the source pin was on the previous step.
@@ -26,8 +32,7 @@ public:
 	virtual unsigned long Delay() const { return m_delay; }
 
 private:
-	uint8_t m_source;
-	uint8_t m_dest;
+	unsigned char m_params[7];
 	unsigned long m_delay; // ms
 };
 

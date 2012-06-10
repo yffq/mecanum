@@ -50,12 +50,17 @@ Fade::Fade(uint8_t pin, unsigned long period, unsigned long delay, LuminanceCurv
 
 Fade *Fade::NewFromArray(const ByteArray &params)
 {
-	if (params.Length() >= sizeof(m_params) && params[0] == FSM_FADE)
+	if (params.Length() >= sizeof(m_params) && params[PARAM_ID] == FSM_FADE)
 	{
-		unsigned long period, delay;
-		ByteArray::Deserialize(&params[PARAM_PERIOD], period);
-		ByteArray::Deserialize(&params[PARAM_DELAY], delay);
-		return new Fade(params[PARAM_PIN], period, delay, static_cast<LuminanceCurve>(params[PARAM_CURVE]));
+		// Only 0-13 and 44-46 are valid PWM pins
+		if ((0 <= params[PARAM_PIN] && params[PARAM_PIN] <= 13) ||
+		    (44 <= params[PARAM_PIN] && params[PARAM_PIN] <= 46))
+		{
+			unsigned long period, delay;
+			ByteArray::Deserialize(&params[PARAM_PERIOD], period);
+			ByteArray::Deserialize(&params[PARAM_DELAY], delay);
+			return new Fade(params[PARAM_PIN], period, delay, static_cast<LuminanceCurve>(params[PARAM_CURVE]));
+		}
 	}
 	return 0;
 }

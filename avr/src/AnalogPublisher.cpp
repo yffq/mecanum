@@ -20,9 +20,13 @@ AnalogPublisher *AnalogPublisher::NewFromArray(const ByteArray &params)
 {
 	if (params.Length() >= sizeof(m_params) && params[PARAM_ID] == FSM_ANALOGPUBLISHER)
 	{
-		unsigned long delay;
-		ByteArray::Deserialize(&params[PARAM_DELAY], delay);
-		return new AnalogPublisher(params[PARAM_PIN], delay);
+		// Only 0-15 are valid analog pins
+		if (0 <= params[PARAM_PIN] && params[PARAM_PIN] <= 15)
+		{
+			unsigned long delay;
+			ByteArray::Deserialize(&params[PARAM_DELAY], delay);
+			return new AnalogPublisher(params[PARAM_PIN], delay);
+		}
 	}
 	return 0;
 }

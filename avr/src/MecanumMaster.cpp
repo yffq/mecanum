@@ -11,7 +11,7 @@
 #include "ChristmasTree.h"
 #include "DigitalPublisher.h"
 //#include "Fade.h"
-//#include "Mimic.h"
+#include "Mimic.h"
 //#include "Toggle.h"
 
 #include <Arduino.h> // for millis()
@@ -157,7 +157,7 @@ void MecanumMaster::Message(ByteArray &msg)
 				fsmv.PushBack(Fade::NewFromArray(msg));
 				break;
 			case FSM_MIMIC:
-				//fsmv.PushBack(Mimic::NewFromArray(msg));
+				fsmv.PushBack(Mimic::NewFromArray(msg));
 				break;
 			case FSM_TOGGLE:
 				//fsmv.PushBack(Toggle::NewFromArray(msg));
