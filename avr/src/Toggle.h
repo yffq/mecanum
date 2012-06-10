@@ -18,6 +18,12 @@ public:
 	 */
 	Toggle(uint8_t pin, unsigned long delay /* ms */);
 
+	/**
+	 * Performs parameter validation and instantiates a new object. If the
+	 * parameters are invalid or allocation fails, this function returns 0.
+	 */
+	static Toggle *NewFromArray(const ByteArray &params);
+
 	/*
 	 * When this FSM is destructed, the pin is pulled low as a post-condition.
 	 */
@@ -35,7 +41,7 @@ public:
 	virtual bool Message(const char* msg, unsigned char length);
 
 private:
-	uint8_t m_pin;
+	unsigned char m_params[6];
 	bool m_enabled;
 	unsigned long m_delay; // ms
 };

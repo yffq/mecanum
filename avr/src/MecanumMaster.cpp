@@ -10,9 +10,9 @@
 #include "Blink.h"
 #include "ChristmasTree.h"
 #include "DigitalPublisher.h"
-//#include "Fade.h"
+#include "Fade.h"
 #include "Mimic.h"
-//#include "Toggle.h"
+#include "Toggle.h"
 
 #include <Arduino.h> // for millis()
 #include <HardwareSerial.h> // for Serial
@@ -160,7 +160,7 @@ void MecanumMaster::Message(ByteArray &msg)
 				fsmv.PushBack(Mimic::NewFromArray(msg));
 				break;
 			case FSM_TOGGLE:
-				//fsmv.PushBack(Toggle::NewFromArray(msg));
+				fsmv.PushBack(Toggle::NewFromArray(msg));
 				break;
 			case FSM_DIGITALPUBLISHER:
 				fsmv.PushBack(DigitalPublisher::NewFromArray(msg));

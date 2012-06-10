@@ -61,8 +61,8 @@ set(mecanum_srcs src/main.cpp
                  src/Fade.cpp
                  src/FSMVector.cpp
                  src/MecanumMaster.cpp
-#                 src/Mimic.cpp
-#                 src/Toggle.cpp
+                 src/Mimic.cpp
+                 src/Toggle.cpp
 )
 
 #set(debug_srcs   ${mecanum_srcs})
