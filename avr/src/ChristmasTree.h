@@ -5,6 +5,14 @@
 #include "ParamServer.h"
 #include "Fade.h"
 
+/**
+ * Control the five colored LED arrays.
+ *
+ * Parameters:
+ * ---
+ * uint8  ID
+ * ---
+ */
 class ChristmasTree : public FiniteStateMachine, public ParamServer::ChristmasTree
 {
 public:

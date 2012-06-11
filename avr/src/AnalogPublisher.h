@@ -7,15 +7,22 @@
 #include <stdint.h> // for uint8_t
 
 /**
- * DigitalPublisher will broadcast the state of a digital pin over serial at
- * the given frequency (approximately).
+ * Broadcast the state of an analog pin over serial at the given frequency
+ * (approximately).
+ *
+ * Parameters:
+ * ---
+ * uint8  ID
+ * uint8  Pin (IsAnalog)
+ * uint32 Delay
+ * ---
  *
  * Message:
- * uint8 length (5)
- * uint8 ID (FSM_ANALOGPUBLISHER)
- * uint8 pin
- * uint8 highByte (value >> 8)
- * uint8 lowByte (value & 0xFF)
+ * ---
+ * uint8 Pin
+ * uint8 HighByte  # value >> 8)
+ * uint8 LowByte   # value & 0xFF)
+ * ---
  */
 class AnalogPublisher : public FiniteStateMachine, public ParamServer::AnalogPublisher
 {

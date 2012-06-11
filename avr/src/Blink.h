@@ -8,6 +8,13 @@
 
 /**
  * Blink a light by setting a digital pin high and low repeatedly.
+ *
+ * Parameters:
+ * ---
+ * uint8  ID
+ * uint8  Pin
+ * uint32 Delay
+ * ---
  */
 class Blink : public FiniteStateMachine, public ParamServer::Blink
 {

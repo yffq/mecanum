@@ -8,6 +8,13 @@
 
 /**
  * Toggle a digital pin using the Message() function.
+ *
+ * Parameters:
+ * ---
+ * uint8  ID
+ * uint8  Pin
+ * uint32 Delay
+ * ---
  */
 class Toggle : public FiniteStateMachine, public ParamServer::Toggle
 {

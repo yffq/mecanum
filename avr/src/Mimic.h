@@ -7,9 +7,15 @@
 #include <stdint.h> // for uint8_t
 
 /**
- * This FSM has a destination pin mimic a source pin. Whenever the source
- * pin changes, the destination pin assumes that value. The maximum amount of
- * jitter is specified by the delay.
+ * Mirror the state of a source pin to a destination pin.
+ *
+ * Parameters:
+ * ---
+ * uint8  ID
+ * uint8  Source
+ * uint8  Dest
+ * uint32 Delay
+ * ---
  */
 class Mimic : public FiniteStateMachine, public ParamServer::Mimic
 {

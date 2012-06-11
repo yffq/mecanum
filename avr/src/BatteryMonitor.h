@@ -9,7 +9,18 @@
 #define BATTERYMONITOR_NUM_LED 4
 
 /**
+ * Flash the battery LEDs to indicate battery level.
  *
+ * Parameters:
+ * ---
+ * uint8  ID
+ * ---
+ *
+ * Message:
+ * ---
+ * uint8 HighByte  # voltage >> 8)
+ * uint8 LowByte   # voltage & 0xFF)
+ * ---
  */
 class BatteryMonitor : public FiniteStateMachine, ParamServer::BatteryMonitor
 {
