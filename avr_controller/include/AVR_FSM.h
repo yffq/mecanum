@@ -1,60 +1,55 @@
 #ifndef AVR_FSM_H
 #define AVR_FSM_H
 
-/**
- * The representation of a FiniteStateMachine on the Arduino can be broken down
- * into two pieces: the parameters of how the state machine operates, and the
- * state itself. We use these parameters to uniquely identify an individual
- * FSM. Due to this, the constraint that a FSM not modify its own parameters
- * during operation is loosely enforced, as this would then constitute a
- * different FSM. The Arduino would then become out of sync with the
- * AVRController, necessitating communication if the Arduino decides to shuffle
- * its own FSMs.
- */
+#include "ParamServer.h"
+
+#include <boost/asio.hpp>
+#include <boost/shared_ptr.hpp>
+
 class AVR_FSM
 {
+protected:
+	AVR_FSM(unsigned char id, unsigned char *params, unsigned char len) : parameters(params, len)
+	{
+		parameters[0] = id;
+	}
+
 public:
-	AVR_FSM(unsigned char *properties, unsigned int length);
 
 	/**
-	 * Rule of three.
+	 * ID of the FSM; used to determine the identify of the derived class.
 	 */
-	AVR_FSM(const AVR_FSM &other);
+	unsigned char GetID() const { return parameters[0]; }
 
 	/**
-	 * Rule of three.
-	 */
-	AVR_FSM &operator=(const AVR_FSM &src);
-
-	/**
-	 * Rule of three.
-	 */
-	~AVR_FSM() { delete[] m_properties; }
-
-	/**
-	 * Straight-forward comparison of two objects.
+	 * A FSM is uniquely identified by its parameters. A FSM should not alter
+	 * parameters after instantiation, because it would in effect transform
+	 * itself into a dissimilar FSM.
 	 */
 	bool operator==(const AVR_FSM &other) const;
 
-	/**
-	 * The difference between GetProperty() and the array index operator is
-	 * that the latter allows the element to be modified.
-	 */
-	unsigned char &operator[](unsigned int i) const { return m_properties[i]; }
+	/*
+	static boost::shared_ptr<AVR_FSM> NewFromBuffer(boost::asio::buffer buf)
+	{
+		AVR_FSM *fsm = NULL;
+		switch (buf[0])
+		{
 
-	/**
-	 * Convenience function: the first parameter is the FSM's ID.
-	 */
-	unsigned char GetID() const { return m_properties[0]; }
-
-	/**
-	 * Returns the total number of parameters (including the initial ID).
-	 */
-	unsigned int GetLength() const { return m_length; }
+		}
+		return boost::shared_ptr<AVR_FSM>(new);
+	}
+	*/
 
 private:
-	unsigned char *m_properties;
-	unsigned int m_length;
+	boost::asio::mutable_buffer parameters;
+};
+
+
+
+class AVR_Blink : public AVR_FSM, public ParamServer::Blink
+{
+	AVR_Blink() : AVR_FSM(FSM_BLINK, m_params, sizeof(m_params)) { }
+	AVR_Blink(boost::asio::const_buffer parameters);
 };
 
 #endif // AVR_FSM_H

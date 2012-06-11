@@ -20,11 +20,10 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  */
 
-// RoboteQ AX3500 motor controller multi-threaded interface
+// Arduino thread-safe interface
 
 #include "AVRController.h"
 #include "AddressBook.h"
-//#include "ByteArray.h"
 
 //#include <boost/bind.hpp>
 //#include <boost/asio.hpp>
@@ -37,8 +36,6 @@
 
 
 #include <iostream>
-
-using namespace std;
 
 AVRController::AVRController() : m_io(), m_port(m_io)
 {
@@ -222,6 +219,7 @@ bool AVRController::ResetAndLoadAll()
 
 void dump(const unsigned char *bytes, int length)
 {
+	using namespace std;
 	for (int i = 0; i < length; ++i)
 	{
 		cout << (int)bytes[i];
@@ -232,11 +230,36 @@ void dump(const unsigned char *bytes, int length)
 
 void AVRController::QueryAllFromAVR(std::vector<AVR_FSM> &fsmv)
 {
-	unsigned char cmd[] = {3, // size of this message
-	                      FSM_MASTER, // target FSM
-	                      2}; // dump FSMs command
 
-	write(m_port, boost::asio::buffer(cmd, cmd[0]));
+	boost::asio::buffer array[128];
+	boost::asio::buffer b(array, 128);
+
+	b[1][1][2][3];
+
+	ListFSMQuery msg;
+	/*
+	unsigned char cmd[3];
+	cmd[0] = sizeof(cmd);
+	cmd[1] = FSM_MASTER;
+	cmd[2] = MSG_MASTER_LIST_FSM;
+	*/
+	msg.Send();
+	msg.SendAndReceive();
+
+
+	QueryFSMResponse msg2;
+
+	do
+	{
+		msg2.Receive();
+		if (msg2.GetVector().size())
+			fsmv.insert(fmsv.end(), msg2.GetList().begin(), msg2.GetList().end())
+	} while (msg2.GetVector().size() > 0)
+
+
+
+
+	write(m_port, boost::asio::buffer(cmd, sizeof(cmd)));
 
 	unsigned char msg_size[1];
 	unsigned char buffer[255 - 1];
@@ -246,36 +269,33 @@ void AVRController::QueryAllFromAVR(std::vector<AVR_FSM> &fsmv)
 
 		// Get the message size
 		size_t bytesRead = read(m_port, boost::asio::buffer(msg_size, 1));
-		if (bytesRead != 1)
+		if (bytesRead != 1 || msg_size[0] == 0)
 			break;
 
 		// Get the payload
 		size_t payloadSize = read(m_port, boost::asio::buffer(buffer, msg_size[0] - 1));
-		if (payloadSize == 0)
+		if (payloadSize != msg_size[0] - 1)
 			break;
 
-		// Include msg_size in the payload
-		cout << "Read payload: {" << (int)msg_size[0] << ", ";
-		dump(buffer, payloadSize);
-		cout << "}" << endl;
-
 		// Skip the FSM id (FSM_MASTER)
-		unsigned char fsm_id = marker[0];
+		// unsigned char fsm_id = marker[0];
 		--payloadSize;
 		++marker;
 
 		while (payloadSize)
 		{
+			if (marker[0] == 0)
+				break;
 			unsigned char fsm_size = marker[0] - 1;
 			--payloadSize;
 			++marker;
-
+			if (fsm_size == 0 || fsm_size > payloadSize)
+				break;
 			v_fsm.push_back(AVR_FSM(marker, fsm_size));
 			payloadSize -= fsm_size;
 			marker += fsm_size;
 		}
-
-	} while (msg_size[0] > 2);
+	} while (msg_size[0] > 2); // Empty response {SIZE, FSM_MASTER} means end of list
 }
 
 void AVRController::UnloadFSM(const AVR_FSM &fsm)

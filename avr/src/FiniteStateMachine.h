@@ -79,7 +79,10 @@ public:
 
 private:
 	/**
-	 *
+	 * Because a FSM's parameters are an inherent property of the FSM, they
+	 * form a sort of "fingerprint" that can be used to identify the FSM. As
+	 * such, all FSMs must serialize their parameters into a byte array for
+	 * identification purposes.
 	 */
 	ByteArray parameters;
 };
