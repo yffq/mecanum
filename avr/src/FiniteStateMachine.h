@@ -12,8 +12,6 @@
 class FiniteStateMachine
 {
 public:
-	FiniteStateMachine *NewFromMsg(ByteArray msg);
-
 	/**
 	 * The destructor is declared virtual so that subclasses can optionally
 	 * override it to clean up their resources or fulfill postconditions.
