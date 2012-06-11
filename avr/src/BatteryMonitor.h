@@ -2,14 +2,16 @@
 #define BATTERYMONITOR_H
 
 #include "FiniteStateMachine.h"
+#include "ParamServer.h"
 
 #include <stdint.h> // for uint8_t
 
+#define BATTERYMONITOR_NUM_LED 4
 
 /**
  *
  */
-class BatteryMonitor : public FiniteStateMachine
+class BatteryMonitor : public FiniteStateMachine, ParamServer::BatteryMonitor
 {
 public:
 	/**
@@ -33,10 +35,7 @@ public:
 	int GetNumCells() { return GetVoltage() > 8.5 ? 3 : 2; }
 
 private:
-	unsigned char m_params[1];
-
-	static const unsigned char NUM_LED = 4;
-	uint8_t m_led[NUM_LED];
+	uint8_t m_led[BATTERYMONITOR_NUM_LED];
 
 	// Current battery level (between 1 and 4)
 	int m_maxLevel;

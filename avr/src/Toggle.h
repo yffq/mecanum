@@ -2,13 +2,14 @@
 #define TOGGLE_H
 
 #include "FiniteStateMachine.h"
+#include "ParamServer.h"
 
 #include <stdint.h> // for uint8_t
 
 /**
  * Toggle a digital pin using the Message() function.
  */
-class Toggle : public FiniteStateMachine
+class Toggle : public FiniteStateMachine, public ParamServer::Toggle
 {
 public:
 	/**
@@ -18,10 +19,6 @@ public:
 	 */
 	Toggle(uint8_t pin, unsigned long delay /* ms */);
 
-	/**
-	 * Performs parameter validation and instantiates a new object. If the
-	 * parameters are invalid or allocation fails, this function returns 0.
-	 */
 	static Toggle *NewFromArray(const ByteArray &params);
 
 	/*
@@ -41,7 +38,6 @@ public:
 	virtual bool Message(const char* msg, unsigned char length);
 
 private:
-	unsigned char m_params[6];
 	bool m_enabled;
 	unsigned long m_delay; // ms
 };

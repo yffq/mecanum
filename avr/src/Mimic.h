@@ -2,6 +2,7 @@
 #define MIMIC_H
 
 #include "FiniteStateMachine.h"
+#include "ParamServer.h"
 
 #include <stdint.h> // for uint8_t
 
@@ -10,15 +11,11 @@
  * pin changes, the destination pin assumes that value. The maximum amount of
  * jitter is specified by the delay.
  */
-class Mimic : public FiniteStateMachine
+class Mimic : public FiniteStateMachine, public ParamServer::Mimic
 {
 public:
 	Mimic(uint8_t source, uint8_t dest, unsigned long delay /* ms */);
 
-	/**
-	 * Performs parameter validation and instantiates a new object. If the
-	 * parameters are invalid or allocation fails, this function returns 0.
-	 */
 	static Mimic *NewFromArray(const ByteArray &params);
 
 	/*
@@ -32,7 +29,6 @@ public:
 	virtual unsigned long Delay() const { return m_delay; }
 
 private:
-	unsigned char m_params[7];
 	unsigned long m_delay; // ms
 };
 

@@ -17,14 +17,14 @@
 #include <Arduino.h> // for millis()
 #include <HardwareSerial.h> // for Serial
 
-#define FOREVER 1000L * 60L * 60L * 24L * 7L // 1 week
+#define FOREVER 1000UL * 60UL * 60UL * 24UL * 7UL // 1 week
 
 extern HardwareSerial Serial;
 
 MecanumMaster::MecanumMaster()
 {
 	// Test FSMs
-	fsmv.PushBack(new ChristmasTree());
+	//fsmv.PushBack(new ChristmasTree());
 	//fsmv.PushBack(new AnalogPublisher(BATTERY_VOLTAGE, FOREVER));
 	//fsmv.PushBack(new BatteryMonitor());
 	//fsmv.PushBack(new Toggle(LED_BATTERY_EMPTY, FOREVER));
@@ -110,7 +110,7 @@ void MecanumMaster::SerialCallback()
 			for (unsigned char i = 0; i < fsmv.Size(); ++i)
 			{
 				// If Message() returns true, we should do a Step() and Delay()
-				if (fsmv[i]->ID() == fsmId && fsmv[i]->Message(msg))
+				if (fsmv[i]->GetID() == fsmId && fsmv[i]->Message(msg))
 				{
 					fsmv[i]->Step();
 					fsmDelay[i] = fsmv[i]->Delay() + millis();
@@ -144,6 +144,9 @@ void MecanumMaster::Message(ByteArray &msg)
 			unsigned char fsm_id = msg[0];
 			switch (fsm_id)
 			{
+			case FSM_ANALOGPUBLISHER:
+				fsmv.PushBack(AnalogPublisher::NewFromArray(msg));
+				break;
 			case FSM_BATTERYMONITOR:
 				fsmv.PushBack(BatteryMonitor::NewFromArray(msg));
 				break;
@@ -153,6 +156,9 @@ void MecanumMaster::Message(ByteArray &msg)
 			case FSM_CHRISTMASTREE:
 				fsmv.PushBack(ChristmasTree::NewFromArray(msg));
 				break;
+			case FSM_DIGITALPUBLISHER:
+				fsmv.PushBack(DigitalPublisher::NewFromArray(msg));
+				break;
 			case FSM_FADE:
 				fsmv.PushBack(Fade::NewFromArray(msg));
 				break;
@@ -161,12 +167,6 @@ void MecanumMaster::Message(ByteArray &msg)
 				break;
 			case FSM_TOGGLE:
 				fsmv.PushBack(Toggle::NewFromArray(msg));
-				break;
-			case FSM_DIGITALPUBLISHER:
-				fsmv.PushBack(DigitalPublisher::NewFromArray(msg));
-				break;
-			case FSM_ANALOGPUBLISHER:
-				fsmv.PushBack(AnalogPublisher::NewFromArray(msg));
 				break;
 			}
 		}
@@ -182,10 +182,12 @@ void MecanumMaster::Message(ByteArray &msg)
 	{
 		// Dump a list of FSMs to the serial port.
 
-		// Repurpose buffer_bytes as a send buffer. Initial length = 2;
-		// first byte is msg length, second byte is FSM ID (FSM_MASTER)
-		ByteArray sendBuffer(buffer_bytes, 2);
+		// Repurpose buffer_bytes as a send buffer. Initial length = 3;
+		// first byte is msg length, second byte is FSM ID (FSM_MASTER),
+		// third byte is msg ID (MSG_MASTER_LIST_FSM)
+		ByteArray sendBuffer(buffer_bytes, 3);
 		sendBuffer[1] = FSM_MASTER;
+		sendBuffer[2] = MSG_MASTER_LIST_FSM;
 
 		// Currently, Serial.write() will block until enough data has been
 		// written such that the buffer is full. The current buffer size is:
@@ -207,7 +209,7 @@ void MecanumMaster::Message(ByteArray &msg)
 				// Message is too large. Send what we've got.
 				sendBuffer[0] = sendBuffer.Length();
 				Serial.write(static_cast<uint8_t*>(buffer_bytes), sendBuffer.Length());
-				sendBuffer.SetLength(2); // Reset
+				sendBuffer.SetLength(3); // Reset
 			}
 
 			fsm.Dump(buffer_bytes + sendBuffer.Length());
@@ -216,9 +218,9 @@ void MecanumMaster::Message(ByteArray &msg)
 		sendBuffer[0] = sendBuffer.Length();
 		Serial.write(static_cast<uint8_t*>(buffer_bytes), sendBuffer.Length());
 
-		// Delineate a multi-message list with an empty 2-character response
-		sendBuffer[0] = 2;
-		Serial.write(static_cast<uint8_t*>(buffer_bytes), 2);
+		// Delineate a multi-message list with an empty 3-character response
+		sendBuffer[0] = 3;
+		Serial.write(static_cast<uint8_t*>(buffer_bytes), 3);
 
 		break;
 	}

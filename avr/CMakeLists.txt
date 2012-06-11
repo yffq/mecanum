@@ -34,6 +34,9 @@ set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/arduino-cmake/cmake/Arduino
 
 project(avr)
 
+# If None is specified, the debug flag -g causes debug info to be included in the hex
+set(CMAKE_BUILD_TYPE Release)
+
 set(ARDUINO_DEFAULT_BOARD mega2560) # Default Board ID, when not specified
 set(ARDUINO_DEFAULT_PORT /dev/ttyACM0) # Default Port, when not specified
 
@@ -44,6 +47,9 @@ include_directories("${ARDUINO_VARIANTS_PATH}/mega")
 
 # Public include files so that programs can interface with the Arduino hardware
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
+
+# Local include files so that public include files can find their referenced classes
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 # Tell CMake where to search for libraries use the link_directories command.
 # The command has to be used before defining any firmware or libraries

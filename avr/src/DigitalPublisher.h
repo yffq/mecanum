@@ -2,6 +2,7 @@
 #define DIGITALPUBLISHER_H
 
 #include "FiniteStateMachine.h"
+#include "ParamServer.h"
 
 #include <stdint.h> // for uint8_t
 
@@ -15,7 +16,7 @@
  * uint8 pin
  * uint8 state (0 or 1)
  */
-class DigitalPublisher : public FiniteStateMachine
+class DigitalPublisher : public FiniteStateMachine, ParamServer::DigitalPublisher
 {
 public:
 	DigitalPublisher(uint8_t pin, unsigned long delay /* ms */);
@@ -33,10 +34,9 @@ public:
 	 * message is sent to it (and the message's pin matches its pin), it will
 	 * emit the digital value to the serial port on command.
 	 */
-	virtual bool Message(const char* msg, unsigned char length);
+	virtual bool Message(const ByteArray &msg);
 
 private:
-	unsigned char m_params[6];
 	unsigned long m_delay; // ms
 };
 

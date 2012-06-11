@@ -2,13 +2,14 @@
 #define BLINK_H
 
 #include "FiniteStateMachine.h"
+#include "ParamServer.h"
 
 #include <stdint.h> // for uint8_t
 
 /**
  * Blink a light by setting a digital pin high and low repeatedly.
  */
-class Blink : public FiniteStateMachine
+class Blink : public FiniteStateMachine, public ParamServer::Blink
 {
 public:
 	/**
@@ -19,10 +20,6 @@ public:
 	 */
 	Blink(uint8_t pin, unsigned long delay /* ms */);
 
-	/**
-	 * Performs parameter validation and instantiates a new object. If the
-	 * parameters are invalid or allocation fails, this function returns 0.
-	 */
 	static Blink *NewFromArray(const ByteArray &params);
 
 	/*
@@ -36,12 +33,6 @@ public:
 	virtual unsigned long Delay() const { return m_delay; }
 
 private:
-	/**
-	 * Statically allocate our parameters array. The FiniteStateMachine
-	 * superclass is made aware of this array to populate its protected
-	 * ByteArray member variable.
-	 */
-	unsigned char m_params[6];
 	unsigned long m_delay; // ms
 	bool m_enabled;
 };

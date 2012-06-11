@@ -12,6 +12,11 @@
 class FiniteStateMachine
 {
 public:
+	FiniteStateMachine(unsigned char id, unsigned char *params, unsigned char len) : parameters(ByteArray(params, len))
+	{
+		parameters[0] = id;
+	}
+
 	/**
 	 * The destructor is declared virtual so that subclasses can optionally
 	 * override it to clean up their resources or fulfill postconditions.
@@ -21,7 +26,7 @@ public:
 	/**
 	 * ID of the FSM; used to determine the identify of the derived class.
 	 */
-	unsigned char ID() const { return parameters[0]; }
+	unsigned char GetID() const { return parameters[0]; }
 
 	const ByteArray &Describe() const { return parameters; }
 
@@ -71,9 +76,6 @@ public:
 	 * SUBSCRIBER header.
 	 */
 	virtual bool Message(const ByteArray &msg) { return false; }
-
-protected:
-	void DeclareParameters(unsigned char *params, unsigned char len) { parameters = ByteArray(params, len); }
 
 private:
 	/**

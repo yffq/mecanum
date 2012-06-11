@@ -2,13 +2,23 @@
 #define FADE_H
 
 #include "FiniteStateMachine.h"
+#include "ParamServer.h"
 
 #include <stdint.h> // for uint8_t
 
 /**
  * Fade a light on a PWM pin.
+ *
+ * Parameters:
+ * ---
+ * uint8  ID
+ * uint8  Pin (IsPWM)
+ * uint8  Curve  # Linear (0) or Logarithmic (1)
+ * utin32 Period
+ * uint32 Delay
+ * ---
  */
-class Fade : public FiniteStateMachine
+class Fade : public FiniteStateMachine, public ParamServer::Fade
 {
 public:
 	enum Direction
@@ -20,11 +30,9 @@ public:
 	/**
 	 * Personally, I prefer LOGARITHMIC because it has a bolder appearance.
 	 */
-	enum LuminanceCurve
-	{
-		LINEAR = 0, // luminance increases linearly
-		LOGARITHMIC = 1 // voltage increases linearly
-	};
+	// enum LuminanceCurve
+	static const unsigned char LINEAR = 0; // luminance increases linearly
+	static const unsigned char LOGARITHMIC = 1; // voltage increases linearly
 
 	/**
 	 * Create a new fader on the specified pin.
@@ -37,7 +45,7 @@ public:
 	 *     LOGARITHMIC, the luminance will increase faster near 0 and slower
 	 *     near full brightness.
 	 */
-	Fade(uint8_t pin, unsigned long period, unsigned long delay, LuminanceCurve curve = LINEAR);
+	Fade(uint8_t pin, unsigned long period, unsigned long delay, unsigned char curve = LINEAR);
 
 	/**
 	 * Performs parameter validation and instantiates a new object. If the
@@ -102,8 +110,6 @@ public:
 	void SetDirection(Direction dir) { m_dir = dir; }
 
 private:
-	unsigned char m_params[11];
-
 	Direction m_dir;
 	// Previously, this was uint8_t (which makes sense, as it can only be
 	// 0-255). However, for whatever reason, analogWrite() expects an int,

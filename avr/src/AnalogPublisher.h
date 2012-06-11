@@ -2,6 +2,7 @@
 #define ANALOGPUBLISHER_H
 
 #include "FiniteStateMachine.h"
+#include "ParamServer.h"
 
 #include <stdint.h> // for uint8_t
 
@@ -16,7 +17,7 @@
  * uint8 highByte (value >> 8)
  * uint8 lowByte (value & 0xFF)
  */
-class AnalogPublisher : public FiniteStateMachine
+class AnalogPublisher : public FiniteStateMachine, public ParamServer::AnalogPublisher
 {
 public:
 	AnalogPublisher(uint8_t pin, unsigned long delay);
@@ -37,7 +38,6 @@ public:
 	virtual bool Message(const ByteArray &msg);
 
 private:
-	unsigned char m_params[6];
 	unsigned long m_delay; // ms
 };
 
