@@ -1,12 +1,5 @@
 #include "ByteArray.h"
 
-ByteArray &ByteArray::operator=(const ByteArray &src)
-{
-	// Skip checking if this != &src, no dynamic memory is being swapped
-	bytes = src.bytes;
-	length = src.length;
-	return *this;
-}
 
 bool ByteArray::operator==(const ByteArray &other) const
 {
