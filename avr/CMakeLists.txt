@@ -58,19 +58,19 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src")
 link_directories(${CMAKE_CURRENT_SOURCE_DIR}/libraries)
 
 # Generate ParamServer.h
-execute_process(COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/GenParams.py)
+#execute_process(COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/GenParams.py)
 
 set(mecanum_srcs src/main.cpp
                  src/AnalogPublisher.cpp
                  src/BatteryMonitor.cpp
                  src/Blink.cpp
-                 src/ByteArray.cpp
                  src/ChristmasTree.cpp
                  src/DigitalPublisher.cpp
                  src/Fade.cpp
                  src/FSMVector.cpp
                  src/MecanumMaster.cpp
                  src/Mimic.cpp
+                 src/TinyBuffer.cpp
                  src/Toggle.cpp
 )
 

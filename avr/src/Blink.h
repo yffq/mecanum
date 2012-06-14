@@ -12,7 +12,7 @@
  * Parameters:
  * ---
  * uint8  ID
- * uint8  Pin
+ * uint8  Pin (IsDigital)
  * uint32 Delay
  * ---
  */
@@ -27,7 +27,7 @@ public:
 	 */
 	Blink(uint8_t pin, unsigned long delay /* ms */);
 
-	static Blink *NewFromArray(const ByteArray &params);
+	static Blink *NewFromArray(const TinyBuffer &params);
 
 	/*
 	 * When this blinker is destructed, the pin is pulled low as a post-

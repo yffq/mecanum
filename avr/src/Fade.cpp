@@ -40,7 +40,7 @@ Fade::Fade(uint8_t pin, unsigned long period, unsigned long delay, unsigned char
 	analogWrite(pin, 0);
 }
 
-Fade *Fade::NewFromArray(const ByteArray &params)
+Fade *Fade::NewFromArray(const TinyBuffer &params)
 {
 	return Validate(params) ? new Fade(GetPin(params), GetPeriod(params), GetDelay(params), GetCurve(params)) : NULL;
 }

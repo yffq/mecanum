@@ -18,7 +18,7 @@ BatteryMonitor::BatteryMonitor() :
 	}
 }
 
-BatteryMonitor *BatteryMonitor::NewFromArray(const ByteArray &params)
+BatteryMonitor *BatteryMonitor::NewFromArray(const TinyBuffer &params)
 {
 	return Validate(params) ? new BatteryMonitor() : NULL;
 }

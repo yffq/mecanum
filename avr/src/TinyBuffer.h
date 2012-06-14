@@ -1,66 +1,75 @@
-#ifndef BYTEARRAY_H
-#define BYTEARRAY_H
+#ifndef TINYBUFFER_H
+#define TINYBUFFER_H
 
 
 /**
- * ByteArray is an implementation of a resizable array using data held on the
+ * TinyBuffer is an implementation of a resizable array using data held on the
  * stack while avoiding the heap. Instead of allocating memory, the underlying
  * byte array is provided by the caller and this class manages access to the
  * data and the length of the array.
  *
  * To save space, an 8-bit unsigned bytes is used to keep track of the length.
- * This means that an array can be at most 255 bytes. In the future, ByteArray
+ * This means that an array can be at most 255 bytes. In the future, TinyBuffer
  * may be given some template love so that the array length can be an int
  * or a long to promote reusability.
  */
-class ByteArray
+class TinyBuffer
 {
 public:
 	/**
-	 * Construct an invalid byte array of zero bytes. If the ByteArray is
+	 * Construct an invalid byte array of zero bytes. If the TinyBuffer is
 	 * resized using << or SetLength(), attempting to dereference the
 	 * underlying array will cause an error.
 	 */
-	ByteArray() : bytes(0), length(0) { }
+	TinyBuffer() : bytes(0), length(0) { }
 
 	/**
-	 * At its simplest, a ByteArray is a convenient data structure to manage an
+	 * At its simplest, a TinyBuffer is a convenient data structure to manage an
 	 * array while keeping the pointer and the length in a centralized location.
 	 */
-	ByteArray(unsigned char *bytes, unsigned char length) : bytes(bytes), length(length) { }
+	TinyBuffer(unsigned char *bytes, unsigned char length) : bytes(bytes), length(length) { }
 
 	/**
-	 * Copying a ByteArray is a cheap operation because the underlying storage
+	 * Copying a TinyBuffer is a cheap operation because the underlying storage
 	 * is provided by the owner.
 	 */
-	ByteArray(const ByteArray &other) : bytes(other.bytes), length(other.length) { }
+	TinyBuffer(const TinyBuffer &other) : bytes(other.bytes), length(other.length) { }
 
 	/**
-	 * Assigning a ByteArray to itself is a valid operation. Normally, we would
-	 * check for a self-copy (this != &src), but because no dynamic memory is
-	 * being swapped, we can avoid this check and save cpu instruction without
-	 * sacrificing correctness.
+	 * Use another's data, but set our own length.
 	 */
-	ByteArray &operator=(const ByteArray &src) { bytes = src.bytes; length = src.length; return *this; }
-
-	~ByteArray() { }
+	TinyBuffer(const TinyBuffer &other, unsigned char len);
 
 	/**
-	 * Two ByteArrays are equal if their arrays are equal (both content and
+	 * Assigning a TinyBuffer to itself is a valid operation. Normally, we would
+	 * check for a self-copy (this != &src), but because no dynamic memory is
+	 * being swapped, we can avoid this check.
+	 */
+	TinyBuffer &operator=(const TinyBuffer &src) { bytes = src.bytes; length = src.length; return *this; }
+
+	~TinyBuffer() { }
+
+	/**
+	 * Two TinyBuffers are equal if their arrays are equal (both content and
 	 * length).
 	 */
-	bool operator==(const ByteArray &other) const;
+	bool operator==(const TinyBuffer &other) const;
 
 	/**
-	 * Referencing a ByteArray index accesses the underlying array.
+	 * Referencing a TinyBuffer index accesses the underlying array.
 	 */
 	unsigned char &operator[](unsigned char i) const { return bytes[i]; }
 
 	/**
 	 * Decrease the size of the buffer. The byte array is shifted to match the
 	 * decreased size (bytes are popped off the front of the array).
+	 *
+	 * Basically, this "consumes" the number of bytes in the front of the
+	 * array.
+	 *
+	 * If i is larger than the buffer's size, the length is set to 0.
 	 */
-	ByteArray &operator>>(unsigned char i);
+	TinyBuffer &operator>>(unsigned char i);
 
 	/**
 	 * Increase the size of the buffer. This does NOT shift the byte array.
@@ -70,7 +79,7 @@ public:
 	 * The maximum size is 255 (0xFF); if i pushes the size over the limit,
 	 * the length will overflow and actually shorted the byte array.
 	 */
-	ByteArray &operator<<(unsigned char i) { length += i; return *this; }
+	TinyBuffer &operator<<(unsigned char i) { length += i; return *this; }
 
 	/**
 	 * Copy the byte array into buffer, with the first byte set to the array's
@@ -92,24 +101,9 @@ public:
 	 */
 	void SetLength(unsigned char newLength) { length = newLength; }
 
-
-	/***** Static utility methods *****/
-
-	/**
-	 * Precondition: buffer's size is at least 4. To achieve compatibility with
-	 * 8-bit processors, only the lowest 4 bytes of n are serialized.
-	 * Postcondition: buffer contains n in big endian format.
-	 */
-	static void Serialize(unsigned long n, unsigned char *buffer);
-
-	/**
-	 * The pre- and post-conditions are similar to above, but probably reversed.
-	 */
-	static void Deserialize(const unsigned char *buffer, unsigned long &n);
-
 private:
 	unsigned char *bytes;
 	unsigned char length;
 };
 
-#endif // BYTEARRAY_H
+#endif // TINYBUFFER_H

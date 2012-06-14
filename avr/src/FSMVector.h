@@ -51,7 +51,7 @@ public:
 	 * the FSM ordering.
 	 */
 	void Erase(unsigned char i);
-	void Erase(const ByteArray &params) { Erase(GetIndex(params)); }
+	void Erase(const TinyBuffer &params) { Erase(GetIndex(params)); }
 	void Erase(const FiniteStateMachine &fsm) { Erase(GetIndex(fsm)); }
 
 	/**
@@ -59,7 +59,7 @@ public:
 	 * replaced by the FSM at the end of the array.
 	 */
 	void QuickErase(unsigned char i);
-	void QuickErase(const ByteArray &params) { QuickErase(GetIndex(params)); }
+	void QuickErase(const TinyBuffer &params) { QuickErase(GetIndex(params)); }
 	void QuickErase(const FiniteStateMachine &fsm) { QuickErase(GetIndex(fsm)); }
 
 	/**
@@ -73,7 +73,7 @@ public:
 	static const int MAX_FSM = 20;
 
 protected:
-	unsigned char GetIndex(const ByteArray &params) const;
+	unsigned char GetIndex(const TinyBuffer &params) const;
 	unsigned char GetIndex(const FiniteStateMachine &fsm) const;
 
 private:

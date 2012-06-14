@@ -11,7 +11,7 @@ AnalogPublisher::AnalogPublisher(uint8_t pin, unsigned long delay) :
 	SetDelay(m_delay);
 }
 
-AnalogPublisher *AnalogPublisher::NewFromArray(const ByteArray &params)
+AnalogPublisher *AnalogPublisher::NewFromArray(const TinyBuffer &params)
 {
 	return Validate(params) ? new AnalogPublisher(GetPin(params), GetDelay(params)) : NULL;
 }
@@ -28,7 +28,7 @@ void AnalogPublisher::Step()
 	Serial.write(msg, sizeof(msg));
 }
 
-bool AnalogPublisher::Message(const ByteArray &msg)
+bool AnalogPublisher::Message(const TinyBuffer &msg)
 {
 	// Verify that the message was intended for us
 	return msg.Length() >= 1 && msg[0] == GetPin();

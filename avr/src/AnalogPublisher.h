@@ -29,7 +29,7 @@ class AnalogPublisher : public FiniteStateMachine, public ParamServer::AnalogPub
 public:
 	AnalogPublisher(uint8_t pin, unsigned long delay);
 
-	static AnalogPublisher *NewFromArray(const ByteArray &params);
+	static AnalogPublisher *NewFromArray(const TinyBuffer &params);
 
 	virtual ~AnalogPublisher() { }
 
@@ -42,7 +42,7 @@ public:
 	 * message is sent to it (and the message's pin matches its pin), it will
 	 * emit the analog value to the serial port on command.
 	 */
-	virtual bool Message(const ByteArray &msg);
+	virtual bool Message(const TinyBuffer &msg);
 
 private:
 	unsigned long m_delay; // ms

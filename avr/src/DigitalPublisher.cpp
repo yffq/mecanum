@@ -12,7 +12,7 @@ DigitalPublisher::DigitalPublisher(uint8_t pin, unsigned long delay) :
 	pinMode(pin, INPUT);
 }
 
-DigitalPublisher *DigitalPublisher::NewFromArray(const ByteArray &params)
+DigitalPublisher *DigitalPublisher::NewFromArray(const TinyBuffer &params)
 {
 	return Validate(params) ? new DigitalPublisher(GetPin(params), GetDelay(params)) : NULL;
 }
@@ -27,7 +27,7 @@ void DigitalPublisher::Step()
 	Serial.write(msg, sizeof(msg));
 }
 
-bool DigitalPublisher::Message(const ByteArray &msg)
+bool DigitalPublisher::Message(const TinyBuffer &msg)
 {
 	// Verify that the message was intended for us
 	return msg.Length() >= 1 && msg[0] == GetPin();

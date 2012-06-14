@@ -51,7 +51,7 @@ public:
 	 * Performs parameter validation and instantiates a new object. If the
 	 * parameters are invalid or allocation fails, this function returns 0.
 	 */
-	static Fade *NewFromArray(const ByteArray &params);
+	static Fade *NewFromArray(const TinyBuffer &params);
 
 	/**
 	 * When this fader is destructed, the pin is pulled low as a post-

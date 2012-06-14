@@ -12,8 +12,8 @@
  * Parameters:
  * ---
  * uint8  ID
- * uint8  Source
- * uint8  Dest
+ * uint8  Source (IsDigital)
+ * uint8  Dest (IsDigital)
  * uint32 Delay
  * ---
  */
@@ -22,7 +22,7 @@ class Mimic : public FiniteStateMachine, public ParamServer::Mimic
 public:
 	Mimic(uint8_t source, uint8_t dest, unsigned long delay /* ms */);
 
-	static Mimic *NewFromArray(const ByteArray &params);
+	static Mimic *NewFromArray(const TinyBuffer &params);
 
 	/*
 	 * When this FSM is destructed, the destination pin is left at whatever

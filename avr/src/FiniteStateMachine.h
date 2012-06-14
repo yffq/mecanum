@@ -1,7 +1,7 @@
 #ifndef FINITESTATEMACHINE_H
 #define FINITESTATEMACHINE_H
 
-#include "ByteArray.h"
+#include "TinyBuffer.h"
 
 /**
  * A FiniteStateMachine represents a model of how a particular component should
@@ -12,7 +12,7 @@
 class FiniteStateMachine
 {
 public:
-	FiniteStateMachine(unsigned char id, unsigned char *params, unsigned char len) : parameters(ByteArray(params, len))
+	FiniteStateMachine(unsigned char id, unsigned char *params, unsigned char len) : parameters(TinyBuffer(params, len))
 	{
 		parameters[0] = id;
 	}
@@ -28,7 +28,7 @@ public:
 	 */
 	unsigned char GetID() const { return parameters[0]; }
 
-	const ByteArray &Describe() const { return parameters; }
+	const TinyBuffer &Describe() const { return parameters; }
 
 	/**
 	 * A FSM is uniquely identified by its parameters. A FSM should not alter
@@ -75,7 +75,7 @@ public:
 	 * deleted by the master. Also, don't use a message class, use a FSM's
 	 * SUBSCRIBER header.
 	 */
-	virtual bool Message(const ByteArray &msg) { return false; }
+	virtual bool Message(const TinyBuffer &msg) { return false; }
 
 private:
 	/**
@@ -84,7 +84,7 @@ private:
 	 * such, all FSMs must serialize their parameters into a byte array for
 	 * identification purposes.
 	 */
-	ByteArray parameters;
+	TinyBuffer parameters;
 };
 
 #endif // FINITESTATEMACHINE_H

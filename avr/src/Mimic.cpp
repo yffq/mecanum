@@ -14,7 +14,7 @@ Mimic::Mimic(uint8_t source, uint8_t dest, unsigned long delay) :
 	pinMode(dest, OUTPUT);
 }
 
-Mimic *Mimic::NewFromArray(const ByteArray &params)
+Mimic *Mimic::NewFromArray(const TinyBuffer &params)
 {
 	return Validate(params) ? new Mimic(GetSource(params), GetDest(params), GetDelay(params)) : NULL;
 }

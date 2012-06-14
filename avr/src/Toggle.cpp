@@ -14,7 +14,7 @@ Toggle::Toggle(uint8_t pin, unsigned long delay) :
 	digitalWrite(pin, LOW);
 }
 
-Toggle *Toggle::NewFromArray(const ByteArray &params)
+Toggle *Toggle::NewFromArray(const TinyBuffer &params)
 {
 	return Validate(params) ? new Toggle(GetPin(params), GetDelay(params)) : NULL;
 }

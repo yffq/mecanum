@@ -14,7 +14,7 @@ ChristmasTree::ChristmasTree() :
 	fader[4] = new Fade(LED_EMERGENCY, SPEED, m_delay, Fade::LOGARITHMIC);
 }
 
-ChristmasTree *ChristmasTree::NewFromArray(const ByteArray &params)
+ChristmasTree *ChristmasTree::NewFromArray(const TinyBuffer &params)
 {
 	// TODO: Why does NULL need (ChristmasTree*) ???
 	return Validate(params) ? new ChristmasTree() : (ChristmasTree*)NULL;

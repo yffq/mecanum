@@ -4,9 +4,7 @@
 
 #include "AddressBook.h"
 
-#ifdef __AVR__
-  #include "ByteArray.h"
-#endif
+#include "TinyBuffer.h"
 
 #ifndef NULL
   #define NULL (void*)0
@@ -52,6 +50,7 @@ namespace ByteUtils
 namespace ArduinoVerifier
 {
 	inline bool IsAnalog(unsigned char pin) { return pin <= 15; }
+	inline bool IsDigital(unsigned char pin) { return 1 <= pin && pin <= 53; }
 	inline bool IsPWM(unsigned char pin) { return pin <= 13 || (44 <= pin && pin <= 46); }
 }
 
@@ -73,20 +72,9 @@ namespace ArduinoVerifier
 namespace ParamServer
 {
 
+#define PARAM_T const TinyBuffer &
 
-#ifdef __AVR__
-  #define PARAM_T const ByteArray &
-#else
-  #define PARAM_T boost::asio::const_buffer
-#endif
-
-
-#ifdef __AVR__
-  #define LENGTH(buf) (buf).Length()
-#else
-  #define LENGTH(buf) boost::asio::buffer_size(buf)
-#endif
-
+#define LENGTH(buf) (buf).Length()
 
 
 
@@ -106,7 +94,7 @@ public:
 	unsigned long GetDelay() const { return ByteUtils::Deserialize(&m_params[PARAM_ANALOGPUBLISHER_DELAY]); }
 	void SetDelay(unsigned long delay) { ByteUtils::Serialize(delay, &m_params[PARAM_ANALOGPUBLISHER_DELAY]); }
 
-	static bool Validate(PARAM_T params)
+	static inline bool Validate(PARAM_T params)
 	{
 		return LENGTH(params) >= sizeof(m_params) && params[PARAM_ANALOGPUBLISHER_ID] == FSM_ANALOGPUBLISHER && ArduinoVerifier::IsAnalog(params[PARAM_ANALOGPUBLISHER_PIN]);
 	}
@@ -124,7 +112,7 @@ protected:
 class BatteryMonitor
 {
 public:
-	static bool Validate(PARAM_T params)
+	static inline bool Validate(PARAM_T params)
 	{
 		return LENGTH(params) >= sizeof(m_params) && params[PARAM_BATTERYMONITOR_ID] == FSM_BATTERYMONITOR;
 	}
@@ -151,7 +139,7 @@ public:
 	unsigned long GetDelay() const { return ByteUtils::Deserialize(&m_params[PARAM_BLINK_DELAY]); }
 	void SetDelay(unsigned long delay) { ByteUtils::Serialize(delay, &m_params[PARAM_BLINK_DELAY]); }
 
-	static bool Validate(PARAM_T params)
+	static inline bool Validate(PARAM_T params)
 	{
 		return LENGTH(params) >= sizeof(m_params) && params[PARAM_BLINK_ID] == FSM_BLINK;
 	}
@@ -170,7 +158,7 @@ protected:
 class ChristmasTree
 {
 public:
-	static bool Validate(PARAM_T params)
+	static inline bool Validate(PARAM_T params)
 	{
 		return LENGTH(params) >= sizeof(m_params) && params[PARAM_CHRISTMASTREE_ID] == FSM_CHRISTMASTREE;
 	}
@@ -191,7 +179,7 @@ protected:
 class DigitalPublisher
 {
 public:
-	static bool Validate(PARAM_T params)
+	static inline bool Validate(PARAM_T params)
 	{
 		return LENGTH(params) >= sizeof(m_params) && params[PARAM_DIGITALPUBLISHER_ID] == FSM_DIGITALPUBLISHER;
 	}
@@ -230,7 +218,7 @@ protected:
 class Fade
 {
 public:
-	static bool Validate(PARAM_T params)
+	static inline bool Validate(PARAM_T params)
 	{
 		return LENGTH(params) >= sizeof(m_params) && params[PARAM_FADE_ID] == FSM_FADE && ArduinoVerifier::IsPWM(params[PARAM_FADE_PIN]);
 	}
@@ -269,7 +257,7 @@ protected:
 class Mimic
 {
 public:
-	static bool Validate(PARAM_T params)
+	static inline bool Validate(PARAM_T params)
 	{
 		return LENGTH(params) >= sizeof(m_params) && params[PARAM_MIMIC_ID] == FSM_MIMIC;
 	}
@@ -303,7 +291,7 @@ protected:
 class Toggle
 {
 public:
-	static bool Validate(PARAM_T params)
+	static inline bool Validate(PARAM_T params)
 	{
 		return LENGTH(params) >= sizeof(m_params) && params[PARAM_TOGGLE_ID] == FSM_TOGGLE;
 	}

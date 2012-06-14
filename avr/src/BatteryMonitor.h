@@ -30,7 +30,7 @@ public:
 	 */
 	BatteryMonitor();
 
-	static BatteryMonitor *NewFromArray(const ByteArray &params);
+	static BatteryMonitor *NewFromArray(const TinyBuffer &params);
 
 	/*
 	 * When this FSM is destructed the battery LEDs are left in an off state.

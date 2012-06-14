@@ -92,7 +92,7 @@ void MecanumMaster::SerialCallback()
 	// Block until advertised number of bytes is available (timeout set above)
 	size_t readSize = Serial.readBytes(reinterpret_cast<char*>(buffer_bytes), msgSize - 1);
 
-	ByteArray msg(buffer_bytes, static_cast<unsigned char>(readSize));
+	TinyBuffer msg(buffer_bytes, static_cast<unsigned char>(readSize));
 
 	// Single byte is OK - the FSM just gets a message of length 0
 	if (readSize && readSize == msgSize - 1)
@@ -124,7 +124,7 @@ void MecanumMaster::SerialCallback()
 	}
 }
 
-void MecanumMaster::Message(ByteArray &msg)
+void MecanumMaster::Message(TinyBuffer &msg)
 {
 	if (!msg.Length())
 		return;
@@ -185,7 +185,7 @@ void MecanumMaster::Message(ByteArray &msg)
 		// Repurpose buffer_bytes as a send buffer. Initial length = 3;
 		// first byte is msg length, second byte is FSM ID (FSM_MASTER),
 		// third byte is msg ID (MSG_MASTER_LIST_FSM)
-		ByteArray sendBuffer(buffer_bytes, 3);
+		TinyBuffer sendBuffer(buffer_bytes, 3);
 		sendBuffer[1] = FSM_MASTER;
 		sendBuffer[2] = MSG_MASTER_LIST_FSM;
 
@@ -199,7 +199,7 @@ void MecanumMaster::Message(ByteArray &msg)
 
 		for (unsigned char i = 0; i < fsmv.Size(); ++i)
 		{
-			ByteArray fsm(fsmv[i]->Describe());
+			TinyBuffer fsm(fsmv[i]->Describe());
 
 			// Use unsigned int to avoid integer overflows
 			// +1 because size is prepended to fsm byte array

@@ -18,7 +18,7 @@ class ChristmasTree : public FiniteStateMachine, public ParamServer::ChristmasTr
 public:
 	ChristmasTree();
 
-	static ChristmasTree *NewFromArray(const ByteArray &params);
+	static ChristmasTree *NewFromArray(const TinyBuffer &params);
 
 	virtual ~ChristmasTree();
 

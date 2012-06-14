@@ -15,7 +15,7 @@ Blink::Blink(uint8_t pin, unsigned long delay) :
 	digitalWrite(GetPin(), LOW);
 }
 
-Blink *Blink::NewFromArray(const ByteArray &params)
+Blink *Blink::NewFromArray(const TinyBuffer &params)
 {
 	return Validate(params) ? new Blink(GetPin(params), GetDelay(params)) : NULL;
 }

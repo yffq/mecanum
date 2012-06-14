@@ -27,7 +27,7 @@ private:
 	/**
 	 * Fired when a new message received.
 	 */
-	void Message(ByteArray &msg);
+	void Message(TinyBuffer &msg);
 
 	FSMVector fsmv;
 	// Previously this was an int[]. The Arduino would crash after 32 seconds.

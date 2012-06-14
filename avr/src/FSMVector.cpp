@@ -45,7 +45,7 @@ void FSMVector::QuickErase(unsigned char i)
 	}
 }
 
-unsigned char FSMVector::GetIndex(const ByteArray &params) const
+unsigned char FSMVector::GetIndex(const TinyBuffer &params) const
 {
 	for (unsigned char i = 0; i < m_size; ++i)
 		if (m_fsmv[i]->Describe() == params)
