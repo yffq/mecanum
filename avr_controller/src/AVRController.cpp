@@ -107,29 +107,23 @@ bool AVRController::IsOpen()
 
 void AVRController::Send(AVR::Message::Command *msg)
 {
-	boost::asio::const_buffer buf(&msg->GetMessage()[0], msg->GetMessageSize());
-	//write(m_port, buf);
+	write(m_port, boost::asio::buffer(&msg->GetMessage()[0], msg->GetMessageSize()));
 }
 
 void AVRController::Receive(AVR::Message::Response *msg)
 {
-	/*
 	unsigned char msg_size[0];
 	unsigned char data[255];
-	boost::asio::mutable_buffer buf(msg_size, 1);
-	size_t bytesRead = read(m_port, buf);
+	size_t bytesRead = read(m_port, boost::asio::buffer(msg_size, 1));
 	if (bytesRead != 1 || msg_size[0] < 2)
 		return;
-	*/
-	/*
+
 	// Read 1 less than the msg size, because msg size includes msg size byte
-	boost::asio::mutable_buffer buf2(data, msg_size[0] - 1);
-	size_t payloadSize = read(m_port, buf2);
+	size_t payloadSize = read(m_port, boost::asio::buffer(data, msg_size[0] - 1));
 	if (msg_size[0] - 1 != payloadSize)
 		return;
 	// For now, assume FSM ID is FSM_MASTER and skip the first FSM ID byte
-	msg->OnReceive(boost::asio::mutable_buffer(data + 1, payloadSize - 1));
-	*/
+	msg->OnReceive(TinyBuffer(data + 1, payloadSize - 1));
 }
 
 
