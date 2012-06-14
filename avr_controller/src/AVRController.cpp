@@ -107,7 +107,7 @@ bool AVRController::IsOpen()
 
 void AVRController::Send(AVR::Message::Command *msg)
 {
-	//boost::asio::const_buffer buf = msg->GetMessage();
+	boost::asio::const_buffer buf(&msg->GetMessage()[0], msg->GetMessageSize());
 	//write(m_port, buf);
 }
 

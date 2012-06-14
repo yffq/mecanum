@@ -1,10 +1,6 @@
 #ifndef TINYBUFFER_H
 #define TINYBUFFER_H
 
-#ifndef __AVR__
-  #include <boost/asio/buffer.hpp>
-#endif
-
 /**
  * TinyBuffer is an implementation of a resizable array using data held on the
  * stack while avoiding the heap. Instead of allocating memory, the underlying
@@ -83,12 +79,6 @@ public:
 	 * the length will overflow and actually shorted the byte array.
 	 */
 	TinyBuffer &operator<<(unsigned char i) { length += i; return *this; }
-
-
-#ifndef __AVR__
-	operator boost::asio::mutable_buffer() { return boost::asio::mutable_buffer(bytes, length); }
-	operator boost::asio::const_buffer() { return boost::asio::const_buffer(bytes, length); }
-#endif
 
 	/**
 	 * Copy the byte array into buffer, with the first byte set to the array's

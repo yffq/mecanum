@@ -5,7 +5,7 @@ using namespace AVR;
 
 void FSM::CopyFrom(const TinyBuffer &params)
 {
-	for (size_t i = 0; i < parameters.Length(); ++i)
+	for (unsigned int i = 0; i < parameters.Length(); ++i)
 		parameters[i] = params[i];
 }
 
@@ -30,7 +30,7 @@ FSM* FSM::NewFromID(unsigned char id)
 	case FSM_TOGGLE:
 		return new Toggle();
 	}
-	return NULL;
+	return (FSM*)NULL;
 }
 
 FSM* FSM::NewFromBuffer(const TinyBuffer &buf)
@@ -70,7 +70,7 @@ FSM* FSM::NewFromBuffer(const TinyBuffer &buf)
 			return new Toggle(buf);
 		break;
 	}
-	return NULL;
+	return (FSM*)NULL;
 }
 
 bool FSM::IsValid() const
@@ -94,4 +94,5 @@ bool FSM::IsValid() const
 	case FSM_TOGGLE:
 		return Toggle::Validate(parameters);
 	}
+	return false;
 }

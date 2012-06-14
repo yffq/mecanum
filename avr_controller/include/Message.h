@@ -6,6 +6,8 @@
 
 #include "AddressBook.h"
 
+#include <vector>
+
 namespace AVR
 {
 
@@ -64,7 +66,7 @@ public:
 
 	virtual bool OnReceive(const TinyBuffer &message);
 
-	std::vector<FSMContainer> GetFSMList() { return m_fsmList; }
+	const std::vector<FSMContainer> &GetFSMList() { return m_fsmList; }
 
 	size_t Count() { return m_fsmList.size(); }
 
