@@ -22,7 +22,11 @@ rosbuild_genmsg()
 rosbuild_gensrv()
 
 set(AVRCONTROLLER_SRCS src/AVRController.cpp
-                       src/AVR_FSM.cpp
+                       src/AVRInstance.cpp
+                       src/FSM.cpp
+                       src/FSMContainer.cpp
+                       src/Message.cpp
+                       src/TinyBuffer.cpp
 )
 
 #common commands for building c++ executables and libraries

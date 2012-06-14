@@ -23,9 +23,10 @@
 #ifndef AVRCONTROLLER_H_
 #define AVRCONTROLLER_H_
 
-//#include <boost/asio.hpp>
+#include "AVRInstance.h"
+#include "FSMContainer.h"
+#include "Message.h"
 
-#include "AVR_FSM.h"
 #include <vector>
 #include <boost/asio.hpp>
 #include <stddef.h> // for size_t
@@ -60,6 +61,13 @@ public:
 	 * Returns true if the serial port is open and ready for action.
 	 */
 	bool IsOpen();
+
+	void Send(AVR::Message::Command *msg);
+
+	void Receive(AVR::Message::Response *msg);
+
+
+
 
 	/**
 	 * Turn a pin on or off.
@@ -106,28 +114,13 @@ public:
 
 
 public: // protected
-	/**
-	 * Get a (unique) list of FSMs registered for the specified pin (selected
-	 * from subset of FSMs that can be registered to a pin).
-	 */
-	void GetByPin(unsigned char pin, std::vector<AVR_FSM> &fsmv) const;
-
-	/**
-	 * Get a (unique) list of FSMs by their ID.
-	 */
-	void GetByID(unsigned char fsm_id, std::vector<AVR_FSM> &fsmv) const;
-
-	/**
-	 * Returns true if fsmv contains fsm.
-	 */
-	bool Contains(const std::vector<AVR_FSM> &fsmv, const AVR_FSM &fsm) const;
 
 	/**
 	 * Load the FSM onto the Arduino and add it to v_fsm. Performs conflict
 	 * resolution, so if, for example, and the FSM's pin is already in use,
 	 * this function will unload the offending FSM before loading the new one.
 	 */
-	void LoadFSM(const AVR_FSM &fsm);
+	void LoadFSM(const FSMContainer &fsm);
 
 	/**
 	 * Reset the Arduino and load all FSMs from v_fsm onto the Arduino.
@@ -137,28 +130,16 @@ public: // protected
 	bool ResetAndLoadAll();
 
 	/**
-	 * Returns a list of FSMs currently active on the Arduino.
-	 */
-	void QueryAllFromAVR(std::vector<AVR_FSM> &fsmv);
-
-	/**
-	 * Unload the FSM from the arduino and remove it from v_fsm.
-	 */
-	void UnloadFSM(const AVR_FSM &fsm);
-
-	/**
-	 * Send a message to a FSM on the Arduino. If fsm doesn't exist in v_fsm,
-	 * this function returns false.
-	 */
-	bool MessageFSM(const AVR_FSM &fsm, unsigned char *msg, size_t length);
-
-	/**
 	 * Set the DTR bit on the serial port to the desired level (on or off).
+	 *
+	 * Untested.
 	 */
 	bool SetDTR(bool level);
 
 
 private:
+	AVRInstance m_instance;
+
 	// Device name: only used for Reset()
 	std::string              m_deviceName;
 	// The I/O service talks to the serial device
@@ -168,8 +149,6 @@ private:
 	//boost::asio::deadline_timer m_timeout;
 
 	//std::vector<int> responseQueue;
-
-	std::vector<AVR_FSM> v_fsm;
 };
 
 

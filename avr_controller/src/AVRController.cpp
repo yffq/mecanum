@@ -20,10 +20,8 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  */
 
-// Arduino thread-safe interface
 
 #include "AVRController.h"
-#include "AddressBook.h"
 
 //#include <boost/bind.hpp>
 //#include <boost/asio.hpp>
@@ -48,6 +46,10 @@ AVRController::~AVRController()
 
 bool AVRController::Open(const std::string &device)
 {
+	// TODO: Add a new parameter, a function with no parameters, that blocks
+	// until the Arduino has finished resetting itself. The function could,
+	// for example, wait for the Arduino to pull a GPIO pin low.
+	using namespace std;
 	Close();
 
 	cout << "Opening port..." << endl;
@@ -70,9 +72,16 @@ bool AVRController::Open(const std::string &device)
 	cout << "Querying FSMs..." << endl;
 
 	// Initialize v_fsm with the list of FSMs currently running on the Arduino
-	QueryAllFromAVR(v_fsm);
+	//AVR::Message::ListFSM *msg = new AVR::Message::ListFSM();
+	AVR::Message::ListFSM msg;
+	Send(&msg);
+	do
+	{
+		Receive(&msg);
+		m_instance.AddMany(msg.GetFSMList());
+	} while (msg.Count() > 0);
 
-	cout << "Retrieved " << v_fsm.size() << " FSM" << (v_fsm.size() > 1 ? "s" : "") << endl;
+	cout << "Retrieved " << m_instance.Size() << " FSM" << (m_instance.Size() > 1 ? "s" : "") << endl;
 
 	m_deviceName = device;
 	return true;
@@ -81,141 +90,70 @@ bool AVRController::Open(const std::string &device)
 void AVRController::Close()
 {
 	m_deviceName = "";
-	v_fsm.clear();
+	m_instance.Clear();
 	if (m_port.is_open())
 		m_port.close();
 }
 
 bool AVRController::Reset()
 {
-	bool b = Open(m_deviceName);
-	return b;
+	return Open(m_deviceName);
 }
 
 bool AVRController::IsOpen()
 {
-	bool b = m_port.is_open();
-	return b;
+	return m_port.is_open();
 }
 
-void AVRController::DigitalWrite(unsigned char pin, bool value)
+void AVRController::Send(AVR::Message::Command *msg)
 {
-	// Use the ...
+	//boost::asio::const_buffer buf = msg->GetMessage();
+	//write(m_port, buf);
 }
 
-
-
-
-
-
-
-
-void AVRController::GetByPin(unsigned char pin, std::vector<AVR_FSM> &fsmv) const
+void AVRController::Receive(AVR::Message::Response *msg)
 {
-	for (std::vector<AVR_FSM>::const_iterator it = v_fsm.begin(); it != v_fsm.end(); ++it)
-	{
-		switch (it->GetID())
-		{
-		case FSM_ANALOGPUBLISHER:
-		case FSM_BLINK:
-		case FSM_DIGITALPUBLISHER:
-		case FSM_FADE:
-		case FSM_MIMIC:
-		case FSM_TOGGLE:
-			// These FSMs use the next property to specify the pin ID
-			if ((*it)[1] == pin && !Contains(fsmv, *it))
-				fsmv.push_back(*it);
-			break;
-		case FSM_CHRISTMASTREE:
-			// Christmas tree uses five PWM pins:
-			if ((pin == LED_UV || pin == LED_RED || pin == LED_YELLOW ||
-					pin == LED_GREEN || pin == LED_EMERGENCY) && !Contains(fsmv, *it))
-				fsmv.push_back(*it);
-			break;
-		case FSM_BATTERYMONITOR:
-			// Battery monitor uses four LEDs:
-			if ((pin == LED_BATTERY_EMPTY || pin == LED_BATTERY_LOW ||
-					pin == LED_BATTERY_MEDIUM || pin == LED_BATTERY_HIGH) && !Contains(fsmv, *it))
-				fsmv.push_back(*it);
-			break;
-		default:
-			break;
-		}
-	}
-}
-
-void AVRController::GetByID(unsigned char fsm_id, std::vector<AVR_FSM> &fsmv) const
-{
-	for (std::vector<AVR_FSM>::const_iterator it = v_fsm.begin(); it != v_fsm.end(); ++it)
-		if (it->GetID() == fsm_id && !Contains(fsmv, *it))
-			fsmv.push_back(*it);
-}
-
-bool AVRController::Contains(const std::vector<AVR_FSM> &fsmv, const AVR_FSM &fsm) const
-{
-	return std::find(fsmv.begin(), fsmv.end(), fsm) != fsmv.end();
 	/*
-	for (std::vector<AVR_FSM>::const_iterator it = fsmv.begin(); it != fsmv.end(); ++it)
-		if (*it == fsm)
-			return true;
-	return false;
+	unsigned char msg_size[0];
+	unsigned char data[255];
+	boost::asio::mutable_buffer buf(msg_size, 1);
+	size_t bytesRead = read(m_port, buf);
+	if (bytesRead != 1 || msg_size[0] < 2)
+		return;
+	*/
+	/*
+	// Read 1 less than the msg size, because msg size includes msg size byte
+	boost::asio::mutable_buffer buf2(data, msg_size[0] - 1);
+	size_t payloadSize = read(m_port, buf2);
+	if (msg_size[0] - 1 != payloadSize)
+		return;
+	// For now, assume FSM ID is FSM_MASTER and skip the first FSM ID byte
+	msg->OnReceive(boost::asio::mutable_buffer(data + 1, payloadSize - 1));
 	*/
 }
 
+
+/*
 void AVRController::LoadFSM(const AVR_FSM &fsm)
 {
 	// First, check to see if the FSM is already loaded
-	if (Contains(v_fsm, fsm))
+	if (m_instance.Contains(fsm))
 		return;
 
 	// Get a list of conflicting FSMs
 	std::vector<AVR_FSM> conflicts;
-	switch (fsm.GetID())
+	if (m_instance.GetConflicts(fsm, conflicts))
 	{
-	case FSM_ANALOGPUBLISHER:
-	case FSM_BLINK:
-	case FSM_DIGITALPUBLISHER:
-	case FSM_FADE:
-	case FSM_MIMIC:
-	case FSM_TOGGLE:
-		GetByPin(fsm[1], conflicts);
-		break;
-	case FSM_CHRISTMASTREE:
-		GetByPin(LED_UV, conflicts);
-		GetByPin(LED_RED, conflicts);
-		GetByPin(LED_YELLOW, conflicts);
-		GetByPin(LED_GREEN, conflicts);
-		GetByPin(LED_EMERGENCY, conflicts);
-		break;
-	case FSM_BATTERYMONITOR:
-		GetByPin(LED_BATTERY_EMPTY, conflicts);
-		GetByPin(LED_BATTERY_LOW, conflicts);
-		GetByPin(LED_BATTERY_MEDIUM, conflicts);
-		GetByPin(LED_BATTERY_HIGH, conflicts);
-		break;
-	default:
-		break;
+		// Unload the conflicts and load the new FSM
+		for (std::vector<AVR_FSM>::iterator it = conflicts.begin(); it != conflicts.end(); ++it)
+			UnloadFSM(*it);
 	}
-
-	// Unload the conflicts and load the new FSM
-	for (std::vector<AVR_FSM>::iterator it = conflicts.begin(); it != conflicts.end(); ++it)
-		UnloadFSM(*it);
 
 	// TODO: Send the FSM to FSM_MASTER
 
-	v_fsm.push_back(fsm);
+	m_instance.Add(fsm);
 }
 
-
-bool AVRController::ResetAndLoadAll()
-{
-	std::vector<AVR_FSM> copy = v_fsm;
-	if (!Reset())
-		return false;
-	for (std::vector<AVR_FSM>::iterator it = copy.begin(); it != copy.end(); ++it)
-		LoadFSM(*it);
-	return true;
-}
 
 void dump(const unsigned char *bytes, int length)
 {
@@ -228,103 +166,7 @@ void dump(const unsigned char *bytes, int length)
 	}
 }
 
-void AVRController::QueryAllFromAVR(std::vector<AVR_FSM> &fsmv)
-{
-
-	boost::asio::buffer array[128];
-	boost::asio::buffer b(array, 128);
-
-	b[1][1][2][3];
-
-	ListFSMQuery msg;
-	/*
-	unsigned char cmd[3];
-	cmd[0] = sizeof(cmd);
-	cmd[1] = FSM_MASTER;
-	cmd[2] = MSG_MASTER_LIST_FSM;
-	*/
-	msg.Send();
-	msg.SendAndReceive();
-
-
-	QueryFSMResponse msg2;
-
-	do
-	{
-		msg2.Receive();
-		if (msg2.GetVector().size())
-			fsmv.insert(fmsv.end(), msg2.GetList().begin(), msg2.GetList().end())
-	} while (msg2.GetVector().size() > 0)
-
-
-
-
-	write(m_port, boost::asio::buffer(cmd, sizeof(cmd)));
-
-	unsigned char msg_size[1];
-	unsigned char buffer[255 - 1];
-	do
-	{
-		unsigned char *marker = buffer;
-
-		// Get the message size
-		size_t bytesRead = read(m_port, boost::asio::buffer(msg_size, 1));
-		if (bytesRead != 1 || msg_size[0] == 0)
-			break;
-
-		// Get the payload
-		size_t payloadSize = read(m_port, boost::asio::buffer(buffer, msg_size[0] - 1));
-		if (payloadSize != msg_size[0] - 1)
-			break;
-
-		// Skip the FSM id (FSM_MASTER)
-		// unsigned char fsm_id = marker[0];
-		--payloadSize;
-		++marker;
-
-		while (payloadSize)
-		{
-			if (marker[0] == 0)
-				break;
-			unsigned char fsm_size = marker[0] - 1;
-			--payloadSize;
-			++marker;
-			if (fsm_size == 0 || fsm_size > payloadSize)
-				break;
-			v_fsm.push_back(AVR_FSM(marker, fsm_size));
-			payloadSize -= fsm_size;
-			marker += fsm_size;
-		}
-	} while (msg_size[0] > 2); // Empty response {SIZE, FSM_MASTER} means end of list
-}
-
-void AVRController::UnloadFSM(const AVR_FSM &fsm)
-{
-	// First, make sure the FSM is loaded
-	if (!Contains(v_fsm, fsm))
-		return;
-
-	// TODO: Send the unload command to FSM_MASTER
-
-	std::remove(v_fsm.begin(), v_fsm.end(), fsm);
-}
-
-/**
- * Send a message to a FSM on the Arduino. If fsm doesn't exist in v_fsm,
- * this function returns false.
- */
-bool AVRController::MessageFSM(const AVR_FSM &fsm, unsigned char *msg, size_t length)
-{
-	if (!Contains(v_fsm, fsm))
-		return false;
-
-	// TODO: Compose and send the message to fsm[0];
-
-	return true;
-}
-
-
-
+*/
 
 
 bool AVRController::SetDTR(bool level)
