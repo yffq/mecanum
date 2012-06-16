@@ -25,6 +25,12 @@ TinyBuffer &TinyBuffer::operator>>(unsigned char i)
 	return *this;
 }
 
+TinyBuffer TinyBuffer::operator+(unsigned char i) const
+{
+	TinyBuffer tim(*this);
+	return tim >> i;
+}
+
 void TinyBuffer::Dump(unsigned char *buffer) const
 {
 	// Copy from end to beginning so that we can prepend the length to ourselves

@@ -25,11 +25,17 @@
 
 #include "AVRInstance.h"
 #include "FSMContainer.h"
-#include "Message.h"
+#include "Message.h" /* Move to cpp */
 
-#include <vector>
 #include <boost/asio.hpp>
-#include <stddef.h> // for size_t
+#include <boost/thread.hpp>
+#include <boost/thread/condition.hpp>
+#include <boost/shared_array.hpp>
+#include <boost/tuple/tuple.hpp>
+#include <vector>
+
+//class AVR::Message::Command;
+//class AVR::Message::Response;
 
 class AVRController
 {
@@ -66,9 +72,42 @@ public:
 
 	void Receive(AVR::Message::Response *msg);
 
+private:
+	/**
+	 * Callback called to start an asynchronous write operation. If a write is
+	 * already in progress, this returns immediately. This callback is called
+	 * by the io_service in the "io_thread" thread.
+	 */
+	void DoWrite();
 
+	/**
+	 * Callback called at the end of an asynchronous write operation. If there
+	 * if there is more data to write, a new write operation is started (see
+	 * above). This callback is called by the io_service in the "io_thread"
+	 * thread.
+	 */
+	void EndWrite(const boost::system::error_code &error);
 
+	/**
+	 * Callback called to start an asynchronous read operation. This callback
+	 * is called by the io_service in the "io_thread" thread.
+	 *
+	 * The position of the incoming data in readBuffer is set by readBufferPos.
+	 */
+	void DoRead(unsigned int count = 1);
 
+    /**
+     * Callback called at the end of an asynchronous read operation. This
+     * callback is called by the io_service in the "io_thread" thread.
+     */
+	void EndRead(const boost::system::error_code &error, size_t bytesTransferred);
+
+	/**
+	 * @param A TinyBuffer named tim.
+	 */
+	void OnReadMessage(const TinyBuffer &tim);
+
+public:
 	/**
 	 * Turn a pin on or off.
 	 */
@@ -111,24 +150,7 @@ public:
 	 */
 	void RemoveSubscriber(unsigned char pin);
 
-
-
-public: // protected
-
-	/**
-	 * Load the FSM onto the Arduino and add it to v_fsm. Performs conflict
-	 * resolution, so if, for example, and the FSM's pin is already in use,
-	 * this function will unload the offending FSM before loading the new one.
-	 */
-	void LoadFSM(const FSMContainer &fsm);
-
-	/**
-	 * Reset the Arduino and load all FSMs from v_fsm onto the Arduino.
-	 *
-	 * TODO: Exception instead of bool return
-	 */
-	bool ResetAndLoadAll();
-
+protected:
 	/**
 	 * Set the DTR bit on the serial port to the desired level (on or off).
 	 *
@@ -136,22 +158,35 @@ public: // protected
 	 */
 	bool SetDTR(bool level);
 
-
 private:
-	AVRInstance m_instance;
+	typedef boost::tuple<AVR::Message::Response*, boost::shared_ptr<boost::condition> > response_t;
+
+	AVRInstance               m_instance;
 
 	// Device name: only used for Reset()
-	std::string              m_deviceName;
+	std::string               m_deviceName;
+
 	// The I/O service talks to the serial device
-	boost::asio::io_service  m_io;
-	boost::asio::serial_port m_port;
+	boost::asio::io_service   m_io;
+	boost::asio::serial_port  m_port;
+
+	boost::thread             io_thread;
+	mutable boost::mutex      port_mutex;
+	mutable boost::mutex      write_mutex; // mutex on writeQueue
+	std::vector<char>         writeQueue;
+	boost::shared_array<char> writeBuffer;
+	size_t                    writeBufferSize; // Size of writeBuffer
+
+	static const size_t       READ_BUFFER_SIZE = 255; // Max size of a TinyMessage
+	size_t                    readBufferPos;
+	unsigned char             readBuffer[READ_BUFFER_SIZE];
+	mutable boost::mutex      response_mutex; // mutex on responseVec
+	std::vector<response_t>   responseVec;
+
 	// A deadline_timer object allows us to set a serial timeout
 	//boost::asio::deadline_timer m_timeout;
 
-	//std::vector<int> responseQueue;
 };
-
-
 
 
 #endif /* AVRCONTROLLER_H_ */

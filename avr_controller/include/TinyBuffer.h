@@ -71,6 +71,12 @@ public:
 	TinyBuffer &operator>>(unsigned char i);
 
 	/**
+	 * This operator is the const form of operator>>(); it will shift the bytes
+	 * pointer right, but returns a copy instead of modifying itself in place.
+	 */
+	TinyBuffer operator+(unsigned char i) const;
+
+	/**
 	 * Increase the size of the buffer. This does NOT shift the byte array.
 	 * Additional padding is pushed onto the back. Ensure that the buffer is
 	 * large enough to handle the increased size (I know yo mamma is).

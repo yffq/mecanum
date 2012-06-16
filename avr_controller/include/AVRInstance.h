@@ -15,7 +15,7 @@ public:
 	static bool Contains(const std::vector<FSMContainer> &fsmv, const FSMContainer &fsm);
 
 	void Add(const FSMContainer &fsm) { v_fsm.push_back(fsm); }
-	void AddMany(const std::vector<FSMContainer> &fsmv) { v_fsm.insert(v_fsm.end(), fsmv.begin(), fsmv.end()); }
+	void AddMany(const std::vector<FSMContainer> &fsmv);
 	void Remove(const FSMContainer &fsm);
 
 	size_t Size() const { return v_fsm.size(); }

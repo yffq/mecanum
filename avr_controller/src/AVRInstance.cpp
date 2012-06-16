@@ -8,6 +8,11 @@ bool AVRInstance::Contains(const std::vector<FSMContainer> &fsmv, const FSMConta
 	return std::find(fsmv.begin(), fsmv.end(), fsm) != fsmv.end();
 }
 
+void AVRInstance::AddMany(const std::vector<FSMContainer> &fsmv)
+{
+	v_fsm.insert(v_fsm.end(), fsmv.begin(), fsmv.end());
+}
+
 void AVRInstance::Remove(const FSMContainer &fsm)
 {
 	v_fsm.erase(std::find(v_fsm.begin(), v_fsm.end(), fsm));
