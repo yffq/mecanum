@@ -16,12 +16,12 @@ def buildKernel():
 	
 	# Clone the linux kernel source tree
 	print('Cloning the Linux kernel source tree')
-	linuxDirName = gitCloneAndEnter('git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git')
+	linuxDirName = gitCloneAndEnter('git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git', 'master')
 	os.chdir('..')
 	
 	# Clone RCN's git repository
 	print('Building kernel')
-	gitCloneAndEnter('git://github.com/RobertCNelson/stable-kernel.git')
+	gitCloneAndEnter('git://github.com/RobertCNelson/stable-kernel.git', '4d82ccd1b2093')
 	
 	# Configure the kernel build script
 	shutil.copyfile('system.sh.sample', 'system.sh') # Overwrites existing file

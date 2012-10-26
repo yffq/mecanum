@@ -38,7 +38,7 @@ def installRosDeps():
 		subprocess.call(['sudo', 'apt-get', 'install', 'libflann-dev'])
 		if os.path.exists('pcl'):
 			subprocess.call(['rm', '-rf', 'pcl'])
-		gitCloneAndEnter('git://github.com/wg-debs/pcl.git')
+		gitCloneAndEnter('git://github.com/wg-debs/pcl.git', 'master')
 		os.makedirs('build')
 		os.chdir('build')
 		subprocess.call(['cmake', '-DUSE_ROS=ON', '..'])

@@ -13,7 +13,7 @@ def buildQemu():
 	
 	# Clone RCN's git repository
 	print('Building under Qemu')
-	gitCloneAndEnter('git://github.com/RobertCNelson/linaro-tools.git')
+	gitCloneAndEnter('git://github.com/RobertCNelson/linaro-tools.git', '4a1cb42df6e58')
 	
 	# Build and install qemu
 	os.chdir('qemu') # MUST CD INTO DIRECTORY

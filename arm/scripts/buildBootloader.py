@@ -9,7 +9,7 @@ def buildBootloader():
 	print('Building bootloader')
 	os.chdir(getScriptDir())
 	# Clone RCN's git repository
-	gitCloneAndEnter('git://github.com/RobertCNelson/Bootloader-Builder.git')
+	gitCloneAndEnter('git://github.com/RobertCNelson/Bootloader-Builder.git', '607af4c206a3f')
 	
 	# Patch the bootloader
 	# GPIO mux settings can be found in u-boot/board/ti/beagle/beagle.h

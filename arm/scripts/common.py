@@ -71,7 +71,7 @@ def ensureDependencies(packages):
 	cmd.extend(packages)
 	subprocess.call(cmd)
 
-def gitCloneAndEnter(repo):
+def gitCloneAndEnter(repo, commit):
 	if not repo.endswith('.git'):
 		raise Exception('Not a git repository')
 	name = repo[:-4].rpartition('/')[2]
@@ -80,6 +80,7 @@ def gitCloneAndEnter(repo):
 	if not os.path.exists(os.path.join(name, '.git', 'config')):
 		subprocess.call(['git', 'clone', repo, name])
 		os.chdir(name)
+		subprocess.call(['git', 'checkout', commit, '-b', 'mecanum'])
 	else:
 		os.chdir(name)
 		gitCleanup()
