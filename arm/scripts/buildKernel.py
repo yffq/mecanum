@@ -11,8 +11,8 @@ def buildKernel():
 	os.chdir(getScriptDir())
 	loadSettings()
 	
-	# Install dependencies
-	ensureDependencies(['gcc-arm-linux-gnueabi', 'u-boot-tools', 'device-tree-compile'])
+	# Install dependencies (Ubuntu needs u-boot-tools, Debian needs uboot-mkimage)
+	ensureDependencies(['gcc-arm-linux-gnueabi', 'u-boot-tools', 'device-tree-compiler'])
 	
 	# Clone the linux kernel source tree
 	print('Cloning the Linux kernel source tree')
