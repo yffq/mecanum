@@ -1,26 +1,26 @@
-From 094bcbafa2effdf87d134428fe51976db786a98b Mon Sep 17 00:00:00 2001
+From 607c5579be6070da9721c4cf50789af62c13a445 Mon Sep 17 00:00:00 2001
 From: Garrett Brown <garbearucla@gmail.com>
-Date: Fri, 18 May 2012 11:04:41 -0700
+Date: Fri, 26 Oct 2012 01:58:36 -0700
 Subject: [PATCH 2/7] Include additional packages specified in settings.xml
 
 ---
- build_image.sh |    3 +++
+ var/pkg_list.sh | 3 +++
  1 file changed, 3 insertions(+)
 
-diff --git a/build_image.sh b/build_image.sh
-index d20e332..80ee535 100755
---- a/build_image.sh
-+++ b/build_image.sh
-@@ -107,6 +107,9 @@ MINIMAL_APT="${MINIMAL_APT},openssh-server,apache2"
- MINIMAL_APT="${MINIMAL_APT},btrfs-tools,usb-modeswitch,wireless-tools,wpasupplicant"
- MINIMAL_APT="${MINIMAL_APT},cpufrequtils,fbset,ntpdate,ppp"
+diff --git a/var/pkg_list.sh b/var/pkg_list.sh
+index d4450a9..a6ecd39 100755
+--- a/var/pkg_list.sh
++++ b/var/pkg_list.sh
+@@ -8,6 +8,9 @@ MINIMAL_APT="${MINIMAL_APT},openssh-server,apache2,ntpdate,ppp"
+ MINIMAL_APT="${MINIMAL_APT},btrfs-tools,cpufrequtils,fbset"
+ MINIMAL_APT="${MINIMAL_APT},initramfs-tools,lsb-release"
  
 +# Mecanum dependencies (__ MECANUM_PACKAGES __ is replaced by list of packages)
 +MINIMAL_APT="${MINIMAL_APT},__MECANUM_PACKAGES__"
 +
- #Hostname:
- FQDN="omap"
+ #not in squeeze/oneiric
+ precise_wheezy_plus=",wvdial"
  
 -- 
-1.7.9.5
+1.7.11
 

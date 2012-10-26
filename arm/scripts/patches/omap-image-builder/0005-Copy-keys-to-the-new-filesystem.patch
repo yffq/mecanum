@@ -1,17 +1,17 @@
-From 240eeba918ba22eaacbc9c8c4c3d7d5579433c62 Mon Sep 17 00:00:00 2001
+From 3d97ef220b6deb2114f2795b5151df6682db249e Mon Sep 17 00:00:00 2001
 From: Garrett Brown <garbearucla@gmail.com>
-Date: Sun, 3 Jun 2012 04:50:58 -0700
+Date: Fri, 26 Oct 2012 02:02:58 -0700
 Subject: [PATCH 5/7] Copy keys to the new filesystem
 
 ---
- tools/fixup.sh |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ tools/fixup.sh | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
 diff --git a/tools/fixup.sh b/tools/fixup.sh
-index 98e5be0..55dfdf0 100755
+index 9a43701..282d7d1 100755
 --- a/tools/fixup.sh
 +++ b/tools/fixup.sh
-@@ -96,3 +96,18 @@ rm -f /tmp/*.deb || true
+@@ -85,3 +85,17 @@ rm -f /tmp/*.deb || true
  rm -rf /usr/src/linux-headers* || true
  rm -f /rootstock-user-script || true
  
@@ -29,7 +29,6 @@ index 98e5be0..55dfdf0 100755
 +__RSA_PUBLIC__
 +RSA
 +fi
-+
 -- 
-1.7.9.5
+1.7.11
 

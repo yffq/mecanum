@@ -1,14 +1,14 @@
-From 7ba7d2f5b1991626b77354d9e6f4cc73d7cbf611 Mon Sep 17 00:00:00 2001
+From 3054298b9166a5f1d84958cef43d8e8e7bf98d8f Mon Sep 17 00:00:00 2001
 From: Garrett Brown <garbearucla@gmail.com>
-Date: Fri, 18 May 2012 11:08:14 -0700
+Date: Fri, 26 Oct 2012 01:59:44 -0700
 Subject: [PATCH 3/7] Force MAC address
 
 ---
- tools/fixup.sh |    2 +-
+ tools/fixup.sh | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/tools/fixup.sh b/tools/fixup.sh
-index f1aec8a..9ea7c37 100755
+index e6bdcb3..f359140 100755
 --- a/tools/fixup.sh
 +++ b/tools/fixup.sh
 @@ -12,7 +12,7 @@ echo "# The primary network interface" >> /etc/network/interfaces
@@ -21,5 +21,5 @@ index f1aec8a..9ea7c37 100755
  echo "# WiFi Example" >> /etc/network/interfaces
  echo "#auto wlan0" >> /etc/network/interfaces
 -- 
-1.7.9.5
+1.7.11
 
