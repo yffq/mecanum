@@ -10,6 +10,7 @@ from common import getScriptDir
 distro='fuerte'
 variant='mobile'
 target='~/fuerte'
+workspace='~/ros'
 
 # Higher-level robotics libraries and tools
 # See REP 113 (http://www.ros.org/reps/rep-0113.html) for variants
@@ -46,10 +47,9 @@ def installMobile():
 	addBash('source ' + targetsrc)
 	if not os.environ.has_key('ROS_WORKSPACE'):
 		updateEnvironment(targetsrc)
-	ROS_WORKSPACE = os.path.expanduser('~/ros').replace('\n', '')
+	ROS_WORKSPACE = os.path.expanduser(workspace).replace('\n', '')
 	addBash('export ROS_PACKAGE_PATH=' + ROS_WORKSPACE + r':$ROS_PACKAGE_PATH')
-	# TODO: Should this be ~/ros or ~/fuerte?
-	#addBash('export ROS_WORKSPACE=' + ROS_WORKSPACE')
+	addBash('export ROS_WORKSPACE=' + ROS_WORKSPACE')
 	
 	# Build higher-level libraries and tools
 	subprocess.call(['sudo', 'rosdep', 'init'])
@@ -58,7 +58,8 @@ def installMobile():
 	# Install dependencies (from source, if necessary)
 	installDependencies()
 	
-	# Build the ROS stacks using rosmake
+	# Build the ROS stacks using rosmake (might need `sudo chown -hR garrett ~/.ros`)
+	# Also, this still failed, so running `rosmake -a` once as garrett and interrupting fixed it
 	subprocess.call(['rosmake', '-a'])
 
 def addBash(line):
