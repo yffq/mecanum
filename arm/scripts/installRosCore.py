@@ -40,7 +40,7 @@ def installUtilities():
 # If ./ros-underlay exists, the previous install might not have finished
 def installCore():
 	subprocess.call(['rosinstall', '--catkin', os.path.realpath('ros-underlay'),
-		'http://ros.org/rosinstalls/fuerte-ros-base.rosinstall'])
+		'http://theworldaccordingtosue.com/ros/fuerte-ros-base.rosinstall'])
 	os.chdir('ros-underlay')
 	subprocess.call(['mkdir', 'build'])
 	os.chdir('build')
