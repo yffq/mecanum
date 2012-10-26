@@ -27,7 +27,7 @@ def buildImage():
 	
 	# Clone RCN's git repository
 	print('Building Ubuntu image')
-	gitCloneAndEnter('git://github.com/RobertCNelson/omap-image-builder.git')
+	gitCloneAndEnter('git://github.com/RobertCNelson/omap-image-builder.git', '73e92f5cef5d3')
 	#subprocess.call(['git', 'reset', '--hard', 'HEAD'])
 	
 	patches = [
