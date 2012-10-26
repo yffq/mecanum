@@ -51,7 +51,7 @@ def buildImage():
 	replaceAll('build_image.sh', 'USER_LOGIN="ubuntu"', 'USER_LOGIN="' + getSetting('username') + '"')
 	replaceAll('build_image.sh', 'USER_PASS="temppwd"', 'USER_PASS="' + getSetting('password') + '"')
 	replaceAll('build_image.sh', 'USER_NAME="Demo User"', 'USER_NAME="' + getSetting('name') + '"')
-	replaceAll('build_image.sh', '__MECANUM_PACKAGES__', ','.join(getSetting('packages')))
+	replaceAll('var/pkg_list.sh', '__MECANUM_PACKAGES__', ','.join(getSetting('packages')))
 	if imgpath:
 		# Kernel image, e.g. linux-image-3.2.18-x12_1.0precise_armhf.deb
 		replaceAll('build_image.sh', '__KERNEL_DEB_FILE__', imgpath)
