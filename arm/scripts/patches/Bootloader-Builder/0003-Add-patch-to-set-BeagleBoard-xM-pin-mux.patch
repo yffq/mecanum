@@ -1,24 +1,24 @@
-From 17200f86b9e0a732ad26e5bd31dcb9e01f487006 Mon Sep 17 00:00:00 2001
+From f24993e54c2e8f4954f295e6f7cf7f1785c159fc Mon Sep 17 00:00:00 2001
 From: Garrett Brown <garbearucla@gmail.com>
-Date: Fri, 1 Jun 2012 13:09:23 -0700
+Date: Fri, 26 Oct 2012 01:38:46 -0700
 Subject: [PATCH 3/3] Add patch to set BeagleBoard xM pin mux
 
 ---
- build.sh |    1 +
+ build.sh | 1 +
  1 file changed, 1 insertion(+)
 
 diff --git a/build.sh b/build.sh
-index 153137b..01fed50 100755
+index 882248a..5692437 100755
 --- a/build.sh
 +++ b/build.sh
-@@ -223,6 +223,7 @@ function build_u-boot {
+@@ -284,6 +284,7 @@ build_u_boot () {
  
  	# Patches for Mecanum Bot
  	git am "${DIR}/../patches/Bootloader-Builder/u-boot/0001-Change-boot-delay-to-0-seconds.patch"
 +	git am "${DIR}/../patches/Bootloader-Builder/u-boot/0002-Configure-BeagleBoard-xM-pin-mux.patch"
  
- 	make ARCH=arm CROSS_COMPILE=${CC} ${UBOOT_CONFIG}
- 	echo "Building u-boot: ${BOARD}-${UGIT_VERSION}${RELEASE_VER}"
+ 	if [ -f "${DIR}/stop.after.patch" ] ; then
+ 		echo "-----------------------------"
 -- 
-1.7.9.5
+1.7.11
 

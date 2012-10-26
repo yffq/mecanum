@@ -1,34 +1,44 @@
-From 9093e753e4e87141fc573b1259075c3ec49ab9f6 Mon Sep 17 00:00:00 2001
+From d9e17473d4c475d2c406067bdcb8a8e32bad50ca Mon Sep 17 00:00:00 2001
 From: Garrett Brown <garbearucla@gmail.com>
-Date: Thu, 31 May 2012 02:56:19 -0700
-Subject: [PATCH 1/3] Only build for beagleboard
+Date: Fri, 26 Oct 2012 01:29:22 -0700
+Subject: [PATCH 1/3] Only build for BeagleBoard
 
 ---
- build.sh |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ build.sh | 22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
 diff --git a/build.sh b/build.sh
-index 48429c3..a76b41d 100755
+index 80ea0d4..b2c7736 100755
 --- a/build.sh
 +++ b/build.sh
-@@ -426,11 +426,11 @@ set_cross_compiler
+@@ -546,16 +546,16 @@ rpib () {
+ 	build_uboot_latest
+ }
  
- #at91sam9xeek
- 
+-at91sam9x5ek
 -am3517crane
++#at91sam9x5ek
 +#am3517crane
  beagleboard
 -beaglebone
 -igep00x0
 -mx51evk
 -mx53loco
+-mx6qsabrelite
+-mx6qsabresd
+-odroidx
 -pandaboard
+-rpib
 +#beaglebone
 +#igep00x0
 +#mx51evk
 +#mx53loco
++#mx6qsabrelite
++#mx6qsabresd
++#odroidx
 +#pandaboard
++#rpib
  
 -- 
-1.7.9.5
+1.7.11
 
