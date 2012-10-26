@@ -6,8 +6,13 @@ import subprocess
 from common import getScriptDir, gitCloneAndEnter
 
 def buildBootloader():
-	print('Building bootloader')
 	os.chdir(getScriptDir())
+
+	# This might need partner repos enabled
+	ensureDependencies(['ia32-libs'])
+
+	print('Building bootloader')
+
 	# Clone RCN's git repository
 	gitCloneAndEnter('git://github.com/RobertCNelson/Bootloader-Builder.git', '607af4c206a3f')
 	

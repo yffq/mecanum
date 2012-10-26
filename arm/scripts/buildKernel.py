@@ -12,7 +12,7 @@ def buildKernel():
 	loadSettings()
 	
 	# Install dependencies
-	ensureDependencies(['gcc-arm-linux-gnueabi'])
+	ensureDependencies(['gcc-arm-linux-gnueabi', 'u-boot-tools', 'device-tree-compile'])
 	
 	# Clone the linux kernel source tree
 	print('Cloning the Linux kernel source tree')
