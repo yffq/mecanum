@@ -47,7 +47,7 @@ def buildImage():
 	#subprocess.call(['git', 'checkout', 'v2012.4-1', '-b', 'v2012.4-1'])
 	
 	# Configure image builder
-	replaceAll('build_image.sh', 'FQDN="omap"', 'FQDN="' + getSetting('fqdn') + '"')
+	replaceAll('build_image.sh', 'FQDN="arm"', 'FQDN="' + getSetting('fqdn') + '"')
 	replaceAll('build_image.sh', 'USER_LOGIN="ubuntu"', 'USER_LOGIN="' + getSetting('username') + '"')
 	replaceAll('build_image.sh', 'USER_PASS="temppwd"', 'USER_PASS="' + getSetting('password') + '"')
 	replaceAll('build_image.sh', 'USER_NAME="Demo User"', 'USER_NAME="' + getSetting('name') + '"')
@@ -59,10 +59,10 @@ def buildImage():
 	replaceAll('tools/fixup.sh', 'DE:AD:BE:EF:CA:FE', getSetting('macaddress'))
 	# Attempt to copy our ssh keys to the new filesystem
 	try:
-		id_rsa = open(getScriptDir() + '../ssh_keys/id_rsa', 'r')
+		id_rsa = open(getScriptDir() + '../../ssh_keys/id_rsa', 'r')
 		rsa_private = id_rsa.read()
 		id_rsa.close()
-		id_rsa_pub = open(getScriptDir() + '../ssh_keys/id_rsa.pub', 'r')
+		id_rsa_pub = open(getScriptDir() + '../../ssh_keys/id_rsa.pub', 'r')
 		rsa_public = id_rsa_pub.read()
 		id_rsa_pub.close()
 		if (len(rsa_private) and len(rsa_public)):
