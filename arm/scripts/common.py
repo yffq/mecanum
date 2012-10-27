@@ -83,16 +83,22 @@ def gitCloneAndEnter(repo, commit):
 		subprocess.call(['git', 'checkout', commit, '-b', 'mecanum'])
 	else:
 		os.chdir(name)
-		gitCleanup()
+		gitCleanup(commit)
 	return name
 
-def gitCleanup():
+def gitCleanup(commit):
 	subprocess.call(['git', 'am', '--abort'])
 	subprocess.call(['git', 'add', '.'])
 	subprocess.call(['git', 'commit', '--allow-empty', '-a', '-m', 'empty cleanup commit'])
-	subprocess.call(['git', 'checkout', 'origin/master', '-b', 'tmp-master'])
-	subprocess.call(['git', 'branch', '-D', 'master']) # &>/dev/null || true
-	subprocess.call(['git', 'checkout', 'origin/master', '-b', 'master'])
-	subprocess.call(['git', 'branch', '-D', 'tmp-master']) # &>/dev/null || true
-	subprocess.call(['git', 'pull'])
+	# If master was specified, stay on master, otherwise switch to 'mecanum' branch
+	if commit == 'master':
+		subprocess.call(['git', 'checkout', 'origin/master', '-b', 'tmp-master'])
+		subprocess.call(['git', 'branch', '-D', 'master']) # &>/dev/null || true
+		subprocess.call(['git', 'checkout', 'origin/master', '-b', 'master'])
+		subprocess.call(['git', 'branch', '-D', 'tmp-master']) # &>/dev/null || true
+		subprocess.call(['git', 'pull'])
+	else:
+		subprocess.call(['git', 'fetch', 'origin'])
+		subprocess.call(['git', 'branch', '-D', 'mecanum']) # &>/dev/null || true
+		subprocess.call(['git', 'checkout', commit, '-b', 'mecanum'])
 
