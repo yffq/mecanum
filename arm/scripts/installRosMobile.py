@@ -49,7 +49,7 @@ def installMobile():
 		updateEnvironment(targetsrc)
 	ROS_WORKSPACE = os.path.expanduser(workspace).replace('\n', '')
 	addBash('export ROS_PACKAGE_PATH=' + ROS_WORKSPACE + r':$ROS_PACKAGE_PATH')
-	addBash('export ROS_WORKSPACE=' + ROS_WORKSPACE')
+	addBash('export ROS_WORKSPACE=' + ROS_WORKSPACE)
 	
 	# Build higher-level libraries and tools
 	subprocess.call(['sudo', 'rosdep', 'init'])
