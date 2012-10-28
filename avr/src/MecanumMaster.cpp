@@ -16,9 +16,9 @@
 
 #include <Arduino.h> // for millis()
 #include <HardwareSerial.h> // for Serial
-#include <limits.h> // for ULONG_MAX
+#include <limits.h> // for LONG_MAX
 
-#define FOREVER ULONG_MAX
+#define FOREVER LONG_MAX // 25 days. Not ULONG_MAX (50 days), need some space to add time
 
 extern HardwareSerial Serial;
 
@@ -30,7 +30,7 @@ MecanumMaster::MecanumMaster()
 	//fsmv.PushBack(new BatteryMonitor());
 	fsmv.PushBack(new Toggle(LED_BATTERY_EMPTY));
 	//fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE6, LED_BATTERY_HIGH, 50));
-	//fsmv.PushBack(new Blink(LED_BATTERY_HIGH, 250));
+	fsmv.PushBack(new Blink(LED_BATTERY_HIGH, 250));
 	/*
 	// Everything on full brightness
 	uint8_t leds[] = {
@@ -83,22 +83,24 @@ void MecanumMaster::Spin()
 void MecanumMaster::SerialCallback()
 {
 	// First word is the size of the entire message
-	uint16_t msgSize;
-	reinterpret_cast<uint8_t*>(&msgSize)[0] = buffer_bytes[0] = Serial.read();
-	reinterpret_cast<uint8_t*>(&msgSize)[1] = buffer_bytes[1] = Serial.read();
+	Serial.readBytes(reinterpret_cast<char*>(buffer_bytes), 2);
+	uint16_t msgSize = *reinterpret_cast<uint16_t*>(buffer_bytes);
 
 	// If msgSize is too large, we have no choice but to drop data
 	if (msgSize > BUFFERLENGTH + 2)
 		msgSize = BUFFERLENGTH + 2;
 
 	// Block until advertised number of bytes is available (timeout set above)
-	size_t readSize = Serial.readBytes(reinterpret_cast<char*>(buffer_bytes + 2), msgSize - 2);
-
-	TinyBuffer msg(buffer_bytes, msgSize);
+	// Message payload must be at least 1 byte (msgSize >= 1 word + 1 byte)
+	size_t readSize = 0;
+	if (msgSize >= 3)
+		readSize = Serial.readBytes(reinterpret_cast<char*>(buffer_bytes) + 2, msgSize - 2);
 
 	// Single byte is OK
-	if (readSize >= 1 && readSize + 2 == msgSize)
+	if (msgSize >= 3 && readSize + 2 == msgSize)
 	{
+		TinyBuffer msg(buffer_bytes, msgSize);
+
 		// First byte after the msg size is the ID of the FSM to message
 		uint8_t fsmId = msg[2];
 		if (fsmId == FSM_MASTER)
@@ -111,7 +113,7 @@ void MecanumMaster::SerialCallback()
 			// Send the message to every instance of the FSM
 			for (unsigned char i = 0; i < fsmv.Size(); ++i)
 			{
-				// If Message() returns true, we should do a Step() and Delay()
+				// If Message() returns true, we should do a Step()
 				if (fsmv[i]->GetID() == fsmId && fsmv[i]->Message(msg))
 				{
 					fsmDelay[i] = fsmv[i]->Step() + millis();
@@ -138,8 +140,7 @@ void MecanumMaster::Message(TinyBuffer &msg)
 	{
 	case MSG_MASTER_CREATE_FSM:
 	{
-		// Create a new FSM. msg is the parameters to be passed to the
-		// FSM's constructor.
+		// Create a new FSM. msg is the parameters to be passed to the FSM's constructor
 		if (msg.Length())
 		{
 			unsigned char fsm_id = msg[0];
@@ -183,46 +184,25 @@ void MecanumMaster::Message(TinyBuffer &msg)
 	{
 		// Dump a list of FSMs to the serial port.
 
-		// Repurpose buffer_bytes as a send buffer. Initial length = 3;
-		// first byte is msg length, second byte is FSM ID (FSM_MASTER),
-		// third byte is msg ID (MSG_MASTER_LIST_FSM)
-		TinyBuffer sendBuffer(buffer_bytes, 3);
-		sendBuffer[1] = FSM_MASTER;
-		sendBuffer[2] = MSG_MASTER_LIST_FSM;
-
-		// Currently, Serial.write() will block until enough data has been
-		// written such that the buffer is full. The current buffer size is:
-		// #define RX_BUFFER_SIZE 64 in HardwareSerial.cpp (line 44)
-		// Note, the buffer size used to be 128 but was changed recently.
-		// Also, Serial.write() may someday change to return a value less
-		// than the number of bytes specified, indicating that some bytes
-		// were dropped.
+		// Repurpose buffer_bytes as a send buffer. Initial length = 4; first
+		// word is msg length, third byte is FSM ID (FSM_MASTER), fourth byte
+		// is msg ID (MSG_MASTER_LIST_FSM)
+		TinyBuffer sendBuffer(buffer_bytes, 4); // Length is filled in at the end
+		sendBuffer[2] = FSM_MASTER;
+		sendBuffer[3] = MSG_MASTER_LIST_FSM;
 
 		for (unsigned char i = 0; i < fsmv.Size(); ++i)
 		{
 			TinyBuffer fsm(fsmv[i]->Describe());
-
-			// Use unsigned int to avoid integer overflows
-			// +1 because size is prepended to fsm byte array
-			if (static_cast<unsigned int>(sendBuffer.Length()) +
-				static_cast<unsigned int>(fsm.Length()) + 1 > BUFFERLENGTH)
+			if (sendBuffer.Length() + 2 + fsm.Length() <= BUFFERLENGTH)
 			{
-				// Message is too large. Send what we've got.
-				sendBuffer[0] = sendBuffer.Length();
-				Serial.write(static_cast<uint8_t*>(buffer_bytes), sendBuffer.Length());
-				sendBuffer.SetLength(3); // Reset
+				// Dump the fsm at the end of the buffer
+				fsm.DumpBuffer(buffer_bytes + sendBuffer.Length());
+				sendBuffer << fsm.Length() + 2; // +2 because size is prepended
 			}
-
-			fsm.Dump(buffer_bytes + sendBuffer.Length());
-			sendBuffer << fsm.Length() + 1; // +1 because size is prepended
 		}
-		sendBuffer[0] = sendBuffer.Length();
-		Serial.write(static_cast<uint8_t*>(buffer_bytes), sendBuffer.Length());
-
-		// Delineate a multi-message list with an empty 3-character response
-		sendBuffer[0] = 3;
-		Serial.write(static_cast<uint8_t*>(buffer_bytes), 3);
-
+		*reinterpret_cast<uint16_t*>(buffer_bytes) = sendBuffer.Length();
+		Serial.write(buffer_bytes, sendBuffer.Length());
 		break;
 	}
 	default:

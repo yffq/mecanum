@@ -37,7 +37,7 @@ namespace ParamServer
 class AnalogPublisher
 {
 public:
-	AnalogPublisher() { m_params.pin = FSM_ANALOGPUBLISHER; }
+	AnalogPublisher() { m_params.id = FSM_ANALOGPUBLISHER; }
 	AnalogPublisher(const uint8_t *bytes) { memcpy(&m_params, bytes, sizeof(Parameters)); }
 
 	uint8_t GetPin() const { return m_params.pin; }

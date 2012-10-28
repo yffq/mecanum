@@ -37,7 +37,7 @@ private:
 
 	// Buffer to send and receive serial data. Must be <= 0xFE
 	static const unsigned int BUFFERLENGTH = 512;
-	unsigned char buffer_bytes[BUFFERLENGTH];
+	uint8_t buffer_bytes[BUFFERLENGTH];
 };
 
 #endif // MECANUMMASTER_H

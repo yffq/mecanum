@@ -26,9 +26,9 @@ TinyBuffer &TinyBuffer::operator>>(uint16_t i)
 	return *this;
 }
 
-void TinyBuffer::Dump(uint8_t *buffer) const
+void TinyBuffer::DumpBuffer(uint8_t *buffer) const
 {
-	*reinterpret_cast<uint16_t*>(buffer) = length;
+	*reinterpret_cast<uint16_t*>(buffer) = length + 2;
 	for (uint16_t i = 0; i < length; i++)
 		buffer[i + 2] = bytes[i];
 }

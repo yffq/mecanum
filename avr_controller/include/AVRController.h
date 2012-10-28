@@ -36,7 +36,7 @@ class AVRController
 {
 public:
 	AVRController();
-	~AVRController();
+	~AVRController() throw();
 
 	/**
 	 * Open the port and connect to the Arduino.
@@ -50,7 +50,7 @@ public:
 	/**
 	 * Disconnect from the Arduino and close the serial port.
 	 */
-	void Close();
+	void Close() throw();
 
 	/**
 	 * Reset the Arduino and unload all FSMs except for those loaded at the

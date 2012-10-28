@@ -82,7 +82,7 @@ public:
 	 *
 	 * Note: Doogie. That is all.
 	 */
-	void Dump(uint8_t *buffer) const;
+	void DumpBuffer(uint8_t *buffer) const;
 
 	/**
 	 * Get the length.
