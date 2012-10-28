@@ -23,19 +23,14 @@
 #ifndef AVRCONTROLLER_H_
 #define AVRCONTROLLER_H_
 
-#include "AVRInstance.h"
-#include "FSMContainer.h"
-#include "Message.h" /* Move to cpp */
-
 #include <boost/asio.hpp>
+#include <boost/shared_array.hpp>
 #include <boost/thread.hpp>
 #include <boost/thread/condition.hpp>
-#include <boost/shared_array.hpp>
 #include <boost/tuple/tuple.hpp>
+#include <limits>
+#include <string>
 #include <vector>
-
-//class AVR::Message::Command;
-//class AVR::Message::Response;
 
 class AVRController
 {
@@ -47,8 +42,8 @@ public:
 	 * Open the port and connect to the Arduino.
 	 *
 	 * Examples:
-	 * Linux: Open("/dev/ttyACM0");
-	 * Win32: Open("COM3");
+	 * Linux: avr_controller.Open("/dev/ttyACM0");
+	 * Win32: avr_controller.Open("COM3");
 	 */
 	bool Open(const std::string &device);
 
@@ -61,96 +56,44 @@ public:
 	 * Reset the Arduino and unload all FSMs except for those loaded at the
 	 * Arduino's boot time.
 	 */
-	bool Reset();
+	bool Reset() { return Open(m_deviceName); }
 
 	/**
 	 * Returns true if the serial port is open and ready for action.
 	 */
 	bool IsOpen();
 
-	void Send(AVR::Message::Command *msg);
+	/**
+	 * Send a message to the AVR. Messages are represented by Pascal-style
+	 * strings, where the first two bytes are the length of the message,
+	 * including those two bytes. (They are little endian, as this is the same
+	 * endianness of ARM, x86 and AVR.) The following character is the FSM ID
+	 * that the message is intended for, followed by the FSM's required
+	 * parameters.
+	 */
+	void Send(const std::string &msg);
 
-	void Receive(AVR::Message::Response *msg);
+	/**
+	 * Send a message and wait for a response. Returns false if the query times
+	 * out.
+	 */
+	bool Query(const std::string &msg, std::string &response, unsigned long timeout = DEFAULT_TIMEOUT);
+
+	/**
+	 * Block until a message from the specified FSM arrives on the serial port.
+	 */
+	bool Receive(unsigned int fsmId, std::string &msg, unsigned long timeout = DEFAULT_TIMEOUT);
+
+	static const int DEFAULT_TIMEOUT = 1000; // ms
 
 private:
-	/**
-	 * Callback called to start an asynchronous write operation. If a write is
-	 * already in progress, this returns immediately. This callback is called
-	 * by the io_service in the "io_thread" thread.
-	 */
-	void DoWrite();
+	void WriteThreadRun();
 
-	/**
-	 * Callback called at the end of an asynchronous write operation. If there
-	 * if there is more data to write, a new write operation is started (see
-	 * above). This callback is called by the io_service in the "io_thread"
-	 * thread.
-	 */
-	void EndWrite(const boost::system::error_code &error);
+	void InstallAsyncRead();
 
-	/**
-	 * Callback called to start an asynchronous read operation. This callback
-	 * is called by the io_service in the "io_thread" thread.
-	 *
-	 * The position of the incoming data in readBuffer is set by readBufferPos.
-	 */
-	void DoRead(unsigned int count = 1);
+	void ReadCallback(const boost::system::error_code& error, size_t bytes_transferred);
 
-    /**
-     * Callback called at the end of an asynchronous read operation. This
-     * callback is called by the io_service in the "io_thread" thread.
-     */
-	void EndRead(const boost::system::error_code &error, size_t bytesTransferred);
-
-	/**
-	 * @param A TinyBuffer named tim.
-	 */
-	void OnReadMessage(const TinyBuffer &tim);
-
-public:
-	/**
-	 * Turn a pin on or off.
-	 */
-	void DigitalWrite(unsigned char pin, bool value);
-
-	/**
-	 * Read the state of a pin
-	 */
-	bool DigitalRead(unsigned char pin);
-
-	/**
-	 * Subscribe to state changes on a pin.
-	 */
-	bool DigitalSubscribe(unsigned char pin, bool callback);
-
-	/**
-	 * Blink a pin at the desired frequency.
-	 */
-	void Blink(unsigned char pin, float frequency /* Hz */);
-
-	/**
-	 * Control the value of a PWM pin. The range of values varies by pin,
-	 * and will typically be either 0-255 (1 byte) or 0-65535 (2 bytes).
-	 */
-	void PWMWrite(unsigned char pin, unsigned int value);
-
-	/**
-	 * Read the value of an analog input pin.
-	 */
-	float AnalogRead(unsigned char pin);
-
-	/**
-	 * Invoke callback at the given frequency with the current value of the given
-	 * pin.
-	 */
-	void AnalogSubscribe(unsigned char pin, float frequency /* Hz */, bool callback);
-
-	/**
-	 * Remove a digital or analog subscriber from a pin.
-	 */
-	void RemoveSubscriber(unsigned char pin);
-
-protected:
+private:
 	/**
 	 * Set the DTR bit on the serial port to the desired level (on or off).
 	 *
@@ -158,35 +101,47 @@ protected:
 	 */
 	bool SetDTR(bool level);
 
-private:
-	typedef boost::tuple<AVR::Message::Response*, boost::shared_ptr<boost::condition> > response_t;
-
-	AVRInstance               m_instance;
-
 	// Device name: only used for Reset()
 	std::string               m_deviceName;
 
 	// The I/O service talks to the serial device
 	boost::asio::io_service   m_io;
 	boost::asio::serial_port  m_port;
+	boost::mutex              m_portMutex;
 
-	boost::thread             io_thread;
-	mutable boost::mutex      port_mutex;
-	mutable boost::mutex      write_mutex; // mutex on writeQueue
-	std::vector<char>         writeQueue;
-	boost::shared_array<char> writeBuffer;
-	size_t                    writeBufferSize; // Size of writeBuffer
+	boost::thread             m_writeThread;
+	std::vector<std::string>  m_writeQueue;
+	boost::mutex              m_writeQueueMutex;
+	boost::condition          m_writeQueueCondition;
+	bool                      m_bRunning;
 
-	static const size_t       READ_BUFFER_SIZE = 255; // Max size of a TinyMessage
-	size_t                    readBufferPos;
-	unsigned char             readBuffer[READ_BUFFER_SIZE];
-	mutable boost::mutex      response_mutex; // mutex on responseVec
-	std::vector<response_t>   responseVec;
+	class Message
+	{
+	public:
+		Message() : m_nextBuffer(NULL) { Reset(); }
+		~Message() { delete[] m_nextBuffer; }
+		unsigned char *GetNextReadBuffer() const { return m_nextBuffer; }
+		size_t GetNextReadLength() const { return m_nextBufferLength; }
+		bool IsFinished() const { return m_readState == Finished; }
+		const std::string &GetMessage() const { return m_msg; }
+		void Reset();
+		void Advance(size_t bytes);
 
-	// A deadline_timer object allows us to set a serial timeout
-	//boost::asio::deadline_timer m_timeout;
+	private:
+		std::string    m_msg;
+		size_t         m_msgLength;
+		unsigned char *m_nextBuffer;
+		size_t         m_nextBufferLength;
+		enum ReadState
+		{
+			WaitingForLength,
+			WaitingForLengthPt2,
+			WaitingForMessage,
+			Finished
+		} m_readState;
+	};
 
+	Message m_message;
 };
-
 
 #endif /* AVRCONTROLLER_H_ */

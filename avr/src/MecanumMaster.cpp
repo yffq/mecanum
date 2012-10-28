@@ -28,7 +28,7 @@ MecanumMaster::MecanumMaster()
 	fsmv.PushBack(new ChristmasTree());
 	//fsmv.PushBack(new AnalogPublisher(BATTERY_VOLTAGE, FOREVER));
 	//fsmv.PushBack(new BatteryMonitor());
-	//fsmv.PushBack(new Toggle(LED_BATTERY_EMPTY, FOREVER));
+	fsmv.PushBack(new Toggle(LED_BATTERY_EMPTY));
 	//fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE6, LED_BATTERY_HIGH, 50));
 	//fsmv.PushBack(new Blink(LED_BATTERY_HIGH, 250));
 	/*
