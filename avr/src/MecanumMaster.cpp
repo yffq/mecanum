@@ -16,20 +16,21 @@
 
 #include <Arduino.h> // for millis()
 #include <HardwareSerial.h> // for Serial
+#include <limits.h> // for ULONG_MAX
 
-#define FOREVER 1000UL * 60UL * 60UL * 24UL * 7UL // 1 week
+#define FOREVER ULONG_MAX
 
 extern HardwareSerial Serial;
 
 MecanumMaster::MecanumMaster()
 {
 	// Test FSMs
-	//fsmv.PushBack(new ChristmasTree());
+	fsmv.PushBack(new ChristmasTree());
 	//fsmv.PushBack(new AnalogPublisher(BATTERY_VOLTAGE, FOREVER));
 	//fsmv.PushBack(new BatteryMonitor());
 	//fsmv.PushBack(new Toggle(LED_BATTERY_EMPTY, FOREVER));
 	//fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE6, LED_BATTERY_HIGH, 50));
-	fsmv.PushBack(new Blink(LED_BATTERY_HIGH, 250));
+	//fsmv.PushBack(new Blink(LED_BATTERY_HIGH, 250));
 	/*
 	// Everything on full brightness
 	uint8_t leds[] = {
@@ -73,8 +74,7 @@ void MecanumMaster::Spin()
 			// Wait until the delay has elapsed
 			if (fsmDelay[i] <= millis())
 			{
-				fsmv[i]->Step();
-				fsmDelay[i] = fsmv[i]->Delay() + millis();
+				fsmDelay[i] = fsmv[i]->Step() + millis();
 			}
 		}
 	}
@@ -82,27 +82,29 @@ void MecanumMaster::Spin()
 
 void MecanumMaster::SerialCallback()
 {
-	// First character is the size of the entire message
-	int msgSize = Serial.read();
+	// First word is the size of the entire message
+	uint16_t msgSize;
+	reinterpret_cast<uint8_t*>(&msgSize)[0] = buffer_bytes[0] = Serial.read();
+	reinterpret_cast<uint8_t*>(&msgSize)[1] = buffer_bytes[1] = Serial.read();
 
 	// If msgSize is too large, we have no choice but to drop data
-	if (msgSize > BUFFERLENGTH + 1)
-		msgSize = BUFFERLENGTH + 1;
+	if (msgSize > BUFFERLENGTH + 2)
+		msgSize = BUFFERLENGTH + 2;
 
 	// Block until advertised number of bytes is available (timeout set above)
-	size_t readSize = Serial.readBytes(reinterpret_cast<char*>(buffer_bytes), msgSize - 1);
+	size_t readSize = Serial.readBytes(reinterpret_cast<char*>(buffer_bytes + 2), msgSize - 2);
 
-	TinyBuffer msg(buffer_bytes, static_cast<unsigned char>(readSize));
+	TinyBuffer msg(buffer_bytes, msgSize);
 
-	// Single byte is OK - the FSM just gets a message of length 0
-	if (readSize && readSize == msgSize - 1)
+	// Single byte is OK
+	if (readSize >= 1 && readSize + 2 == msgSize)
 	{
-		// First byte is the ID of the FSM to message
-		char fsmId = msg[0];
+		// First byte after the msg size is the ID of the FSM to message
+		uint8_t fsmId = msg[2];
 		if (fsmId == FSM_MASTER)
 		{
-			msg >> 1;
-			Message(msg); // Skip the ID byte
+			msg >> 3; // Skip the size and ID bytes
+			Message(msg);
 		}
 		else
 		{
@@ -112,8 +114,7 @@ void MecanumMaster::SerialCallback()
 				// If Message() returns true, we should do a Step() and Delay()
 				if (fsmv[i]->GetID() == fsmId && fsmv[i]->Message(msg))
 				{
-					fsmv[i]->Step();
-					fsmDelay[i] = fsmv[i]->Delay() + millis();
+					fsmDelay[i] = fsmv[i]->Step() + millis();
 				}
 			}
 		}

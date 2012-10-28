@@ -1,17 +1,13 @@
 #ifndef TINYBUFFER_H
 #define TINYBUFFER_H
 
+#include <stdint.h>
 
 /**
  * TinyBuffer is an implementation of a resizable array using data held on the
  * stack while avoiding the heap. Instead of allocating memory, the underlying
  * byte array is provided by the caller and this class manages access to the
  * data and the length of the array.
- *
- * To save space, an 8-bit unsigned bytes is used to keep track of the length.
- * This means that an array can be at most 255 bytes. In the future, TinyBuffer
- * may be given some template love so that the array length can be an int
- * or a long to promote reusability.
  */
 class TinyBuffer
 {
@@ -21,13 +17,13 @@ public:
 	 * resized using << or SetLength(), attempting to dereference the
 	 * underlying array will cause an error.
 	 */
-	TinyBuffer() : bytes(0), length(0) { }
+	TinyBuffer() : bytes((uint8_t*)0), length(0) { }
 
 	/**
 	 * At its simplest, a TinyBuffer is a convenient data structure to manage an
 	 * array while keeping the pointer and the length in a centralized location.
 	 */
-	TinyBuffer(unsigned char *bytes, unsigned char length) : bytes(bytes), length(length) { }
+	TinyBuffer(uint8_t *bytes, uint16_t length) : bytes(bytes), length(length) { }
 
 	/**
 	 * Copying a TinyBuffer is a cheap operation because the underlying storage
@@ -38,7 +34,7 @@ public:
 	/**
 	 * Use another's data, but set our own length.
 	 */
-	TinyBuffer(const TinyBuffer &other, unsigned char len);
+	TinyBuffer(const TinyBuffer &other, uint16_t len);
 
 	/**
 	 * Assigning a TinyBuffer to itself is a valid operation. Normally, we would
@@ -58,7 +54,7 @@ public:
 	/**
 	 * Referencing a TinyBuffer index accesses the underlying array.
 	 */
-	unsigned char &operator[](unsigned char i) const { return bytes[i]; }
+	uint8_t &operator[](uint16_t i) const { return bytes[i]; }
 
 	/**
 	 * Decrease the size of the buffer. The byte array is shifted to match the
@@ -69,41 +65,44 @@ public:
 	 *
 	 * If i is larger than the buffer's size, the length is set to 0.
 	 */
-	TinyBuffer &operator>>(unsigned char i);
+	TinyBuffer &operator>>(uint16_t i);
 
 	/**
 	 * Increase the size of the buffer. This does NOT shift the byte array.
 	 * Additional padding is pushed onto the back. Ensure that the buffer is
 	 * large enough to handle the increased size (I know yo mamma is).
-	 *
-	 * The maximum size is 255 (0xFF); if i pushes the size over the limit,
-	 * the length will overflow and actually shorted the byte array.
 	 */
-	TinyBuffer &operator<<(unsigned char i) { length += i; return *this; }
+	TinyBuffer &operator<<(uint16_t i) { length += i; return *this; }
 
 	/**
-	 * Copy the byte array into buffer, with the first byte set to the array's
-	 * length.  Buffer's length must be greater than this object's Length()
-	 * plus one.
+	 * Copy the byte array into buffer, with the first two bytes set to the
+	 * array's length (little endian).
+	 *
+	 * Precondition: buffer's length must be greater than this object's length plus two.
 	 *
 	 * Note: Doogie. That is all.
 	 */
-	void Dump(unsigned char *buffer) const;
+	void Dump(uint8_t *buffer) const;
 
 	/**
 	 * Get the length.
 	 */
-	unsigned char Length() const { return length; }
+	uint16_t Length() const { return length; }
+
+	/**
+	 * Get the underlying buffer.
+	 */
+	uint8_t *Buffer() const { return bytes; }
 
 	/**
 	 * Set the length. Make sure that the size of the underlying array is at
 	 * least this long.
 	 */
-	void SetLength(unsigned char newLength) { length = newLength; }
+	void SetLength(uint16_t newLength) { length = newLength; }
 
 private:
-	unsigned char *bytes;
-	unsigned char length;
+	uint8_t *bytes;
+	uint16_t length;
 };
 
 #endif // TINYBUFFER_H

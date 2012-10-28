@@ -4,17 +4,17 @@
 #include "FiniteStateMachine.h"
 #include "ParamServer.h"
 
-#include <stdint.h> // for uint8_t
+#include <stdint.h>
 
 /**
  * Mirror the state of a source pin to a destination pin.
  *
  * Parameters:
  * ---
- * uint8  ID
- * uint8  Source (IsDigital)
- * uint8  Dest (IsDigital)
- * uint32 Delay
+ * uint8  id
+ * uint8  source # IsDigital
+ * uint8  dest # IsDigital
+ * uint32 delay
  * ---
  */
 class Mimic : public FiniteStateMachine, public ParamServer::Mimic
@@ -30,12 +30,7 @@ public:
 	 */
 	virtual ~Mimic() { }
 
-	virtual void Step();
-
-	virtual unsigned long Delay() const { return m_delay; }
-
-private:
-	unsigned long m_delay; // ms
+	virtual uint32_t Step();
 };
 
 #endif // MIMIC_H

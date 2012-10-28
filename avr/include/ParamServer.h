@@ -1,57 +1,15 @@
 #ifndef PARAMSERVER_H
 #define PARAMSERVER_H
 
-
 #include "AddressBook.h"
-
-#include "TinyBuffer.h"
-
-#ifndef NULL
-  #define NULL (void*)0
-#endif
-
-/**
- * Utilities to serialize and unserialize some various variable types. The
- * functions defined in this namespace should be inlined to let the linker know
- * to not look for them in a C++ file. This avoids the error of having multiple
- * definitions show up when linking the executable, at the expense of a
- * slightly larger executable.
- */
-namespace ByteUtils
-{
-	/**
-	 * Store a long in a byte array in big-endian format.
-	 *
-	 * Pre-condition: buffer's size is at least 4. To achieve compatibility
-	 * with 8-bit processors, only the lowest 4 bytes of n are serialized.
-	 */
-	inline void Serialize(unsigned long n, unsigned char *buffer)
-	{
-#ifndef __AVR__
-		n &= 0xFFFFFFFF;
-#endif
-		buffer[0] = n >> 24; // big endian
-		buffer[1] = n >> 16 & 0xFF;
-		buffer[2] = n >> 8 & 0xFF;
-		buffer[3] = n & 0xFF;
-	}
-
-	/**
-	 * Recover a long (in big-endian format) from a byte array.
-	 */
-	inline unsigned long Deserialize(const unsigned char *buffer)
-	{
-		return static_cast<unsigned long>(buffer[0]) << 24 |
-			   static_cast<unsigned long>(buffer[1]) << 16 |
-			   static_cast<unsigned long>(buffer[2]) << 8 | buffer[3];
-	}
-}
+#include <string.h> // for memcpy()
 
 namespace ArduinoVerifier
 {
-	inline bool IsAnalog(unsigned char pin) { return pin <= 15; }
-	inline bool IsDigital(unsigned char pin) { return 1 <= pin && pin <= 53; }
-	inline bool IsPWM(unsigned char pin) { return pin <= 13 || (44 <= pin && pin <= 46); }
+	inline bool IsAnalog(uint8_t pin) { return pin <= 15; }
+	inline bool IsDigital(uint8_t pin) { return 1 <= pin && pin <= 53; }
+	inline bool IsPWM(uint8_t pin) { return pin <= 13 || (44 <= pin && pin <= 46); }
+	inline bool IsBinary(uint8_t value) { return value == 0 || value == 1; }
 }
 
 /**
@@ -72,242 +30,441 @@ namespace ArduinoVerifier
 namespace ParamServer
 {
 
-#define PARAM_T const TinyBuffer &
+// OK for a packed struct to begin with a single byte, because GCC will align
+// the struct so that the rest of the members are aligned
 
-#define LENGTH(buf) (buf).Length()
-
-
-
-
-#define PARAM_ANALOGPUBLISHER_ID    0 // 1 byte
-#define PARAM_ANALOGPUBLISHER_PIN   1 // 1 byte
-#define PARAM_ANALOGPUBLISHER_DELAY 2 // 4 bytes
 
 class AnalogPublisher
 {
 public:
-	static unsigned char GetPin(PARAM_T params) { return params[PARAM_ANALOGPUBLISHER_PIN]; }
-	unsigned char GetPin() const { return m_params[PARAM_ANALOGPUBLISHER_PIN]; }
-	void SetPin(unsigned char pin) { m_params[PARAM_ANALOGPUBLISHER_PIN] = pin; }
+	AnalogPublisher() { m_params.pin = FSM_ANALOGPUBLISHER; }
+	AnalogPublisher(const uint8_t *bytes) { memcpy(&m_params, bytes, sizeof(Parameters)); }
 
-	static unsigned long GetDelay(PARAM_T params) { return ByteUtils::Deserialize(&params[PARAM_ANALOGPUBLISHER_DELAY]); }
-	unsigned long GetDelay() const { return ByteUtils::Deserialize(&m_params[PARAM_ANALOGPUBLISHER_DELAY]); }
-	void SetDelay(unsigned long delay) { ByteUtils::Serialize(delay, &m_params[PARAM_ANALOGPUBLISHER_DELAY]); }
+	uint8_t GetPin() const { return m_params.pin; }
+	void SetPin(uint8_t pin) { m_params.pin = pin; }
 
-	static inline bool Validate(PARAM_T params)
+	uint32_t GetDelay() const { return m_params.delay; }
+	void SetDelay(uint32_t delay) { m_params.delay = delay; }
+
+	static bool Validate(const uint8_t *bytes, uint16_t length)
 	{
-		return LENGTH(params) >= sizeof(m_params) && params[PARAM_ANALOGPUBLISHER_ID] == FSM_ANALOGPUBLISHER && ArduinoVerifier::IsAnalog(params[PARAM_ANALOGPUBLISHER_PIN]);
+		if (length == sizeof(Parameters))
+		{
+			Parameters params;
+			memcpy(&params, bytes, sizeof(Parameters));
+			return (params.id == FSM_ANALOGPUBLISHER) && (ArduinoVerifier::IsAnalog(params.pin));
+		}
+		return false;
 	}
 
 protected:
-	unsigned char m_params[6];
+	struct Parameters
+	{
+		uint8_t id;
+		uint8_t pin;
+		uint32_t delay;
+	} __attribute__((packed));
+
+	Parameters m_params;
+};
+
+class AnalogPublisherPublisherMsg
+{
+public:
+	AnalogPublisherPublisherMsg(uint8_t pin, uint16_t value)
+	{
+		m_msg.length = sizeof(Message);
+		m_msg.id = FSM_ANALOGPUBLISHER;
+		m_msg.pin = pin;
+		m_msg.value = value;
+	}
+	AnalogPublisherPublisherMsg(const uint8_t *bytes) { memcpy(&m_msg, bytes, sizeof(Message)); }
+
+	static uint16_t GetLength() { return sizeof(Message); }
+	uint8_t GetId() const { return m_msg.id; }
+	uint8_t GetPin() const { return m_msg.pin; }
+	uint16_t GetValue() const { return m_msg.value; }
+	const uint8_t *GetBuffer() const { return reinterpret_cast<const uint8_t*>(&m_msg); }
+
+private:
+	struct Message
+	{
+		uint16_t length;
+		uint8_t id;
+		uint8_t pin;
+		uint16_t value;
+	} __attribute__((packed));
+
+	Message m_msg;
+};
+
+class AnalogPublisherSubscriberMsg
+{
+public:
+	AnalogPublisherSubscriberMsg(uint8_t pin)
+	{
+		m_msg.length = sizeof(Message);
+		m_msg.id = FSM_ANALOGPUBLISHER;
+		m_msg.pin = pin;
+	}
+	AnalogPublisherSubscriberMsg(const uint8_t *bytes) { memcpy(&m_msg, bytes, sizeof(Message)); }
+
+	static uint16_t GetLength() { return sizeof(Message); }
+	uint8_t GetId() const { return m_msg.id; }
+	uint8_t GetPin() const { return m_msg.pin; }
+	const uint8_t *GetBuffer() const { return reinterpret_cast<const uint8_t*>(&m_msg); }
+
+private:
+	struct Message
+	{
+		uint16_t length;
+		uint8_t id;
+		uint8_t pin;
+	} __attribute__((packed));
+
+	Message m_msg;
 };
 
 
 
-
-
-#define PARAM_BATTERYMONITOR_ID  0  // 1 byte
 
 class BatteryMonitor
 {
 public:
-	static inline bool Validate(PARAM_T params)
+	BatteryMonitor() { m_params.id = FSM_BATTERYMONITOR; }
+	BatteryMonitor(const uint8_t *bytes) { memcpy(&m_params, bytes, sizeof(Parameters)); }
+
+	static bool Validate(const uint8_t *bytes, uint16_t length)
 	{
-		return LENGTH(params) >= sizeof(m_params) && params[PARAM_BATTERYMONITOR_ID] == FSM_BATTERYMONITOR;
+		if (length == sizeof(Parameters))
+		{
+			Parameters params;
+			memcpy(&params, bytes, sizeof(Parameters));
+			return (params.id == FSM_BATTERYMONITOR);
+		}
+		return false;
 	}
 
 protected:
-	unsigned char m_params[1];
+	struct Parameters
+	{
+		uint8_t id;
+	} __attribute__((packed));
+
+	Parameters m_params;
 };
 
 
 
-#define PARAM_BLINK_ID    0 // 1 byte
-#define PARAM_BLINK_PIN   1 // 1 byte
-#define PARAM_BLINK_DELAY 2 // 4 bytes
+
 
 class Blink
 {
 public:
-	static unsigned char GetPin(PARAM_T params) { return params[PARAM_BLINK_PIN]; }
-	unsigned char GetPin() const { return m_params[PARAM_BLINK_PIN]; }
-	void SetPin(unsigned char pin) { m_params[PARAM_BLINK_PIN] = pin; }
+	Blink() { m_params.id = FSM_BLINK; }
+	Blink(const uint8_t *bytes) { memcpy(&m_params, bytes, sizeof(Parameters)); }
 
-	// Note: These will not modify the delay of a running FSM, they only affect its "footprint"
-	static unsigned long GetDelay(PARAM_T params) { return ByteUtils::Deserialize(&params[PARAM_BLINK_DELAY]); }
-	unsigned long GetDelay() const { return ByteUtils::Deserialize(&m_params[PARAM_BLINK_DELAY]); }
-	void SetDelay(unsigned long delay) { ByteUtils::Serialize(delay, &m_params[PARAM_BLINK_DELAY]); }
+	uint8_t GetPin() const { return m_params.pin; }
+	void SetPin(uint8_t pin) { m_params.pin = pin; }
 
-	static inline bool Validate(PARAM_T params)
+	uint32_t GetDelay() const { return m_params.delay; }
+	void SetDelay(uint32_t delay) { m_params.delay = delay; }
+
+	static bool Validate(const uint8_t *bytes, uint16_t length)
 	{
-		return LENGTH(params) >= sizeof(m_params) && params[PARAM_BLINK_ID] == FSM_BLINK;
+		if (length == sizeof(Parameters))
+		{
+			Parameters params;
+			memcpy(&params, bytes, sizeof(Parameters));
+			return (params.id == FSM_BLINK) && (ArduinoVerifier::IsDigital(params.pin));
+		}
+		return false;
 	}
 
 protected:
-	unsigned char m_params[6];
+	struct Parameters
+	{
+		uint8_t id;
+		uint8_t pin;
+		uint32_t delay;
+	} __attribute__((packed));
+
+	Parameters m_params;
 };
 
 
 
-
-
-
-#define PARAM_CHRISTMASTREE_ID  0  // 1 byte
 
 class ChristmasTree
 {
 public:
-	static inline bool Validate(PARAM_T params)
+	ChristmasTree() { m_params.id = FSM_CHRISTMASTREE; }
+	ChristmasTree(const uint8_t *bytes) { memcpy(&m_params, bytes, sizeof(Parameters)); }
+
+	static bool Validate(const uint8_t *bytes, uint16_t length)
 	{
-		return LENGTH(params) >= sizeof(m_params) && params[PARAM_CHRISTMASTREE_ID] == FSM_CHRISTMASTREE;
+		if (length == sizeof(Parameters))
+		{
+			Parameters params;
+			memcpy(&params, bytes, sizeof(Parameters));
+			return (params.id == FSM_CHRISTMASTREE);
+		}
+		return false;
 	}
 
 protected:
-	unsigned char m_params[1];
+	struct Parameters
+	{
+		uint8_t id;
+	} __attribute__((packed));
+
+	Parameters m_params;
 };
 
 
 
-
-
-
-#define PARAM_DIGITALPUBLISHER_ID    0 // 1 byte
-#define PARAM_DIGITALPUBLISHER_PIN   1 // 1 byte
-#define PARAM_DIGITALPUBLISHER_DELAY 2 // 4 bytes
 
 class DigitalPublisher
 {
 public:
-	static inline bool Validate(PARAM_T params)
+	DigitalPublisher() { m_params.id = FSM_DIGITALPUBLISHER; }
+	DigitalPublisher(const uint8_t *bytes) { memcpy(&m_params, bytes, sizeof(Parameters)); }
+
+	uint8_t GetPin() const { return m_params.pin; }
+	void SetPin(uint8_t pin) { m_params.pin = pin; }
+
+	uint32_t GetDelay() const { return m_params.delay; }
+	void SetDelay(uint32_t delay) { m_params.delay = delay; }
+
+	static bool Validate(const uint8_t *bytes, uint16_t length)
 	{
-		return LENGTH(params) >= sizeof(m_params) && params[PARAM_DIGITALPUBLISHER_ID] == FSM_DIGITALPUBLISHER;
+		if (length == sizeof(Parameters))
+		{
+			Parameters params;
+			memcpy(&params, bytes, sizeof(Parameters));
+			return (params.id == FSM_DIGITALPUBLISHER) && (ArduinoVerifier::IsDigital(params.pin));
+		}
+		return false;
 	}
 
-	static unsigned char GetPin(PARAM_T params) { return params[PARAM_DIGITALPUBLISHER_PIN]; }
-	unsigned char GetPin() const { return m_params[PARAM_DIGITALPUBLISHER_PIN]; }
-	void SetPin(unsigned char pin) { m_params[PARAM_DIGITALPUBLISHER_PIN] = pin; }
-
-	static unsigned long GetDelay(PARAM_T params) { return ByteUtils::Deserialize(&params[PARAM_DIGITALPUBLISHER_DELAY]); }
-	unsigned long GetDelay() const { return ByteUtils::Deserialize(&m_params[PARAM_DIGITALPUBLISHER_DELAY]); }
-	void SetDelay(unsigned long delay) { ByteUtils::Serialize(delay, &m_params[PARAM_DIGITALPUBLISHER_DELAY]); }
-
 protected:
-	unsigned char m_params[6];
+	struct Parameters
+	{
+		uint8_t id;
+		uint8_t pin;
+		uint32_t delay;
+	} __attribute__((packed));
+
+	Parameters m_params;
+};
+
+class DigitalPublisherPublisherMsg
+{
+public:
+	DigitalPublisherPublisherMsg(uint8_t pin, uint16_t value)
+	{
+		m_msg.length = sizeof(Message);
+		m_msg.id = FSM_DIGITALPUBLISHER;
+		m_msg.pin = pin;
+		m_msg.value = value;
+	}
+	DigitalPublisherPublisherMsg(const uint8_t *bytes) { memcpy(&m_msg, bytes, sizeof(Message)); }
+
+	static uint16_t GetLength() { return sizeof(Message); }
+	uint8_t GetId() const { return m_msg.id; }
+	uint8_t GetPin() const { return m_msg.pin; }
+	uint16_t GetValue() const { return m_msg.value; }
+	const uint8_t *GetBuffer() const { return reinterpret_cast<const uint8_t*>(&m_msg); }
+
+private:
+	struct Message
+	{
+		uint16_t length;
+		uint8_t id;
+		uint8_t pin;
+		uint16_t value;
+	} __attribute__((packed));
+
+	Message m_msg;
+};
+
+class DigitalPublisherSubscriberMsg
+{
+public:
+	DigitalPublisherSubscriberMsg(uint8_t pin)
+	{
+		m_msg.length = sizeof(Message);
+		m_msg.id = FSM_DIGITALPUBLISHER;
+		m_msg.pin = pin;
+	}
+	DigitalPublisherSubscriberMsg(const uint8_t *bytes) { memcpy(&m_msg, bytes, sizeof(Message)); }
+
+	static uint16_t GetLength() { return sizeof(Message); }
+	uint8_t GetId() const { return m_msg.id; }
+	uint8_t GetPin() const { return m_msg.pin; }
+	const uint8_t *GetBuffer() const { return reinterpret_cast<const uint8_t*>(&m_msg); }
+
+private:
+	struct Message
+	{
+		uint16_t length;
+		uint8_t id;
+		uint8_t pin;
+	} __attribute__((packed));
+
+	Message m_msg;
 };
 
 
-/**
- * Fade a light on a PWM pin.
- *
- * Parameters:
- * ---
- * uint8  ID
- * uint8  Pin (IsPWM)
- * uint8  Curve  # Linear (0) or Logarithmic (1)
- * utin32 Period
- * uint32 Delay
- * ---
- */
-#define PARAM_FADE_ID     0 // 1 byte
-#define PARAM_FADE_PIN    1 // 1 byte
-#define PARAM_FADE_CURVE  2 // 1 byte
-#define PARAM_FADE_PERIOD 3 // 4 bytes
-#define PARAM_FADE_DELAY  7 // 4 bytes
+
 
 class Fade
 {
 public:
-	static inline bool Validate(PARAM_T params)
+	Fade() { m_params.id = FSM_FADE; }
+	Fade(const uint8_t *bytes) { memcpy(&m_params, bytes, sizeof(Parameters)); }
+
+	uint8_t GetPin() const { return m_params.pin; }
+	void SetPin(uint8_t pin) { m_params.pin = pin; }
+
+	uint8_t GetCurve() const { return m_params.curve; }
+	void SetCurve(uint8_t curve) { m_params.curve = curve; }
+
+	uint32_t GetPeriod() const { return m_params.period; }
+	void SetPeriod(uint32_t period) { m_params.period = period; }
+
+	uint32_t GetDelay() const { return m_params.delay; }
+	void SetDelay(uint32_t delay) { m_params.delay = delay; }
+
+	static bool Validate(const uint8_t *bytes, uint16_t length)
 	{
-		return LENGTH(params) >= sizeof(m_params) && params[PARAM_FADE_ID] == FSM_FADE && ArduinoVerifier::IsPWM(params[PARAM_FADE_PIN]);
+		if (length == sizeof(Parameters))
+		{
+			Parameters params;
+			memcpy(&params, bytes, sizeof(Parameters));
+			return (params.id == FSM_FADE) && (ArduinoVerifier::IsPWM(params.pin)) && (ArduinoVerifier::IsBinary(params.curve));
+		}
+		return false;
 	}
 
-	static unsigned char GetPin(PARAM_T params) { return params[PARAM_FADE_PIN]; }
-	unsigned char GetPin() const { return m_params[PARAM_FADE_PIN]; }
-	void SetPin(unsigned char pin) { m_params[PARAM_FADE_PIN] = pin; }
-
-	static unsigned char GetCurve(PARAM_T params) { return params[PARAM_FADE_CURVE]; }
-	unsigned char GetCurve() const { return m_params[PARAM_FADE_CURVE]; }
-	void SetCurve(unsigned char curve) { m_params[PARAM_FADE_CURVE] = curve; }
-
-	// Note: These will not modify the period of a running FSM, they only affect its "footprint"
-	static unsigned long GetPeriod(PARAM_T params) { return ByteUtils::Deserialize(&params[PARAM_FADE_PERIOD]); }
-	unsigned long GetPeriod() const { return ByteUtils::Deserialize(&m_params[PARAM_FADE_PERIOD]); }
-	void SetPeriod(unsigned long period) { ByteUtils::Serialize(period, &m_params[PARAM_FADE_PERIOD]); }
-
-	// Note: These will not modify the delay of a running FSM, they only affect its "footprint"
-	static unsigned long GetDelay(PARAM_T params) { return ByteUtils::Deserialize(&params[PARAM_FADE_DELAY]); }
-	unsigned long GetDelay() const { return ByteUtils::Deserialize(&m_params[PARAM_FADE_DELAY]); }
-	void SetDelay(unsigned long delay) { ByteUtils::Serialize(delay, &m_params[PARAM_FADE_DELAY]); }
-
 protected:
-	unsigned char m_params[11];
+	struct Parameters
+	{
+		uint8_t id;
+		uint8_t pin;
+		uint8_t curve;
+		uint32_t period;
+		uint32_t delay;
+	} __attribute__((packed));
+
+	Parameters m_params;
 };
 
 
 
 
-
-#define PARAM_MIMIC_ID     0 // 1 byte
-#define PARAM_MIMIC_SOURCE 1 // 1 byte
-#define PARAM_MIMIC_DEST   1 // 1 byte
-#define PARAM_MIMIC_DELAY  2 // 4 bytes
 
 class Mimic
 {
 public:
-	static inline bool Validate(PARAM_T params)
+	Mimic() { m_params.id = FSM_MIMIC; }
+	Mimic(const uint8_t *bytes) { memcpy(&m_params, bytes, sizeof(Parameters)); }
+
+	uint8_t GetSource() const { return m_params.source; }
+	void SetSource(uint8_t source) { m_params.source = source; }
+
+	uint8_t GetDest() const { return m_params.dest; }
+	void SetDest(uint8_t dest) { m_params.dest = dest; }
+
+	uint32_t GetDelay() const { return m_params.delay; }
+	void SetDelay(uint32_t delay) { m_params.delay = delay; }
+
+	static bool Validate(const uint8_t *bytes, uint16_t length)
 	{
-		return LENGTH(params) >= sizeof(m_params) && params[PARAM_MIMIC_ID] == FSM_MIMIC;
+		if (length == sizeof(Parameters))
+		{
+			Parameters params;
+			memcpy(&params, bytes, sizeof(Parameters));
+			return (params.id == FSM_MIMIC) && (ArduinoVerifier::IsDigital(params.source)) && (ArduinoVerifier::IsDigital(params.dest));
+		}
+		return false;
 	}
 
-	static unsigned char GetSource(PARAM_T params) { return params[PARAM_MIMIC_SOURCE]; }
-	unsigned char GetSource() const { return m_params[PARAM_MIMIC_SOURCE]; }
-	void SetSource(unsigned char source) { m_params[PARAM_MIMIC_SOURCE] = source; }
-
-	static unsigned char GetDest(PARAM_T params) { return params[PARAM_MIMIC_DEST]; }
-	unsigned char GetDest() const { return m_params[PARAM_MIMIC_DEST]; }
-	void SetDest(unsigned char dest) { m_params[PARAM_MIMIC_DEST] = dest; }
-
-	// Note: These will not modify the delay of a running FSM, they only affect its "footprint"
-	static unsigned long GetDelay(PARAM_T params) { return ByteUtils::Deserialize(&params[PARAM_MIMIC_DELAY]); }
-	unsigned long GetDelay() const { return ByteUtils::Deserialize(&m_params[PARAM_MIMIC_DELAY]); }
-	void SetDelay(unsigned long delay) { ByteUtils::Serialize(delay, &m_params[PARAM_MIMIC_DELAY]); }
-
 protected:
-	unsigned char m_params[7];
+	struct Parameters
+	{
+		uint8_t id;
+		uint8_t source;
+		uint8_t dest;
+		uint32_t delay;
+	} __attribute__((packed));
+
+	Parameters m_params;
 };
 
 
 
-
-
-
-#define PARAM_TOGGLE_ID    0 // 1 byte
-#define PARAM_TOGGLE_PIN   1 // 1 byte
-#define PARAM_TOGGLE_DELAY 2 // 4 bytes
 
 class Toggle
 {
 public:
-	static inline bool Validate(PARAM_T params)
+	Toggle() { m_params.id = FSM_TOGGLE; }
+	Toggle(const uint8_t *bytes) { memcpy(&m_params, bytes, sizeof(Parameters)); }
+
+	uint8_t GetPin() const { return m_params.pin; }
+	void SetPin(uint8_t pin) { m_params.pin = pin; }
+
+	static bool Validate(const uint8_t *bytes, uint16_t length)
 	{
-		return LENGTH(params) >= sizeof(m_params) && params[PARAM_TOGGLE_ID] == FSM_TOGGLE;
+		if (length == sizeof(Parameters))
+		{
+			Parameters params;
+			memcpy(&params, bytes, sizeof(Parameters));
+			return (params.id == FSM_TOGGLE) && (ArduinoVerifier::IsDigital(params.pin));
+		}
+		return false;
 	}
 
-	static unsigned char GetPin(PARAM_T params) { return params[PARAM_TOGGLE_PIN]; }
-	unsigned char GetPin() const { return m_params[PARAM_TOGGLE_PIN]; }
-	void SetPin(unsigned char pin) { m_params[PARAM_TOGGLE_PIN] = pin; }
-
-	static unsigned long GetDelay(PARAM_T params) { return ByteUtils::Deserialize(&params[PARAM_TOGGLE_DELAY]); }
-	unsigned long GetDelay() const { return ByteUtils::Deserialize(&m_params[PARAM_TOGGLE_DELAY]); }
-	void SetDelay(unsigned long delay) { ByteUtils::Serialize(delay, &m_params[PARAM_TOGGLE_DELAY]); }
-
 protected:
-	unsigned char m_params[6];
+	struct Parameters
+	{
+		uint8_t id;
+		uint8_t pin;
+	} __attribute__((packed));
+
+	Parameters m_params;
 };
 
+
+class ToggleSubscriberMsg
+{
+public:
+	ToggleSubscriberMsg(uint8_t pin, uint8_t command)
+	{
+		m_msg.length = sizeof(Message);
+		m_msg.id = FSM_TOGGLE;
+		m_msg.pin = pin;
+		m_msg.command = command;
+	}
+	ToggleSubscriberMsg(const uint8_t *bytes) { memcpy(&m_msg, bytes, sizeof(Message)); }
+
+	static uint16_t GetLength() { return sizeof(Message); }
+	uint8_t GetId() const { return m_msg.id; }
+	uint8_t GetPin() const { return m_msg.pin; }
+	uint8_t GetCommand() const { return m_msg.command; }
+	const uint8_t *GetBuffer() const { return reinterpret_cast<const uint8_t*>(&m_msg); }
+
+private:
+	struct Message
+	{
+		uint16_t length;
+		uint8_t id;
+		uint8_t pin;
+		uint8_t command;
+	} __attribute__((packed));
+
+	Message m_msg;
+};
 
 
 } // namespace ParamServer

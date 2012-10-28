@@ -4,16 +4,25 @@
 #include "FiniteStateMachine.h"
 #include "ParamServer.h"
 
-#include <stdint.h> // for uint8_t
+#include <stdint.h>
 
 /**
  * Toggle a digital pin using the Message() function.
  *
  * Parameters:
  * ---
- * uint8  ID
- * uint8  Pin (IsDigital)
- * uint32 Delay
+ * uint8  id
+ * uint8  pin # IsDigital
+ * uint32 delay
+ * ---
+ *
+ * Message state: 0 for off, 1 for on, 2 for toggle
+ * Subscribe:
+ * ---
+ * uint16 length
+ * uint8  id
+ * uint8  pin
+ * uint8  command
  * ---
  */
 class Toggle : public FiniteStateMachine, public ParamServer::Toggle
@@ -21,10 +30,8 @@ class Toggle : public FiniteStateMachine, public ParamServer::Toggle
 public:
 	/**
 	 * Create a new toggle.
-	 *
-	 * @param delay The time between polling for messages.
 	 */
-	Toggle(uint8_t pin, unsigned long delay /* ms */);
+	Toggle(uint8_t pin);
 
 	static Toggle *NewFromArray(const TinyBuffer &params);
 
@@ -33,20 +40,17 @@ public:
 	 */
 	virtual ~Toggle();
 
-	virtual void Step();
-
-	virtual unsigned long Delay() const { return m_delay; }
+	virtual uint32_t Step();
 
 	/**
 	 * The state can be changed with a message. The first byte must be this
 	 * FSM's pin. If provided, the second byte is a bool to enable/disable the
 	 * pin. If the bool is omitted, the pin's state will be toggled.
 	 */
-	virtual bool Message(const char* msg, unsigned char length);
+	virtual bool Message(const TinyBuffer &msg);
 
 private:
 	bool m_enabled;
-	unsigned long m_delay; // ms
 };
 
 #endif // TOGGLE_H

@@ -3,6 +3,8 @@
 
 #include "FiniteStateMachine.h"
 
+#include <stdint.h>
+
 class FSMVector
 {
 public:
@@ -20,7 +22,7 @@ public:
 	/**
 	 * Get the number of FSMs in the array.
 	 */
-	unsigned char Size() const { return m_size; }
+	uint8_t Size() const { return m_size; }
 
 	/**
 	 * Add a FSM to the end of the array.
@@ -70,7 +72,7 @@ public:
 	/**
 	 * A constant specifying the maximum number of FSMs this class can store.
 	 */
-	static const int MAX_FSM = 20;
+	static const int MAX_FSM = 256;
 
 protected:
 	unsigned char GetIndex(const TinyBuffer &params) const;
@@ -80,7 +82,7 @@ private:
 	// The array
 	FiniteStateMachine* m_fsmv[MAX_FSM];
 	// The current size
-	unsigned char m_size;
+	uint8_t m_size;
 };
 
 #endif // FSMVECTOR_H

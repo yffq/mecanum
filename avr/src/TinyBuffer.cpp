@@ -1,8 +1,9 @@
 #include "TinyBuffer.h"
 
 
-TinyBuffer::TinyBuffer(const TinyBuffer &other, unsigned char len) : bytes(other.bytes)
+TinyBuffer::TinyBuffer(const TinyBuffer &other, uint16_t len) : bytes(other.bytes)
 {
+	// Don't use len if the other buffer's size is smaller than that
 	length = (len < other.length ? len : other.length);
 }
 
@@ -10,13 +11,13 @@ bool TinyBuffer::operator==(const TinyBuffer &other) const
 {
 	if (length != other.length)
 		return false;
-	for (unsigned char i = 0; i < length; ++i)
+	for (uint16_t i = 0; i < length; ++i)
 		if (bytes[i] != other.bytes[i])
 			return false;
 	return true;
 }
 
-TinyBuffer &TinyBuffer::operator>>(unsigned char i)
+TinyBuffer &TinyBuffer::operator>>(uint16_t i)
 {
 	if (i > length)
 		i = length;
@@ -25,10 +26,9 @@ TinyBuffer &TinyBuffer::operator>>(unsigned char i)
 	return *this;
 }
 
-void TinyBuffer::Dump(unsigned char *buffer) const
+void TinyBuffer::Dump(uint8_t *buffer) const
 {
-	// Copy from end to beginning so that we can prepend the length to ourselves
-	for (unsigned char i = length; i > 0; --i)
-		buffer[i] = bytes[i - 1];
-	buffer[0] = length + 1;
+	*reinterpret_cast<uint16_t*>(buffer) = length;
+	for (uint16_t i = 0; i < length; i++)
+		buffer[i + 2] = bytes[i];
 }

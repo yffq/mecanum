@@ -4,7 +4,7 @@
 #include "FiniteStateMachine.h"
 #include "ParamServer.h"
 
-#include <stdint.h> // for uint8_t
+#include <stdint.h>
 
 /**
  * Broadcast the state of an analog pin over serial at the given frequency
@@ -12,30 +12,36 @@
  *
  * Parameters:
  * ---
- * uint8  ID
- * uint8  Pin (IsAnalog)
- * uint32 Delay
+ * uint8  id
+ * uint8  pin # IsAnalog
+ * uint32 delay
  * ---
  *
- * Message:
+ * Publish:
  * ---
- * uint8 Pin
- * uint8 HighByte  # value >> 8)
- * uint8 LowByte   # value & 0xFF)
+ * uint16 length
+ * uint8  id
+ * uint8  pin
+ * uint16 value
+ * ---
+ *
+ * Subscribe:
+ * ---
+ * uint16 length
+ * uint8  id
+ * uint8  pin
  * ---
  */
 class AnalogPublisher : public FiniteStateMachine, public ParamServer::AnalogPublisher
 {
 public:
-	AnalogPublisher(uint8_t pin, unsigned long delay);
+	AnalogPublisher(uint8_t pin, uint32_t delay);
 
 	static AnalogPublisher *NewFromArray(const TinyBuffer &params);
 
 	virtual ~AnalogPublisher() { }
 
-	virtual void Step();
-
-	virtual unsigned long Delay() const { return m_delay; }
+	virtual uint32_t Step();
 
 	/**
 	 * By specifying a long delay, this publisher becomes a service. When a
@@ -43,9 +49,6 @@ public:
 	 * emit the analog value to the serial port on command.
 	 */
 	virtual bool Message(const TinyBuffer &msg);
-
-private:
-	unsigned long m_delay; // ms
 };
 
 #endif // ANALOGPUBLISHER_H

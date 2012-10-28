@@ -4,18 +4,18 @@
 #include "FiniteStateMachine.h"
 #include "ParamServer.h"
 
-#include <stdint.h> // for uint8_t
+#include <stdint.h>
 
 /**
  * Fade a light on a PWM pin.
  *
  * Parameters:
  * ---
- * uint8  ID
- * uint8  Pin (IsPWM)
- * uint8  Curve  # Linear (0) or Logarithmic (1)
- * utin32 Period
- * uint32 Delay
+ * uint8  id
+ * uint8  pin # IsPWM
+ * uint8  curve  # IsBinary
+ * utin32 period
+ * uint32 delay
  * ---
  */
 class Fade : public FiniteStateMachine, public ParamServer::Fade
@@ -45,11 +45,11 @@ public:
 	 *     LOGARITHMIC, the luminance will increase faster near 0 and slower
 	 *     near full brightness.
 	 */
-	Fade(uint8_t pin, unsigned long period, unsigned long delay, unsigned char curve = LINEAR);
+	Fade(uint8_t pin, uint32_t period, uint32_t delay, uint8_t curve = LINEAR);
 
 	/**
 	 * Performs parameter validation and instantiates a new object. If the
-	 * parameters are invalid or allocation fails, this function returns 0.
+	 * parameters are invalid or allocation fails, this function returns NULL.
 	 */
 	static Fade *NewFromArray(const TinyBuffer &params);
 
@@ -60,12 +60,10 @@ public:
 	virtual ~Fade();
 
 	/**
-	 * StepNoVTable() allows us to bypass the VTable if we have a Fade pointer.
+	 * StepAwayFromTheVTable() allows us to bypass the VTable if we have a Fade pointer.
 	 */
-	inline virtual void Step() { StepAwayFromTheVTable(); }
-	void StepAwayFromTheVTable();
-
-	virtual unsigned long Delay() const { return m_delay; }
+	virtual uint32_t Step() { return StepAwayFromTheVTable(); }
+	uint32_t StepAwayFromTheVTable();
 
 	/**
 	 * Calling Enable(false) will freeze the fader (Step() does nothing).
@@ -116,7 +114,6 @@ private:
 	// causing overflow problems.
 	int m_brightness;
 	int m_brightnessStep;
-	unsigned long m_delay; // ms
 	bool m_enabled;
 };
 

@@ -5,7 +5,8 @@
 #define SPEED 1200 // this gives a period of about 1285ms
 
 ChristmasTree::ChristmasTree() :
-	FiniteStateMachine(FSM_CHRISTMASTREE, m_params, sizeof(m_params)), m_state(SpinningStart), m_spinningTarget(0), m_delay(50)
+	FiniteStateMachine(FSM_CHRISTMASTREE, reinterpret_cast<uint8_t*>(&m_params), sizeof(m_params)),
+	m_state(SpinningStart), m_spinningTarget(0), m_delay(50)
 {
 	fader[0] = new Fade(LED_UV, SPEED, m_delay, Fade::LOGARITHMIC);
 	fader[1] = new Fade(LED_RED, SPEED, m_delay, Fade::LOGARITHMIC);
@@ -16,8 +17,7 @@ ChristmasTree::ChristmasTree() :
 
 ChristmasTree *ChristmasTree::NewFromArray(const TinyBuffer &params)
 {
-	// TODO: Why does NULL need (ChristmasTree*) ???
-	return Validate(params) ? new ChristmasTree() : (ChristmasTree*)NULL;
+	return Validate(params.Buffer(), params.Length()) ? new ChristmasTree() : (ChristmasTree*)0;
 }
 
 ChristmasTree::~ChristmasTree()
@@ -27,7 +27,7 @@ ChristmasTree::~ChristmasTree()
 		delete fader[i];
 }
 
-void ChristmasTree::Step()
+uint32_t ChristmasTree::Step()
 {
 	// Look for state transitions
 	switch (m_state)
@@ -111,4 +111,5 @@ void ChristmasTree::Step()
 		if (m_state == Spinning && i == m_spinningTarget && fader[i]->GetBrightness() < 255)
 			fader[i]->StepAwayFromTheVTable();
 	}
+	return m_delay;
 }

@@ -4,7 +4,7 @@
 #include <Arduino.h>
 
 Mimic::Mimic(uint8_t source, uint8_t dest, unsigned long delay) :
-	FiniteStateMachine(FSM_MIMIC, m_params, sizeof(m_params)), m_delay(delay)
+	FiniteStateMachine(FSM_MIMIC, reinterpret_cast<uint8_t*>(&m_params), sizeof(m_params))
 {
 	SetSource(source);
 	SetDest(dest);
@@ -16,10 +16,16 @@ Mimic::Mimic(uint8_t source, uint8_t dest, unsigned long delay) :
 
 Mimic *Mimic::NewFromArray(const TinyBuffer &params)
 {
-	return Validate(params) ? new Mimic(GetSource(params), GetDest(params), GetDelay(params)) : NULL;
+	if (Validate(params.Buffer(), params.Length()))
+	{
+		ParamServer::Mimic mimic(params.Buffer());
+		new Mimic(mimic.GetSource(), mimic.GetDest(), mimic.GetDelay());
+	}
+	return NULL;
 }
 
-void Mimic::Step()
+uint32_t Mimic::Step()
 {
 	digitalWrite(GetDest(), digitalRead(GetSource()));
+	return GetDelay();
 }

@@ -4,32 +4,36 @@
 #include <Arduino.h>
 
 
-AnalogPublisher::AnalogPublisher(uint8_t pin, unsigned long delay) :
-	FiniteStateMachine(FSM_ANALOGPUBLISHER, m_params, sizeof(m_params)), m_delay(delay)
+AnalogPublisher::AnalogPublisher(uint8_t pin, uint32_t delay) :
+	FiniteStateMachine(FSM_ANALOGPUBLISHER, reinterpret_cast<uint8_t*>(&m_params), sizeof(m_params))
 {
 	SetPin(pin);
-	SetDelay(m_delay);
+	SetDelay(delay);
 }
 
 AnalogPublisher *AnalogPublisher::NewFromArray(const TinyBuffer &params)
 {
-	return Validate(params) ? new AnalogPublisher(GetPin(params), GetDelay(params)) : NULL;
+	if (Validate(params.Buffer(), params.Length()))
+	{
+		ParamServer::AnalogPublisher ap(params.Buffer());
+		new AnalogPublisher(ap.GetPin(), ap.GetDelay());
+	}
+	return NULL;
 }
 
-void AnalogPublisher::Step()
+uint32_t AnalogPublisher::Step()
 {
-	int value = analogRead(GetPin());
-	uint8_t msg[5];
-	msg[0] = sizeof(msg);
-	msg[1] = FSM_ANALOGPUBLISHER;
-	msg[2] = GetPin();
-	msg[3] = value >> 8;
-	msg[4] = value & 0xFF;
-	Serial.write(msg, sizeof(msg));
+	ParamServer::AnalogPublisherPublisherMsg msg(GetPin(), analogRead(GetPin()));
+	Serial.write(msg.GetBuffer(), msg.GetLength());
+	return GetDelay();
 }
 
 bool AnalogPublisher::Message(const TinyBuffer &msg)
 {
-	// Verify that the message was intended for us
-	return msg.Length() >= 1 && msg[0] == GetPin();
+	if (msg.Length() == ParamServer::AnalogPublisherSubscriberMsg::GetLength())
+	{
+		ParamServer::AnalogPublisherSubscriberMsg message(msg.Buffer());
+		return message.GetPin() == GetPin();
+	}
+	return false;
 }

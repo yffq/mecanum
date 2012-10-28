@@ -3,6 +3,8 @@
 
 #include "TinyBuffer.h"
 
+#include <stdint.h>
+
 /**
  * A FiniteStateMachine represents a model of how a particular component should
  * function. Two functions are required: Step(), which transitions the FSM to
@@ -12,7 +14,7 @@
 class FiniteStateMachine
 {
 public:
-	FiniteStateMachine(unsigned char id, unsigned char *params, unsigned char len) : parameters(TinyBuffer(params, len))
+	FiniteStateMachine(uint8_t id, uint8_t *params, uint16_t len) : parameters(TinyBuffer(params, len))
 	{
 		parameters[0] = id;
 	}
@@ -39,20 +41,17 @@ public:
 
 	/**
 	 * Take action and/or transition to the next state.
-	 */
-	virtual void Step() = 0;
-
-	/**
-	 * The amount of time that elapses before the next call to Step(). NOTE:
-	 * this essentially predicts how long to remain on the current state. If
-	 * the current state has a gate that is non-time-related, the delay will
-	 * have to be some small number and Step() will have to check for a state
-	 * transition until the event occurs.
+	 *
+	 * The return value is the amount of time that elapses before the next call
+	 * to Step(). NOTE: this essentially predicts how long to remain on the
+	 * current state. If the current state has a gate that is non-time-related,
+	 * the delay will have to be some small number and Step() will have to
+	 * check for a state transition until the event occurs.
 	 *
 	 * As an alternative, a FSM could specify a large delay and return true
 	 * from the Message function to have Step() take place on command.
 	 */
-	virtual unsigned long Delay() const = 0;
+	virtual uint32_t Step() = 0;
 
 	/**
 	 * Message() allows an external program to influence the current state of

@@ -4,16 +4,16 @@
 #include "FiniteStateMachine.h"
 #include "ParamServer.h"
 
-#include <stdint.h> // for uint8_t
+#include <stdint.h>
 
 /**
  * Blink a light by setting a digital pin high and low repeatedly.
  *
  * Parameters:
  * ---
- * uint8  ID
- * uint8  Pin (IsDigital)
- * uint32 Delay
+ * uint8  id
+ * uint8  pin (IsDigital)
+ * uint32 delay
  * ---
  */
 class Blink : public FiniteStateMachine, public ParamServer::Blink
@@ -25,7 +25,7 @@ public:
 	 * @param pin The digital pin, supposedly connected to an LED
 	 * @param delay The delay; the blinker's period is twice the delay
 	 */
-	Blink(uint8_t pin, unsigned long delay /* ms */);
+	Blink(uint8_t pin, uint32_t delay /* ms */);
 
 	static Blink *NewFromArray(const TinyBuffer &params);
 
@@ -35,12 +35,9 @@ public:
 	 */
 	virtual ~Blink();
 
-	virtual void Step();
-
-	virtual unsigned long Delay() const { return m_delay; }
+	virtual uint32_t Step();
 
 private:
-	unsigned long m_delay; // ms
 	bool m_enabled;
 };
 

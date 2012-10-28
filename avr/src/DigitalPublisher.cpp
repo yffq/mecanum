@@ -3,32 +3,38 @@
 
 #include <Arduino.h>
 
-DigitalPublisher::DigitalPublisher(uint8_t pin, unsigned long delay) :
-	FiniteStateMachine(FSM_DIGITALPUBLISHER, m_params, sizeof(m_params)), m_delay(delay)
+DigitalPublisher::DigitalPublisher(uint8_t pin, uint32_t delay) :
+	FiniteStateMachine(FSM_DIGITALPUBLISHER, reinterpret_cast<uint8_t*>(&m_params), sizeof(m_params))
 {
 	SetPin(pin);
-	SetDelay(m_delay);
+	SetDelay(delay);
 
 	pinMode(pin, INPUT);
 }
 
 DigitalPublisher *DigitalPublisher::NewFromArray(const TinyBuffer &params)
 {
-	return Validate(params) ? new DigitalPublisher(GetPin(params), GetDelay(params)) : NULL;
+	if (Validate(params.Buffer(), params.Length()))
+	{
+		ParamServer::DigitalPublisher dp(params.Buffer());
+		new DigitalPublisher(dp.GetPin(), dp.GetDelay());
+	}
+	return NULL;
 }
 
-void DigitalPublisher::Step()
+uint32_t DigitalPublisher::Step()
 {
-	uint8_t msg[4];
-	msg[0] = sizeof(msg);
-	msg[1] = FSM_DIGITALPUBLISHER;
-	msg[2] = GetPin();
-	msg[3] = digitalRead(GetPin());
-	Serial.write(msg, sizeof(msg));
+	ParamServer::DigitalPublisherPublisherMsg msg(GetPin(), digitalRead(GetPin()));
+	Serial.write(msg.GetBuffer(), msg.GetLength());
+	return GetDelay();
 }
 
 bool DigitalPublisher::Message(const TinyBuffer &msg)
 {
-	// Verify that the message was intended for us
-	return msg.Length() >= 1 && msg[0] == GetPin();
+	if (msg.Length() == ParamServer::DigitalPublisherSubscriberMsg::GetLength())
+	{
+		ParamServer::DigitalPublisherSubscriberMsg message(msg.Buffer());
+		return message.GetPin() == GetPin();
+	}
+	return false;
 }

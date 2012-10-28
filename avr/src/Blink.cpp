@@ -4,20 +4,26 @@
 
 #include <Arduino.h>
 
-Blink::Blink(uint8_t pin, unsigned long delay) :
-	FiniteStateMachine(FSM_BLINK, m_params, sizeof(m_params)), m_delay(delay), m_enabled(false)
+Blink::Blink(uint8_t pin, uint32_t delay) :
+	FiniteStateMachine(FSM_BLINK, reinterpret_cast<uint8_t*>(&m_params), sizeof(m_params)),
+	m_enabled(false)
 {
 	SetPin(pin);
-	SetDelay(m_delay);
+	SetDelay(delay);
 
 	// Initialize the blinker
-	pinMode(GetPin(), OUTPUT);
-	digitalWrite(GetPin(), LOW);
+	pinMode(pin, OUTPUT);
+	digitalWrite(pin, LOW);
 }
 
 Blink *Blink::NewFromArray(const TinyBuffer &params)
 {
-	return Validate(params) ? new Blink(GetPin(params), GetDelay(params)) : NULL;
+	if (Validate(params.Buffer(), params.Length()))
+	{
+		ParamServer::Blink blink(params.Buffer());
+		new Blink(blink.GetPin(), blink.GetDelay());
+	}
+	return NULL;
 }
 
 Blink::~Blink()
@@ -25,7 +31,7 @@ Blink::~Blink()
 	digitalWrite(GetPin(), LOW);
 }
 
-void Blink::Step()
+uint32_t Blink::Step()
 {
 	if (m_enabled)
 	{
@@ -37,4 +43,5 @@ void Blink::Step()
 		digitalWrite(GetPin(), HIGH);
 		m_enabled = true;
 	}
+	return GetDelay();
 }

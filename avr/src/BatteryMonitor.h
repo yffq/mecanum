@@ -4,7 +4,7 @@
 #include "FiniteStateMachine.h"
 #include "ParamServer.h"
 
-#include <stdint.h> // for uint8_t
+#include <stdint.h>
 
 #define BATTERYMONITOR_NUM_LED 4
 
@@ -13,20 +13,14 @@
  *
  * Parameters:
  * ---
- * uint8  ID
- * ---
- *
- * Message:
- * ---
- * uint8 HighByte  # voltage >> 8)
- * uint8 LowByte   # voltage & 0xFF)
+ * uint8 id
  * ---
  */
 class BatteryMonitor : public FiniteStateMachine, ParamServer::BatteryMonitor
 {
 public:
 	/**
-	 *
+	 * BatteryMonitor cycles battery LEDs to show the current battery level.
 	 */
 	BatteryMonitor();
 
@@ -37,9 +31,7 @@ public:
 	 */
 	virtual ~BatteryMonitor();
 
-	virtual void Step();
-
-	virtual unsigned long Delay() const;
+	virtual uint32_t Step();
 
 	float GetVoltage() { return 12.75; }
 

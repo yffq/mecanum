@@ -5,6 +5,8 @@
 #include "ParamServer.h"
 #include "Fade.h"
 
+#include <stdint.h>
+
 /**
  * Control the five colored LED arrays.
  *
@@ -22,9 +24,7 @@ public:
 
 	virtual ~ChristmasTree();
 
-	virtual void Step();
-
-	virtual unsigned long Delay() const { return m_delay; }
+	virtual uint32_t Step();
 
 private:
 	enum State
@@ -43,7 +43,7 @@ private:
 	unsigned long m_delay;
 
 	// Starting from the Arduino, going clockwise
-	Fade* fader[5];
+	Fade *fader[5];
 };
 
 #endif // CHRISTMASTREE_H

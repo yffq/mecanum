@@ -36,7 +36,7 @@ private:
 	unsigned long fsmDelay[FSMVector::MAX_FSM];
 
 	// Buffer to send and receive serial data. Must be <= 0xFE
-	static const unsigned int BUFFERLENGTH = 0xFF;
+	static const unsigned int BUFFERLENGTH = 512;
 	unsigned char buffer_bytes[BUFFERLENGTH];
 };
 

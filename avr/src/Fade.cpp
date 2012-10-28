@@ -26,12 +26,13 @@ const unsigned char luminace[256] PROGMEM =
 	219, 221, 224, 226, 228, 231, 233, 235, 238, 240, 243, 245, 248, 250, 253, 255
 };
 
-Fade::Fade(uint8_t pin, unsigned long period, unsigned long delay, unsigned char curve /* = LINEAR */) :
-	FiniteStateMachine(FSM_FADE, m_params, sizeof(m_params)), m_dir(UP), m_brightness(0), m_delay(delay), m_enabled(true)
+Fade::Fade(uint8_t pin, uint32_t period, uint32_t delay, uint8_t curve /* = LINEAR */) :
+	FiniteStateMachine(FSM_FADE, reinterpret_cast<uint8_t*>(&m_params), sizeof(m_params)),
+	m_dir(UP), m_brightness(0), m_enabled(true)
 {
 	SetPin(pin);
 	SetPeriod(period);
-	SetDelay(m_delay);
+	SetDelay(delay);
 	SetCurve(curve);
 
 	// Use half the period to calculate brightness increments
@@ -42,7 +43,12 @@ Fade::Fade(uint8_t pin, unsigned long period, unsigned long delay, unsigned char
 
 Fade *Fade::NewFromArray(const TinyBuffer &params)
 {
-	return Validate(params) ? new Fade(GetPin(params), GetPeriod(params), GetDelay(params), GetCurve(params)) : NULL;
+	if (Validate(params.Buffer(), params.Length()))
+	{
+		ParamServer::Fade fade(params.Buffer());
+		new Fade(fade.GetPin(), fade.GetPeriod(), fade.GetDelay(), fade.GetCurve());
+	}
+	return NULL;
 }
 
 Fade::~Fade()
@@ -51,7 +57,7 @@ Fade::~Fade()
 }
 
 // So we have the option to avoid hitting the VTable
-void Fade::StepAwayFromTheVTable()
+uint32_t Fade::StepAwayFromTheVTable()
 {
 	if (m_enabled)
 	{
@@ -79,4 +85,5 @@ void Fade::StepAwayFromTheVTable()
 		else
 			analogWrite(GetPin(), m_brightness);
 	}
+	return GetDelay();
 }

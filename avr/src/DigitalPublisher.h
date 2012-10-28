@@ -13,28 +13,35 @@
  * Parameters:
  * ---
  * uint8  ID
- * uint8  Pin (IsDigital)
+ * uint8  Pin # IsDigital
  * uint32 Delay
  * ---
  *
- * Message:
+ * Publish:
  * ---
- * uint8 Pin
- * uint8 State  # 0 or 1
+ * uint16 length
+ * uint8  id
+ * uint8  pin
+ * uint16 value
+ * ---
+ *
+ * Subscribe:
+ * ---
+ * uint16 length
+ * uint8  id
+ * uint8  pin
  * ---
  */
 class DigitalPublisher : public FiniteStateMachine, ParamServer::DigitalPublisher
 {
 public:
-	DigitalPublisher(uint8_t pin, unsigned long delay /* ms */);
+	DigitalPublisher(uint8_t pin, uint32_t delay /* ms */);
 
 	static DigitalPublisher *NewFromArray(const TinyBuffer &params);
 
 	virtual ~DigitalPublisher() { }
 
-	virtual void Step();
-
-	virtual unsigned long Delay() const { return m_delay; }
+	virtual uint32_t Step();
 
 	/**
 	 * By specifying a long delay, this publisher becomes a service. When a
@@ -42,9 +49,6 @@ public:
 	 * emit the digital value to the serial port on command.
 	 */
 	virtual bool Message(const TinyBuffer &msg);
-
-private:
-	unsigned long m_delay; // ms
 };
 
 #endif // DIGITALPUBLISHER_H

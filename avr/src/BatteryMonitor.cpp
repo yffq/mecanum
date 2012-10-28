@@ -4,7 +4,8 @@
 #include <Arduino.h>
 
 BatteryMonitor::BatteryMonitor() :
-	FiniteStateMachine(FSM_BATTERYMONITOR, m_params, sizeof(m_params)), m_maxLevel(4), m_currentLevel(0)
+	FiniteStateMachine(FSM_BATTERYMONITOR, reinterpret_cast<uint8_t*>(&m_params), sizeof(m_params)),
+	m_maxLevel(4), m_currentLevel(0)
 {
 	m_led[0] = LED_BATTERY_EMPTY;
 	m_led[1] = LED_BATTERY_LOW;
@@ -20,7 +21,7 @@ BatteryMonitor::BatteryMonitor() :
 
 BatteryMonitor *BatteryMonitor::NewFromArray(const TinyBuffer &params)
 {
-	return Validate(params) ? new BatteryMonitor() : NULL;
+	return Validate(params.Buffer(), params.Length()) ? new BatteryMonitor() : NULL;
 }
 
 BatteryMonitor::~BatteryMonitor()
@@ -29,7 +30,7 @@ BatteryMonitor::~BatteryMonitor()
 		digitalWrite(m_led[i], LOW);
 }
 
-void BatteryMonitor::Step()
+uint32_t BatteryMonitor::Step()
 {
 	if (++m_currentLevel > m_maxLevel)
 	{
@@ -43,11 +44,8 @@ void BatteryMonitor::Step()
 		// Turn on the new LED
 		digitalWrite(m_led[m_currentLevel - 1], HIGH);
 	}
-}
 
-unsigned long BatteryMonitor::Delay() const
-{
-	// Pause on the actual battery level
+	// Calculate the delay (pause on the actual battery level)
 	if (m_currentLevel == m_maxLevel)
 		return 900;
 	else
