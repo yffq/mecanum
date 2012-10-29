@@ -29,6 +29,8 @@
 
 using namespace std;
 
+#define MAX_RECEIVE_MESSAGE_LENGTH 512 // Max allowable message received from the AVR
+
 AVRController::AVRController() : m_io(), m_port(m_io), m_bRunning(false)
 {
 }
@@ -342,6 +344,8 @@ void AVRController::Message::Advance(size_t bytes)
 	switch (m_readState)
 	{
 	case WaitingForLength:
+		// WaitingForLength and bytes == 1 is a special case, otherwise fall
+		// through to WaitingForLengthPt2 (because we have our length)
 		if (bytes == 1)
 		{
 			// Only first byte was read, store it...
@@ -352,36 +356,39 @@ void AVRController::Message::Advance(size_t bytes)
 			m_readState = WaitingForLengthPt2;
 			m_nextBufferLength = 1;
 			m_nextBuffer = new unsigned char[m_nextBufferLength];
+			break;
+		}
+		// no break
+
+	case WaitingForLengthPt2:
+		if (m_readState == WaitingForLength)
+		{
+			m_msg.push_back(m_nextBuffer[0]);
+			m_msg.push_back(m_nextBuffer[1]);
 		}
 		else
 		{
-			// Got our message length
+			// Already have our first byte
 			m_msg.push_back(m_nextBuffer[0]);
-			m_msg.push_back(m_nextBuffer[1]);
-			// Use native endian to recover the length
-			m_msgLength = *reinterpret_cast<uint16_t*>(m_nextBuffer);
+		}
+		// Use native endian to recover the length
+		m_msgLength = *reinterpret_cast<const uint16_t*>(m_msg.c_str());
+		// Validate the input
+		if (3 <= m_msgLength && m_msgLength <= MAX_RECEIVE_MESSAGE_LENGTH)
+		{
 			delete[] m_nextBuffer;
 
 			// Create a buffer for the rest of the message
 			m_readState = WaitingForMessage;
 			m_msg.reserve(m_msgLength);
-			m_nextBufferLength = m_msgLength - 2;
+			m_nextBufferLength = m_msgLength - m_msg.length();
 			m_nextBuffer = new unsigned char[m_nextBufferLength];
 		}
-		break;
-
-	case WaitingForLengthPt2:
-		// Got the second half of our message length
-		m_msg.push_back(m_nextBuffer[0]);
-		// Use native endian to recover the length
-		m_msgLength = *reinterpret_cast<const uint16_t*>(m_msg.c_str());
-		delete[] m_nextBuffer;
-
-		// Create a buffer for the rest of the message
-		m_readState = WaitingForMessage;
-		m_msg.reserve(m_msgLength);
-		m_nextBufferLength = m_msgLength - m_msg.length();
-		m_nextBuffer = new unsigned char[m_nextBufferLength];
+		else
+		{
+			// Invalid length, start over
+			Reset();
+		}
 		break;
 
 	case WaitingForMessage:
