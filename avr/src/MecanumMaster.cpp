@@ -1,8 +1,6 @@
 #include "MecanumMaster.h"
 
 #include "AddressBook.h"
-//#include "Subscribers.h"
-//#include "Publishers.h"
 
 // Finite state machines
 #include "AnalogPublisher.h"
@@ -16,9 +14,9 @@
 
 #include <Arduino.h> // for millis()
 #include <HardwareSerial.h> // for Serial
-#include <limits.h> // for LONG_MAX
+#include <limits.h> // for ULONG_MAX
 
-#define FOREVER LONG_MAX // 25 days. Not ULONG_MAX (50 days), need some space to add time
+#define FOREVER (ULONG_MAX / 2) // ~25 days, need some space to add current time
 
 extern HardwareSerial Serial;
 

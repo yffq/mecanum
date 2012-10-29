@@ -147,7 +147,7 @@ private:
 	boost::mutex                   m_responseMutex;
 
 	/**
-	 * Use a finite state machine for message compilation. FSMs are best for
+	 * Use a finite state machine for message composition. FSMs are best for
 	 * this task because the number of expected characters is a function of the
 	 * message length and its content (i.e. first word is the entire message
 	 * length). Buffer memory management is also delegated to this class, as

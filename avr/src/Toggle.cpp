@@ -3,9 +3,9 @@
 #include "AddressBook.h"
 
 #include <Arduino.h>
-#include <limits.h> // for LONG_MAX
+#include <limits.h> // for ULONG_MAX
 
-#define FOREVER LONG_MAX // 25 days. Not ULONG_MAX (50 days), need some space to add time
+#define FOREVER (ULONG_MAX / 2) // ~25 days, need some space to add current time
 
 Toggle::Toggle(uint8_t pin) :
 	FiniteStateMachine(FSM_TOGGLE, reinterpret_cast<uint8_t*>(&m_params), sizeof(m_params)), m_enabled(false)

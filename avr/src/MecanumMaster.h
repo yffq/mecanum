@@ -3,6 +3,22 @@
 
 #include "FSMVector.h"
 
+/**
+ * MecanumMaster is the FSM manager. It steps through each FSM, round-robin
+ * style, checking serial traffic each on cycle. It supports the following
+ * messages:
+ *
+ * MSG_MASTER_CREATE_FSM:
+ * payload is the fingerprint of the FSM to create
+ *
+ * MSG_MASTER_DESTROY_FSM:
+ * payload is the fingerprint of the FSM to delete
+ *
+ * MSG_MASTER_LIST_FSM:
+ * empty payload, response is a message with the active FSMs as the payload,
+ * listed serially. For example (remember, sizes are 2-bytes little endian),
+ *   [11, 0, FSM_MASTER, MSG_MASTER_LIST_FSM, 4, 0, FSM_TOGGLE, LED_BATTERY_FULL, 3, 0, FSM_BATTERYMONITOR]
+ */
 class MecanumMaster
 {
 public:
