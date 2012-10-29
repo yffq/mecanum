@@ -33,7 +33,6 @@ namespace ParamServer
 // OK for a packed struct to begin with a single byte, because GCC will align
 // the struct so that the rest of the members are aligned
 
-
 class AnalogPublisher
 {
 public:
@@ -52,7 +51,9 @@ public:
 		{
 			Parameters params;
 			memcpy(&params, bytes, sizeof(Parameters));
-			return (params.id == FSM_ANALOGPUBLISHER) && (ArduinoVerifier::IsAnalog(params.pin));
+			bool valid = (params.id == FSM_ANALOGPUBLISHER);
+			valid &= (ArduinoVerifier::IsAnalog(params.pin));
+			return valid;
 		}
 		return false;
 	}
