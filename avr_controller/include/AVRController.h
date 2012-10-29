@@ -24,7 +24,6 @@
 #define AVRCONTROLLER_H_
 
 #include <boost/asio.hpp>
-#include <boost/shared_array.hpp>
 #include <boost/thread.hpp>
 #include <boost/thread/condition.hpp>
 #include <boost/tuple/tuple.hpp>
@@ -32,7 +31,7 @@
 #include <string>
 #include <vector>
 
-class AVRController
+class AVRController : public boost::noncopyable
 {
 public:
 	AVRController();
@@ -89,6 +88,8 @@ public:
 private:
 	void WriteThreadRun();
 
+	void ReadThreadRun();
+
 	void InstallAsyncRead();
 
 	void ReadCallback(const boost::system::error_code& error, size_t bytes_transferred);
@@ -113,9 +114,26 @@ private:
 	std::vector<std::string>  m_writeQueue;
 	boost::mutex              m_writeQueueMutex;
 	boost::condition          m_writeQueueCondition;
-	bool                      m_bRunning;
+	volatile bool             m_bRunning;
 
-	class Message
+	boost::thread             m_readThread;
+
+	typedef boost::tuple<
+		int,                  /* fsmId */
+		boost::shared_ptr<std::string>, /* response, empty on error */
+		boost::shared_ptr<boost::condition> /* wait condition */
+	> responseHandler_t;
+	std::vector<responseHandler_t> m_responseHandlers;
+	boost::mutex              m_responseMutex;
+
+	typedef boost::tuple<
+		int,                                        /* fsmId */
+		boost::reference_wrapper<boost::condition>, /* wait condition */
+		boost::reference_wrapper<std::string>,      /* response, empty on error */
+		bool
+	> responseHandler_t2;
+
+	class Message : public boost::noncopyable
 	{
 	public:
 		Message() : m_nextBuffer(NULL) { Reset(); }
@@ -129,7 +147,7 @@ private:
 
 	private:
 		std::string    m_msg;
-		size_t         m_msgLength;
+		uint16_t       m_msgLength;
 		unsigned char *m_nextBuffer;
 		size_t         m_nextBufferLength;
 		enum ReadState

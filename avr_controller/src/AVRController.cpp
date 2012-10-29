@@ -23,18 +23,9 @@
 
 #include "AVRController.h"
 
-//#include <boost/bind.hpp>
-//#include <boost/asio.hpp>
-//#include <boost/shared_ptr.hpp>
-//#include <boost/shared_array.hpp>
-//#include <boost/thread/condition.hpp>
-#include <boost/tuple/tuple.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp> // for boost::posix_time::milliseconds
-
 #include <boost/bind.hpp>
-
-//#include <boost/thread/locks.hpp> // for boost::lock_guard
-
+#include <boost/date_time/posix_time/posix_time.hpp> // for boost::posix_time::milliseconds
+//#include <boost/shared_ptr.hpp>
 #include <iostream>
 
 using namespace std;
@@ -58,7 +49,7 @@ bool AVRController::Open(const string &device)
 	cout << "AVRController::Open - Opening port " << device << endl;
 
 	// Open the port, while guarding against other open/close calls
-	boost::lock_guard<boost::mutex> lock(m_portMutex);
+	boost::mutex::scoped_lock portLock(m_portMutex);
 	try
 	{
 		m_port.open(device.c_str());
@@ -74,27 +65,22 @@ bool AVRController::Open(const string &device)
 
 		// Wait for the Arduino to reset itself
 		cout << "AVRController::Open - Port opened, sleeping..." << endl;
-		//boost::this_thread::sleep(boost::posix_time::seconds(4));
-		boost::asio::deadline_timer timer(m_io, boost::posix_time::seconds(4));
+		//boost::this_thread::sleep(boost::posix_time::milliseconds(2000));
+		boost::asio::deadline_timer timer(m_io, boost::posix_time::milliseconds(2000));
 		timer.wait();
-
-		// See "A thread pool for executing arbitrary tasks"
-		// http://think-async.com/Asio/Recipes
-
-		/*
-		// Give some work to the io_service before it is started. This stops its
-		// run() function from exiting immediately.
-		//boost::asio::io_service::work work(m_io);
-		m_io.post(boost::bind(&AVRController::DoRead, this, 1));
-		*/
 
 		// m_ioThread is the thread in which our IO callbacks are executed
 		cout << "AVRController::Open - Creating write thread" << endl;
 		m_bRunning = true;
-		boost::thread temp_thread(boost::bind(&AVRController::WriteThreadRun, this));
-		m_writeThread.swap(temp_thread);
+		boost::thread temp(boost::bind(&AVRController::WriteThreadRun, this));
+		m_writeThread.swap(temp);
 
 		InstallAsyncRead();
+
+		// Create the read thread after InstallAsyncRead() so that when the io_service is
+		// started via m_io.run(), it will have something to do and won't return immediately
+		boost::thread temp2(boost::bind(&AVRController::ReadThreadRun, this));
+		m_readThread.swap(temp2);
 	}
 	catch (const boost::system::error_code &ec)
 	{
@@ -116,27 +102,23 @@ void AVRController::Close() throw()
 	try
 	{
 		{
-			cout << "AVRController::WriteThreadRun - locking write queue mutex (m_bRunning)" << endl;
 			boost::mutex::scoped_lock writeQueueLock(m_writeQueueMutex);
 			m_bRunning = false;
-			cout << "AVRController::WriteThreadRun - releasing write queue mutex (m_bRunning)" << endl;
 		}
-		cout << "AVRController::Close - Waking the write thread for exit" << endl;
 		m_writeQueueCondition.notify_one();
-		cout << "AVRController::Close - Joining with the write thread" << endl;
 		m_writeThread.join();
-		cout << "AVRController::Close - Write thread ended" << endl;
 
 		m_deviceName = "";
-		cout << "AVRController::WriteThreadRun - locking the port mutex" << endl;
-		boost::lock_guard<boost::mutex> lock(m_portMutex);
-		cout << "AVRController::WriteThreadRun - port mutex locked" << endl;
+		boost::mutex::scoped_lock portLock(m_portMutex);
 		if (m_port.is_open())
 		{
 			m_port.cancel();
 			m_port.close();
 		}
-		//m_io.reset(); // Does this remove m_port from m_io?
+
+		m_readThread.join();
+
+		m_io.reset();
 	}
 	catch (const boost::system::error_code &ec)
 	{
@@ -151,7 +133,7 @@ void AVRController::Close() throw()
 
 bool AVRController::IsOpen()
 {
-	boost::lock_guard<boost::mutex> lock(m_portMutex);
+	boost::mutex::scoped_lock portLock(m_portMutex);
 	return m_port.is_open();
 }
 
@@ -164,7 +146,7 @@ void AVRController::Send(const std::string &msg)
 		cerr << "AVRController::Send - Error: message is too short (" << msg.length() << " bytes), skipping" << endl;
 		return;
 	}
-	boost::mutex::scoped_lock lock(m_writeQueueMutex);
+	boost::mutex::scoped_lock writeQueueLock(m_writeQueueMutex);
 	m_writeQueue.push_back(msg);
 	m_writeQueueCondition.notify_one();
 }
@@ -177,13 +159,49 @@ bool AVRController::Query(const string &msg, string &response, unsigned long tim
 
 	// FSM ID is the third byte (following the 2-byte message length)
 	unsigned char fsmId = msg[2];
+	// Hand the string off to the heap so that if we time out, we can exit without
+	// crashing in ReadCallback() (same goes for the condition variable).
+	boost::shared_ptr<string> strResponse(new string);
+	boost::shared_ptr<boost::condition> responseCondition(new boost::condition);
+
+	cout << "AVRController::Query - Adding response handler" << endl;
+	{
+		boost::mutex::scoped_lock responseLock(m_responseMutex);
+		m_responseHandlers.push_back(responseHandler_t(fsmId, strResponse, responseCondition));
+	}
+
+	cout << "AVRController::Query - Sending message" << endl;
 	Send(msg);
-	return Receive(fsmId, response, timeout);
+
+	// Wait on a private mutex to avoid deadlock
+	boost::mutex privateMutex;
+	boost::mutex::scoped_lock privateLock(privateMutex);
+	boost::system_time const endtime = boost::get_system_time() + boost::posix_time::milliseconds(timeout);
+	cout << "AVRController::Query - Waiting on private mutex" << endl;
+	if (responseCondition->timed_wait(privateLock, endtime))
+	{
+		if (strResponse->length())
+		{
+			cout << "AVRController::Query - Response success" << endl;
+			response = *strResponse;
+			return true;
+		}
+		else
+		{
+			cout << "AVRController::Query - Response is empty" << endl;
+		}
+	}
+	else
+	{
+		cout << "AVRController::Query - Private mutex timed out" << endl;
+	}
+
+	return false;
 }
 
 bool AVRController::Receive(unsigned int fsmId, string &msg, unsigned long timeout)
 {
-
+	// Grab response handler mutex (recursive, but that's OK)
 	return false;
 }
 
@@ -227,7 +245,8 @@ void AVRController::WriteThreadRun()
 			cout << "AVRController::WriteThreadRun - locking the port mutex" << endl;
 			boost::mutex::scoped_lock portLock(m_portMutex);
 
-			// Cancel the async read to free up the serial port
+			// Cancel the async read to free up the serial port. When the port mutex
+			// is released, the async read will be re-installed automatically
 			cout << "AVRController::WriteThreadRun - canceling async read" << endl;
 			m_port.cancel();
 
@@ -246,18 +265,27 @@ void AVRController::WriteThreadRun()
 						"AnalogPublisher",
 				};
 				uint16_t length = *reinterpret_cast<const uint16_t*>(msg.c_str());
-				cout << "  [" << length << ", " << FSM_ID_MAP[msg[2]];
+				cout << "  [" << length << ", " << FSM_ID_MAP[(size_t)msg[2]];
 				for (size_t i = 3; i < msg.length(); i++)
 					cout << ", " << (unsigned int)msg[i];
 				cout << "]" << endl;
 			}
 			boost::asio::write(m_port, boost::asio::buffer(msg.c_str(), msg.length()));
 
-			// Restore the async read task
-			InstallAsyncRead();
-
 			cout << "AVRController::WriteThreadRun - releasing the port mutex" << endl;
 		}
+	}
+}
+
+void AVRController::ReadThreadRun()
+{
+	while (m_bRunning)
+	{
+		m_io.run();
+		m_io.reset();
+		cout << "AVRController::ReadThreadRun - m_io.run() returned" << endl;
+		// In case run() called with no work to do (shouldn't happen)
+		boost::this_thread::sleep(boost::posix_time::milliseconds(1));
 	}
 }
 
@@ -269,25 +297,75 @@ void AVRController::InstallAsyncRead()
 
 	m_port.async_read_some(boost::asio::buffer(m_message.GetNextReadBuffer(), m_message.GetNextReadLength()),
 		boost::bind(&AVRController::ReadCallback, this, boost::asio::placeholders::error,
-		                                 boost::asio::placeholders::bytes_transferred));
-	cout << "AVRController::InstallAsyncRead - read async callback installed" << endl;
+		                                                boost::asio::placeholders::bytes_transferred));
 }
 
 void AVRController::ReadCallback(const boost::system::error_code &error, size_t bytes_transferred)
 {
+	if (error)
+		cout << "AVRController::ReadCallback - Error occurred, using " << bytes_transferred << " bytes anyways" << endl;
+	else
+		cout << "AVRController::ReadCallback - Read " << bytes_transferred << " bytes" << endl;
+
 	// We don't care if async_read_some() was interrupted, use the data anyway
 	m_message.Advance(bytes_transferred);
 	if (m_message.IsFinished())
 	{
 		// Process message
 		string msg = m_message.GetMessage();
+		cout << "AVRController::ReadCallback - Message finished. Length: " << msg.length() << endl;
 
+		static const char *FSM_ID_MAP[] = {
+				"Master",
+				"BatteryMonitor",
+				"Blink",
+				"ChristmasTree",
+				"Fade",
+				"Mimic",
+				"Toggle",
+				"DigitalPublisher",
+				"AnalogPublisher",
+		};
+		uint16_t length = *reinterpret_cast<const uint16_t*>(msg.c_str());
+		cout << "  [" << length << ", " << FSM_ID_MAP[(size_t)msg[2]];
+		for (size_t i = 3; i < msg.length(); i++)
+			cout << ", " << (unsigned int)msg[i];
+		cout << "]" << endl;
 
+		unsigned char fsmId = msg[2];
+
+		{
+			boost::mutex::scoped_lock responseLock(m_responseMutex);
+			vector<responseHandler_t>::iterator it = m_responseHandlers.begin();
+			while (it != m_responseHandlers.end())
+			{
+				if (fsmId == it->get<0>())
+				{
+					cout << "AVRController::ReadCallback - Response handler found, saving..." << endl;
+					it->get<1>()->assign(msg);
+					cout << "AVRController::ReadCallback - ...and notifying" << endl;
+					it->get<2>()->notify_one();
+					cout << "AVRController::ReadCallback - and erasing!" << endl;
+					it = m_responseHandlers.erase(it);
+				}
+				else
+				{
+					it++;
+				}
+			}
+		}
 
 		m_message.Reset();
 	}
-	boost::mutex::scoped_lock portLock(m_portMutex);
-	InstallAsyncRead();
+
+	// Don't re-install the async read if we are exiting
+	if (m_bRunning)
+	{
+		// Grabbing the port mutex here means waiting until writing is finished
+		boost::mutex::scoped_lock portLock(m_portMutex);
+		cout << "AVRController::ReadCallback - Re-installing async read callback" << endl;
+		InstallAsyncRead();
+	}
 }
 
 bool AVRController::SetDTR(bool level)
@@ -344,6 +422,10 @@ void AVRController::Message::Advance(size_t bytes)
 			m_msg.push_back(m_nextBuffer[1]);
 			// Got our message length, use native endian to recover the length
 			m_msgLength = *reinterpret_cast<uint16_t*>(m_nextBuffer);
+
+			cout << "AVRController::Message::Advance - Got length: " << m_msgLength << " (" << (int)m_nextBuffer[0] <<
+						", " << (int)m_nextBuffer[1] << ")" << endl;
+
 			delete[] m_nextBuffer;
 
 			m_readState = WaitingForMessage;
@@ -365,14 +447,17 @@ void AVRController::Message::Advance(size_t bytes)
 		break;
 	case WaitingForMessage:
 		for (size_t i = 0; i < bytes; i++)
+		{
+			cout << "AVRController::Message::Advance - Got byte: " << (int)m_nextBuffer[i] << endl;
 			m_msg.push_back(m_nextBuffer[i]);
+		}
 		delete[] m_nextBuffer;
 
 		if (m_msgLength == m_msg.length())
 		{
 			m_readState = Finished;
-			m_nextBuffer = NULL;
 			m_nextBufferLength = 0;
+			m_nextBuffer = NULL;
 		}
 		else
 		{
