@@ -25,7 +25,6 @@
 
 #include <boost/bind.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp> // for boost::posix_time::milliseconds
-//#include <boost/shared_ptr.hpp>
 #include <iostream>
 
 using namespace std;

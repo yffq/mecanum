@@ -151,7 +151,7 @@ private:
 	 * this task because the number of expected characters is a function of the
 	 * message length and its content (i.e. first word is the entire message
 	 * length). Buffer memory management is also delegated to this class, as
-	 * boost doesn't manage its buffer's memory and static arrays are
+	 * boost doesn't manage its buffer's memory, and static arrays are
 	 * cumbersome and not well suited to this task.
 	 *
 	 * The general strategy is this: tell boost to read into the buffer
