@@ -24,10 +24,10 @@
 #define AVRCONTROLLER_H_
 
 #include <boost/asio.hpp>
+#include <boost/shared_ptr.hpp>
 #include <boost/thread.hpp>
 #include <boost/thread/condition.hpp>
 #include <boost/tuple/tuple.hpp>
-#include <limits>
 #include <string>
 #include <vector>
 
@@ -73,28 +73,45 @@ public:
 	void Send(const std::string &msg);
 
 	/**
-	 * Send a message and wait for a response. Returns false if the query times
-	 * out.
+	 * Send a message and wait for a response. Returns false if the query times out.
 	 */
 	bool Query(const std::string &msg, std::string &response, unsigned long timeout = DEFAULT_TIMEOUT);
 
 	/**
 	 * Block until a message from the specified FSM arrives on the serial port.
+	 * Returns false if the response times out.
 	 */
 	bool Receive(unsigned int fsmId, std::string &msg, unsigned long timeout = DEFAULT_TIMEOUT);
 
 	static const int DEFAULT_TIMEOUT = 1000; // ms
 
 private:
+	/**
+	 * Writing to the serial port occurs in this thread. When no data is queued,
+	 * it idles.
+	 */
 	void WriteThreadRun();
 
+	/**
+	 * This thread exists solely to give ReadCallback() a thread to run in. The
+	 * io_service takes care off the details; we just provide the thread.
+	 */
 	void ReadThreadRun();
 
+	/**
+	 * Installs the async_read_some() callback onto the serial port. The caller
+	 * must lock m_portMutex before entering this function. This should only be
+	 * called from Open() and the async read callback (ReadCallback()) to avoid
+	 * putting multiple callbacks on the same port.
+	 */
 	void InstallAsyncRead();
 
+	/**
+	 * Handles data flying off the serial port. On exit, this call InstallAsyncRead()
+	 * to re-install itself onto the serial port.
+	 */
 	void ReadCallback(const boost::system::error_code& error, size_t bytes_transferred);
 
-private:
 	/**
 	 * Set the DTR bit on the serial port to the desired level (on or off).
 	 *
@@ -118,30 +135,51 @@ private:
 
 	boost::thread             m_readThread;
 
+	// Our response handler uses shared pointers to delegate memory ownership
+	// from the stack to the heap. This lets us bail out early if the response
+	// times out, without the repercussions of invoking an orphaned handler.
 	typedef boost::tuple<
-		int,                  /* fsmId */
-		boost::shared_ptr<std::string>, /* response, empty on error */
+		int,                                /* fsmId */
+		boost::shared_ptr<std::string>,     /* response, empty on error */
 		boost::shared_ptr<boost::condition> /* wait condition */
-	> responseHandler_t;
-	std::vector<responseHandler_t> m_responseHandlers;
-	boost::mutex              m_responseMutex;
+	> ResponseHandler_t;
+	std::vector<ResponseHandler_t> m_responseHandlers;
+	boost::mutex                   m_responseMutex;
 
-	typedef boost::tuple<
-		int,                                        /* fsmId */
-		boost::reference_wrapper<boost::condition>, /* wait condition */
-		boost::reference_wrapper<std::string>,      /* response, empty on error */
-		bool
-	> responseHandler_t2;
-
+	/**
+	 * Use a finite state machine for message compilation. FSMs are best for
+	 * this task because the number of expected characters is a function of the
+	 * message length and its content (i.e. first word is the entire message
+	 * length). Buffer memory management is also delegated to this class, as
+	 * boost doesn't manage its buffer's memory and static arrays are
+	 * cumbersome and not well suited to this task.
+	 *
+	 * The general strategy is this: tell boost to read into the buffer
+	 * [GetNextReadBuffer(), GetNextReadLength()]. The length of this buffer is
+	 * determined by the internal state. After reading, boost will tell us how
+	 * many bytes were read, which we forward to the class using Advance().
+	 * This will update the internal state and allocate new buffers as
+	 * necessary. Finally, IsFinished() will return true when a complete
+	 * message has been retrieved, and GetMessage() will yield that message.
+	 * Reset() resets the state, clears the internal data, and sets up a buffer
+	 * for the next call to GetNextReadBuffer().
+	 *
+	 * Empirically, the first buffer is two bytes, which yields the length of
+	 * the entire message. The size of the next buffer is that length (minus
+	 * two), which contains the main payload. Thus, most reads use two buffers.
+	 */
 	class Message : public boost::noncopyable
 	{
 	public:
 		Message() : m_nextBuffer(NULL) { Reset(); }
 		~Message() { delete[] m_nextBuffer; }
+
 		unsigned char *GetNextReadBuffer() const { return m_nextBuffer; }
 		size_t GetNextReadLength() const { return m_nextBufferLength; }
+
 		bool IsFinished() const { return m_readState == Finished; }
 		const std::string &GetMessage() const { return m_msg; }
+
 		void Reset();
 		void Advance(size_t bytes);
 
@@ -157,9 +195,7 @@ private:
 			WaitingForMessage,
 			Finished
 		} m_readState;
-	};
-
-	Message m_message;
+	} m_message;
 };
 
 #endif /* AVRCONTROLLER_H_ */
