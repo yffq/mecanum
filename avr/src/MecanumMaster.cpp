@@ -26,9 +26,9 @@ MecanumMaster::MecanumMaster()
 	fsmv.PushBack(new ChristmasTree());
 	//fsmv.PushBack(new AnalogPublisher(BATTERY_VOLTAGE, FOREVER));
 	//fsmv.PushBack(new BatteryMonitor());
-	fsmv.PushBack(new Toggle(LED_BATTERY_EMPTY));
+	//fsmv.PushBack(new Toggle(LED_BATTERY_EMPTY));
 	//fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE6, LED_BATTERY_HIGH, 50));
-	fsmv.PushBack(new Blink(LED_BATTERY_HIGH, 250));
+	//fsmv.PushBack(new Blink(LED_BATTERY_HIGH, 250));
 	/*
 	// Everything on full brightness
 	uint8_t leds[] = {
@@ -94,7 +94,7 @@ void MecanumMaster::SerialCallback()
 	if (msgSize >= 3)
 		readSize = Serial.readBytes(reinterpret_cast<char*>(buffer_bytes) + 2, msgSize - 2);
 
-	// Single byte is OK
+	// Single byte (readSize == 1) is OK
 	if (msgSize >= 3 && readSize + 2 == msgSize)
 	{
 		TinyBuffer msg(buffer_bytes, msgSize);

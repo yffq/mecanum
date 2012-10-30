@@ -20,8 +20,8 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  */
 
-
 #include "AVRController.h"
+#include "AddressBook.h" // from avr package
 
 #include <boost/bind.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp> // for boost::posix_time::milliseconds
@@ -47,8 +47,6 @@ bool AVRController::Open(const string &device)
 	// could, for example, wait for the Arduino to pull a GPIO pin low.
 	Close();
 
-	cout << "AVRController::Open - Opening port " << device << endl;
-
 	// Open the port, while guarding against other open/close calls
 	boost::mutex::scoped_lock portLock(m_portMutex);
 	try
@@ -65,13 +63,11 @@ bool AVRController::Open(const string &device)
 		m_port.set_option(asio_serial::flow_control(asio_serial::flow_control::none));
 
 		// Wait for the Arduino to reset itself
-		cout << "AVRController::Open - Port opened, sleeping..." << endl;
 		//boost::this_thread::sleep(boost::posix_time::milliseconds(2000));
 		boost::asio::deadline_timer timer(m_io, boost::posix_time::milliseconds(2000));
 		timer.wait();
 
 		// m_ioThread is the thread in which our IO callbacks are executed
-		cout << "AVRController::Open - Creating write thread" << endl;
 		m_bRunning = true;
 		boost::thread temp(boost::bind(&AVRController::WriteThreadRun, this));
 		m_writeThread.swap(temp);
@@ -137,8 +133,18 @@ bool AVRController::IsOpen()
 
 void AVRController::Send(const std::string &msg)
 {
-	if (msg.length() < 3)
+	// Require 2-byte message length and target FSM ID
+	if (msg.length() < sizeof(uint16_t) + 1)
 		return;
+
+	cout << "-- Sending: [";
+	for (unsigned int i = 0; i < msg.length(); i++)
+	{
+		if (i != 0)
+			cout << ", ";
+		cout << (unsigned int)msg[i];
+	}
+	cout << "]" << endl;
 
 	boost::mutex::scoped_lock writeQueueLock(m_writeQueueMutex);
 	m_writeQueue.push_back(msg);
@@ -147,13 +153,22 @@ void AVRController::Send(const std::string &msg)
 
 bool AVRController::Query(const string &msg, string &response, unsigned long timeout)
 {
-	// Require 2-byte message length and target FSM
-	if (msg.length() < 3)
+	if (msg.length() < sizeof(uint16_t) + 1)
 		return false;
 
 	// FSM ID is the third byte (following the 2-byte message length)
 	unsigned char fsmId = msg[2];
 
+	return QueryInternal(fsmId, true, msg, response, timeout);
+}
+
+bool AVRController::Receive(unsigned int fsmId, string &response, unsigned long timeout)
+{
+	return QueryInternal(fsmId, false, "", response, timeout);
+}
+
+bool AVRController::QueryInternal(unsigned int fsmId, bool sendMsg, const std::string &msg, std::string &response, unsigned long timeout)
+{
 	// Hand the string off to the heap so that if we time out, we can exit without
 	// crashing in ReadCallback() (same goes for the condition variable).
 	boost::shared_ptr<string> strResponse(new string);
@@ -165,52 +180,31 @@ bool AVRController::Query(const string &msg, string &response, unsigned long tim
 	}
 
 	// Send the message after installing the response handler to avoid dropping responses
-	Send(msg);
+	if (sendMsg)
+		Send(msg);
 
 	// Wait on a private mutex to avoid deadlock
 	boost::mutex privateMutex;
 	boost::mutex::scoped_lock privateLock(privateMutex);
 	boost::system_time const endtime = boost::get_system_time() + boost::posix_time::milliseconds(timeout);
 
-	if (responseCondition->timed_wait(privateLock, endtime) && strResponse->length())
+	if (responseCondition->timed_wait(privateLock, endtime) && strResponse->length() > sizeof(uint16_t))
 	{
-		response = *strResponse;
-		return true;
-	}
-	return false;
-}
-
-bool AVRController::Receive(unsigned int fsmId, string &msg, unsigned long timeout)
-{
-	// Hand the string off to the heap so that if we time out, we can exit without
-	// crashing in ReadCallback() (same goes for the condition variable).
-	boost::shared_ptr<string> strResponse(new string);
-	boost::shared_ptr<boost::condition> responseCondition(new boost::condition);
-
-	{
-		boost::mutex::scoped_lock responseLock(m_responseMutex);
-		m_responseHandlers.push_back(ResponseHandler_t(fsmId, strResponse, responseCondition));
-	}
-
-	// Wait on a private mutex to avoid deadlock
-	boost::mutex privateMutex;
-	boost::mutex::scoped_lock privateLock(privateMutex);
-	boost::system_time const endtime = boost::get_system_time() + boost::posix_time::milliseconds(timeout);
-
-	if (responseCondition->timed_wait(privateLock, endtime) && strResponse->length())
-	{
-		msg = *strResponse;
-		return true;
+		// Verify the length
+		if (strResponse->length() == *reinterpret_cast<const uint16_t*>(strResponse->c_str()))
+		{
+			response = *strResponse;
+			return true;
+		}
 	}
 	return false;
 }
 
 void AVRController::WriteThreadRun()
 {
+	string msg;
 	while (true)
 	{
-		string msg;
-
 		{
 			boost::mutex::scoped_lock writeQueueLock(m_writeQueueMutex);
 
@@ -222,16 +216,13 @@ void AVRController::WriteThreadRun()
 			if (!m_bRunning)
 			{
 				m_writeQueue.clear();
-				// Note, this is the only exit point of the function
-				return;
+				return; // Note, this is the only exit point of the function
 			}
 			msg = m_writeQueue.front();
 			m_writeQueue.erase(m_writeQueue.begin());
-			// Don't need the lock for the rest of the while loop
 		}
 
 		{
-			// Now lock the port mutex
 			boost::mutex::scoped_lock portLock(m_portMutex);
 			// Cancel the async read to free up the serial port. When the port
 			// mutex is released, the async read will be re-installed automatically
@@ -249,7 +240,7 @@ void AVRController::ReadThreadRun()
 	{
 		m_io.run();
 		m_io.reset();
-		// In case run() called with no work to do (shouldn't happen)
+		// In case run() was called with no work to do (shouldn't happen)
 		boost::this_thread::sleep(boost::posix_time::milliseconds(1));
 	}
 }
@@ -303,6 +294,89 @@ void AVRController::ReadCallback(const boost::system::error_code &error, size_t 
 	}
 }
 
+void AVRController::ListFiniteStateMachines(std::vector<std::string> &fsmv)
+{
+	fsmv.clear();
+
+	struct
+	{
+		uint16_t length;
+		uint8_t id;
+		uint8_t message;
+	}
+		__attribute__((packed)) msg =
+	{
+		(uint16_t)sizeof(msg),
+		FSM_MASTER,
+		MSG_MASTER_LIST_FSM
+	};
+
+	string strMessage(reinterpret_cast<char*>(&msg), sizeof(msg));
+	string strResponse;
+	if (Query(strMessage, strResponse))
+	{
+		unsigned int resLength = strResponse.length();
+		const char *resPtr = strResponse.c_str();
+
+		resLength -= 4; // length word + FSM_MASTER + MSG_MASTER_LIST_FSM
+		resPtr += 4;
+
+		while (resLength > sizeof(uint16_t))
+		{
+			// Minus two, because FSM length is message length minus length word
+			uint16_t fsmLength = *reinterpret_cast<const uint16_t*>(resPtr) - sizeof(uint16_t);
+			resLength -= sizeof(uint16_t);
+			resPtr += sizeof(uint16_t);
+
+			// FSM can't be longer than the rest of the response
+			if (fsmLength > resLength)
+				fsmLength = resLength;
+
+			fsmv.push_back(string(resPtr, fsmLength));
+			resLength -= fsmLength;
+			resPtr += fsmLength;
+		}
+	}
+}
+
+void AVRController::DestroyFiniteStateMachine(const std::string &fsm)
+{
+	struct
+	{
+		uint16_t length;
+		uint8_t id;
+		uint8_t message;
+	}
+		__attribute__((packed)) prefix =
+	{
+		(uint16_t)sizeof(prefix) + fsm.length(),
+		FSM_MASTER,
+		MSG_MASTER_DESTROY_FSM
+	};
+
+	string strPrefix(reinterpret_cast<char*>(&prefix), sizeof(prefix));
+	Send(strPrefix + fsm);
+}
+
+void AVRController::CreateFiniteStateMachine(const std::string &fsm)
+{
+	struct
+	{
+		uint16_t length;
+		uint8_t id;
+		uint8_t message;
+	}
+		__attribute__((packed)) prefix =
+	{
+		(uint16_t)sizeof(prefix) + fsm.length(),
+		FSM_MASTER,
+		MSG_MASTER_CREATE_FSM
+	};
+
+	string strPrefix(reinterpret_cast<char*>(&prefix), sizeof(prefix));
+	Send(strPrefix + fsm);
+}
+
 bool AVRController::SetDTR(bool level)
 {
 	int fd = m_port.native();
@@ -329,7 +403,7 @@ void AVRController::Message::Reset()
 
 	// New state: expect message length as 2 bytes
 	m_readState = WaitingForLength;
-	m_nextBufferLength = 2;
+	m_nextBufferLength = sizeof(uint16_t);
 	m_nextBuffer = new unsigned char[m_nextBufferLength];
 }
 

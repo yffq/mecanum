@@ -72,20 +72,36 @@ public:
 	 */
 	void Send(const std::string &msg);
 
+	static const int DEFAULT_TIMEOUT = 1000; // ms
+
 	/**
-	 * Send a message and wait for a response. Returns false if the query times out.
+	 * Send a message and wait for a response. Returns false if the query times
+	 * out. If true, response is guaranteed to be a valid AVR string (2-byte
+	 * length in little endian, followed by FSM ID, then message payload, if any).
 	 */
 	bool Query(const std::string &msg, std::string &response, unsigned long timeout = DEFAULT_TIMEOUT);
 
 	/**
 	 * Block until a message from the specified FSM arrives on the serial port.
-	 * Returns false if the response times out.
+	 * Returns false if the response times out. If true, response is guaranteed
+	 * to be a valid AVR string.
 	 */
-	bool Receive(unsigned int fsmId, std::string &msg, unsigned long timeout = DEFAULT_TIMEOUT);
+	bool Receive(unsigned int fsmId, std::string &response, unsigned long timeout = DEFAULT_TIMEOUT);
 
-	static const int DEFAULT_TIMEOUT = 1000; // ms
+	/**
+	 * Interface with the MecanumMaster program running on the AVR.
+	 */
+	void ListFiniteStateMachines(std::vector<std::string> &fsmv);
+	void DestroyFiniteStateMachine(const std::string &fsm);
+	void CreateFiniteStateMachine(const std::string &fsm);
 
 private:
+
+	/**
+	 * Performs the work for Query() and Receive().
+	 */
+	bool QueryInternal(unsigned int fsmId, bool sendMsg, const std::string &msg, std::string &response, unsigned long timeout);
+
 	/**
 	 * Writing to the serial port occurs in this thread. When no data is queued,
 	 * it idles.
@@ -146,6 +162,7 @@ private:
 	std::vector<ResponseHandler_t> m_responseHandlers;
 	boost::mutex                   m_responseMutex;
 
+	std::vector<std::string> k;
 	/**
 	 * Use a finite state machine for message composition. FSMs are best for
 	 * this task because the number of expected characters is a function of the
