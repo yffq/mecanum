@@ -162,7 +162,6 @@ private:
 	std::vector<ResponseHandler_t> m_responseHandlers;
 	boost::mutex                   m_responseMutex;
 
-	std::vector<std::string> k;
 	/**
 	 * Use a finite state machine for message composition. FSMs are best for
 	 * this task because the number of expected characters is a function of the
@@ -199,6 +198,8 @@ private:
 
 		void Reset();
 		void Advance(size_t bytes);
+
+		static const unsigned int MAX_LENGTH = 512;
 
 	private:
 		std::string    m_msg;

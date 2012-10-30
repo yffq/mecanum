@@ -29,8 +29,6 @@
 
 using namespace std;
 
-#define MAX_RECEIVE_MESSAGE_LENGTH 512 // Max allowable message received from the AVR
-
 AVRController::AVRController() : m_io(), m_port(m_io), m_bRunning(false)
 {
 }
@@ -448,7 +446,7 @@ void AVRController::Message::Advance(size_t bytes)
 		// Use native endian to recover the length
 		m_msgLength = *reinterpret_cast<const uint16_t*>(m_msg.c_str());
 		// Validate the input
-		if (3 <= m_msgLength && m_msgLength <= MAX_RECEIVE_MESSAGE_LENGTH)
+		if (3 <= m_msgLength && m_msgLength <= MAX_LENGTH)
 		{
 			delete[] m_nextBuffer;
 
