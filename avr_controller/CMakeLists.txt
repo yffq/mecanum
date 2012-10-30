@@ -22,7 +22,6 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #rosbuild_gensrv()
 
 set(AVRCONTROLLER_SRCS src/AVRController.cpp
-                       #src/AVRInstance.cpp
 )
 
 # Build the .so
@@ -34,14 +33,9 @@ rosbuild_link_boost(${PROJECT_NAME} system thread)
 #rosbuild_add_executable(avr_node src/AVRNode.cpp)
 #target_link_libraries(avr_node ${PROJECT_NAME})
 
-# Build the main executable
-rosbuild_add_executable(main src/main.cpp)
-target_link_libraries(main ${PROJECT_NAME})
-
 # Build the test
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread") # fix for Ubuntu 11.10+
 rosbuild_add_gtest(avrtest test/avrtest.cpp)
 target_link_libraries(avrtest ${PROJECT_NAME})
-#target_link_libraries(avrtest gtest)
 
 
