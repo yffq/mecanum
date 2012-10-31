@@ -182,8 +182,13 @@ public:
 	 * \throw          GPIO::Exception
 	 * \return false   if Poll() timed out or pin conditions are invalid
 	 */
-	bool Poll(unsigned long timeout, unsigned long &duration, bool verify = false,
-			unsigned int *value = (unsigned int*)0);
+	bool Poll(unsigned long timeout, unsigned long &duration, bool verify = true)
+	{
+		unsigned int value;
+		return Poll(timeout, duration, verify, value);
+		(void)value; // silence compiler warning
+	}
+	bool Poll(unsigned long timeout, unsigned long &duration, bool verify, unsigned int &value);
 
 	/*!
 	 * Copy a value from one pin to another. This function can be chained:

@@ -409,8 +409,7 @@ int fd_edge;
 	m_edge = edge;
 }
 
-bool GPIO::Poll(unsigned long timeout, unsigned long &duration, bool verify /* = false */,
-		unsigned int *value /* = NULL */)
+bool GPIO::Poll(unsigned long timeout, unsigned long &duration, bool verify, unsigned int &value)
 {
 	duration = 0;
 
@@ -500,8 +499,8 @@ bool GPIO::Poll(unsigned long timeout, unsigned long &duration, bool verify /* =
 							break; // Shouldn't be here
 						}
 						// Record the new value if it wasn't a false alarm
-						if (!false_alarm && value)
-							*value = new_value;
+						if (!false_alarm)
+							value = new_value;
 					}
 				}
 

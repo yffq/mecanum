@@ -21,7 +21,7 @@
 class BBExpansionPin : public GPIO
 {
 public:
-	BBExpansionPin(unsigned int pin) : GPIO(Demux(pin)) { }
+	BBExpansionPin(unsigned int pin) : GPIO(Translate(pin)) { }
 
 private:
 	/**
@@ -32,5 +32,5 @@ private:
 	 * \param pin The expansion header pin between 3 and 24.
 	 * \return The number of the GPIO pin multiplexed into the expansion header pin.
 	 */
-	unsigned int Demux(unsigned int pin);
+	unsigned int Translate(unsigned int pin);
 };

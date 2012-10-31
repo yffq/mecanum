@@ -17,7 +17,7 @@
 
 #include "BBExpansionPin.h"
 
-unsigned int BBExpansionPin::Demux(unsigned int pin)
+unsigned int BBExpansionPin::Translate(unsigned int pin)
 {
 	const unsigned int expansionHeader[] =
 	{
