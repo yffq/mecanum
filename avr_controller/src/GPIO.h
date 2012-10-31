@@ -24,19 +24,13 @@ class GPIO
 {
 public:
 	/**
-	 * GPIO Exceptions
+	 * GPIO::Exception
 	 *
-	 * These objects are thrown polymorphically to indicate a raised exception.
-	 * In the generic case, a problem has most likely occurred reading or
-	 * writing to the sysfs. If a member function of the GPIO class requires
-	 * special handling, it will be signified by the addition of the throw()
-	 * clause in the function's definition.
+	 * Thrown when a problem has occured in reading or writing to the sysfs.
 	 *
-	 * The exceptions here enable a level of consistency for the GPIO pin. The
-	 * after-effect of every public function (except for the constructors and
-	 * Close()) is that the GPIO pin is in an open and usable state. If this
-	 * cannot be guaranteed by the function, an exception is thrown before the
-	 * function runs to completion.
+	 * The post-condition of GPIO public functions is that the GPIO pin is in
+	 * an open and usable state. If this cannot be guaranteed by the function,
+	 * this exception is thrown before the function runs to completion.
 	 */
 	class Exception : public std::exception
 	{
@@ -46,30 +40,6 @@ public:
 		virtual const char* what() const throw() { return m_msg; }
 	private:
 		char m_msg[128];
-	};
-
-	// Thrown by Open() if the user can't write to /sys/class/gpio/export
-	class PermissionException : Exception
-	{
-	public:
-		PermissionException(const GPIO &gpio, const char *function) :
-			Exception(gpio, function, "Insufficient user rights") { }
-	};
-
-	// Thrown by Poll() if a timeout occurs
-	class TimeoutException : Exception
-	{
-	public:
-		TimeoutException(const GPIO &gpio, const char *function) :
-			Exception(gpio, function, "Timeout occurred") { }
-	};
-
-	// Thrown by Pulse() and PWM() if nanosleep() fails consecutively a few times
-	class ADDException : Exception
-	{
-	public:
-		ADDException(const GPIO &gpio, const char *function) :
-			Exception(gpio, function, "nanosleep() attempts exceeded") { }
 	};
 
 	// Direction of the GPIO pin
@@ -95,16 +65,6 @@ public:
 	GPIO(unsigned int gpio);
 
 	/**
-	 * Because GPIO objects are constructed in an invalid state, they are
-	 * copy-safe. Passing a valid, open GPIO object will create an invalid
-	 * (unopened) GPIO object with the same pin number (the original valid
-	 * pin will be unmodified). Before the new object can be used, the previous
-	 * one must be closed/destructed because Open() will fail as long as the
-	 * pin number is open in another object/thread/process.
-	 */
-	GPIO(const GPIO &other);
-
-	/**
 	 * The GPIO class follows a quasi-RAII model. A call to Open() acquires
 	 * the resource (pin), and the resource is released when Close() is called
 	 * or the object falls out of scope.
@@ -112,16 +72,10 @@ public:
 	~GPIO() throw() { Close(); }
 
 	/**
-	 * The overwritten object will close and export its pin, freeing it to be
-	 * used by another object
-	 */
-	GPIO& operator=(const GPIO &rhs);
-
-	/**
 	 * Open the pin by exporting it, recording its current state, and getting
 	 * it ready to be manipulated.
 	 */
-	void Open() throw(GPIO::Exception, GPIO::PermissionException);
+	bool Open();
 
 	/**
 	 * Returns true if the pin is exported and ready to be manhandled.
@@ -154,6 +108,7 @@ public:
 	 * read and write to decrease the latency of these operations as much as
 	 * possible.
 	 *
+	 * \throw GPIO::Exception
 	 * \return The value of the pin (0 or 1)
 	 *   * If direction is "in", this returns 0 or 1 corresponding to the pin
 	 *     being connected to ground or VCC.
@@ -161,15 +116,16 @@ public:
 	 *   * If an error occurs (such as the pin not being exported or an
 	 *     unknown value being read, then this throws the error.
 	 */
-	unsigned int GetValue() throw(Exception);
+	unsigned int GetValue();
 
 	/*!
 	 * Set the value controlling the GPIO pin. If the pin's direction is
 	 * "in", this has no effect.
 	 *
 	 * \param value Either 0 or 1
+	 * \throw GPIO::Exception
 	 */
-	void SetValue(unsigned int value) throw(Exception);
+	void SetValue(unsigned int value);
 
 	/*!
 	 * Get the direction of the GPIO pin. IN means that values are ready
@@ -188,8 +144,9 @@ public:
 	 *
 	 * \param dir           The direction, either IN or OUT.
 	 * \param initial_value The initial value (ignored if dir is IN).
+	 * \throw GPIO::Exception
 	 */
-	void SetDirection(Direction dir, unsigned int initial_value = 0) throw(Exception);
+	void SetDirection(Direction dir, unsigned int initial_value = 0);
 
 	/*!
 	 * Get the signal edge(s) of the GPIO pin that will make Poll() return. As
@@ -199,10 +156,11 @@ public:
 	 * internally only supports "change from last read", so when an interrupt
 	 * occurs a dummy read is performed internally to reset this value.
 	 *
+	 * \throw GPIO::Exception
 	 * \return The edge of type enum GPIO::Edge (NONE, RISING, FALLING, or BOTH).
 	 */
 	Edge GetEdge() const { return m_edge; }
-	void SetEdge(Edge edge) throw(Exception);
+	void SetEdge(Edge edge);
 
 	/*!
 	 * Wait for an interrupt to trigger the pin, and return when this happens.
@@ -213,25 +171,27 @@ public:
 	 * If Poll() times out the appropriate exception is thrown.
 	 *
 	 * \param  timeout The maximum time to wait (in microseconds).
+	 * \param duration The duration of time until the interrupt occurred (microseconds).
+	 *                 Guaranteed to not be greater than timeout.
 	 * \param  verify  Guard against spurious wakeups by verifying the value after
 	 *                 the interrupt occurs. For best performance, explicitly set
 	 *                 this to false.
 	 * \param  value   (Out) Only used if verify is true. If this is specified,
 	 *                 the final value of the pin after a successful interrupt
 	 *                 occurs will be placed here.
-	 * \return The duration of time until the interrupt occurred (in microseconds).
-	 *         The return value is guaranteed to not be greater than timeout.
+	 * \throw          GPIO::Exception
+	 * \return false   if Poll() timed out
 	 */
-	long Poll(unsigned long timeout, bool verify = true, unsigned int *value = (unsigned int *)0)
-		throw(Exception, TimeoutException);
+	bool Poll(unsigned long timeout, unsigned long &duration, bool verify = false, unsigned int &value = 0);
 
 	/*!
 	 * Copy a value from one pin to another. This function can be chained:
 	 *     gpio3.Mirror(gpio2.Mirror(gpio1));
 	 *
 	 * \param  pin_object The pin to read the value from.
+	 * \throw  GPIO::Exception
 	 */
-	GPIO& Mirror(GPIO &pin_object) throw(Exception);
+	GPIO& Mirror(GPIO &pin_object);
 
 	/*!
 	 * Maintains a steady pulse on the GPIO pin. If the pin's direction is IN,
@@ -243,8 +203,10 @@ public:
 	 * \param  duration The duration of the pulse (in microseconds). If count > 1
 	 *                  then this duration will also be used between each pulse.
 	 * \param  count    The total number of pulses to deliver.
+	 * \throw           GPIO::Exception
+	 * \return true     If the specified time (2*duration*count) has elapsed
 	 */
-	void Pulse(unsigned long duration, unsigned int count = 1) throw(Exception, ADDException);
+	bool Pulse(unsigned long duration, unsigned int count = 1);
 
 	/*!
 	 * Similar to Pulse(), this function allows you to set the duty cycle of
@@ -258,8 +220,10 @@ public:
 	 *                   at least for this time until the final pulse falls.
 	 * \param duty_cycle The PWM duty cycle between 0 and 1. A duty cycle of 0 or 1
 	 *                   will force the signal fully on or fully off, respectively.
+	 * \throw           GPIO::Exception
+	 * \return true     If the specified time has elapsed, similar to Pulse()
 	 */
-	void PWM(unsigned long period, unsigned long time, double duty_cycle = 0.5) throw(Exception, ADDException);
+	bool PWM(unsigned long period, unsigned long time, double duty_cycle = 0.5);
 
 private:
 	/*!
@@ -268,7 +232,7 @@ private:
 	 * echo 139 > /sys/class/gpio/export. The export sysfs file must be write-
 	 * enabled for the current user.
 	 */
-	void Export() throw(Exception, PermissionException);
+	bool Export();
 
 	/*!
 	 * Disable the GPIO pin. This is done by writing the pin number to
@@ -276,7 +240,7 @@ private:
 	 * is deleted, so make sure that all file connections (value, direction and
 	 * edge) are closed before unexporting the pin.
 	 */
-	void Unexport() throw(); // No exceptions allowed
+	void Unexport() throw(); // Called by destructor, no exceptions allowed
 
 	/*!
 	 * Reopen the pin's value node in the specified RW mode. No function exists
@@ -285,17 +249,18 @@ private:
 	 * class maintains this consistency.
 	 *
 	 * \param mode One of: O_RDONLY (00), O_WRONLY (01)
+	 * \throw GPIO::Exception
 	 */
-	void Reopen(int mode) throw(Exception);
+	void Reopen(int mode);
 
 	/*!
 	 * Sync m_dir with /sys/class/gpio/gpioXXX/direction. This allows m_dir to
 	 * be used as a caching variable so we don't have to hit the sysfs every
 	 * time we want to know the direction.
 	 *
-	 * \throw GPIO::Exception if, for whatever reason, m_dir is not set,
+	 * \throw GPIO::Exception
 	 */
-	void ReadDirection() throw(Exception);
+	void ReadDirection();
 
 	/*!
 	 * Sync m_edge with /sys/class/gpio/gpioXXX/edge. This allows m_edge to be
@@ -304,7 +269,7 @@ private:
 	 *
 	 * \throw GPIO::Exception if, for whatever reason, m_edge is not set,
 	 */
-	void ReadEdge() throw(Exception);
+	void ReadEdge();
 
 	/*!
 	 * Calculate the number of microseconds elapsed since the reference time.
@@ -313,11 +278,24 @@ private:
 	 *              will be negative.
 	 * \return      The time delta.
 	 */
-	static long Elapsed(struct timeval &start);
+	static inline long Elapsed(struct timeval &start)
+	{
+		struct timeval end;
+		gettimeofday(&end, 0);
+		return (end.tv_sec - start.tv_sec) * 1000000 + end.tv_usec - start.tv_usec;
+	}
 
 private:
+	/**
+	 * This object is noncopyable.
+	 */
+	GPIO(const GPIO &other);
+	GPIO& operator=(const GPIO &rhs);
+
 	// GPIO pin number for this class
 	unsigned int m_gpio;
+	// String representation (used internally)
+	char m_str_gpio[5];
 	// File descriptor to the GPIO pin
 	int m_gpio_fd;
 	// Current direction of the GPIO pin (IN or OUT)
@@ -325,10 +303,3 @@ private:
 	// Edge configured to generate interrupts (only used if m_dir is IN)
 	Edge m_edge;
 };
-
-inline long GPIO::Elapsed(struct timeval &start)
-{
-	struct timeval end;
-	gettimeofday(&end, 0);
-	return (end.tv_sec - start.tv_sec) * 1000000 + end.tv_usec - start.tv_usec;
-}
