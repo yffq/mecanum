@@ -1,5 +1,5 @@
 <interfaces>
-	<bealgeboard>
+	<beagleboard>
 		<interface expansion="3" name="BUTTON_GREEN" gpio="139"/>
 		<interface expansion="4" name="" gpio="144"/> <!-- always 0 value -->
 		<interface expansion="5" name="BUTTON_YELLOW" gpio="138"/>
