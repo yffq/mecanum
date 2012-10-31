@@ -21,10 +21,10 @@
 namespace NBeagleBoard
 {
 
-class CExpansionPin : public CGPIO
+class ExpansionPin : public GPIO
 {
 public:
-	CExpansionPin(unsigned int pin) : CGPIO(Demux(pin)) { }
+	ExpansionPin(unsigned int pin) : GPIO(Demux(pin)) { }
 
 private:
 	/**

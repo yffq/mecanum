@@ -24,16 +24,16 @@
 
 #define COUNT 100
 
-void test_write(CGPIO &gpio)
+void test_write(GPIO &gpio)
 {
-	gpio.SetDirection(CGPIO::OUT);
-	gpio.SetEdge(CGPIO::BOTH);
+	gpio.SetDirection(GPIO::OUT);
+	gpio.SetEdge(GPIO::BOTH);
 	gpio.SetValue(0);
 }
 
-void test_read(CGPIO &gpio, double &avg, double &stddev)
+void test_read(GPIO &gpio, double &avg, double &stddev)
 {
-	gpio.SetDirection(CGPIO::IN);
+	gpio.SetDirection(GPIO::IN);
 	gpio.GetValue();
 
 	long data[COUNT];
@@ -43,7 +43,7 @@ void test_read(CGPIO &gpio, double &avg, double &stddev)
 	avg = 0;
 	stddev = 0;
 
-	gpio.SetDirection(CGPIO::IN);
+	gpio.SetDirection(GPIO::IN);
 	gpio.GetValue();
 
 	for (int i = 0; i < COUNT; i++)
@@ -72,7 +72,7 @@ void test_read(CGPIO &gpio, double &avg, double &stddev)
 }
 
 /*
-void test_pwm(CGPIO &gpioCGPIO &gpio)
+void test_pwm(GPIO &gpioGPIO &gpio)
 {
 	printf("Pulsing pin 139 with 1s highs and 3s lows for 10s\n");
 	gpio139.PWM(4 * 1000 * 1000, 10 * 1000 * 1000, 0.25);
@@ -84,12 +84,12 @@ void test_pwm(CGPIO &gpioCGPIO &gpio)
 }
 */
 
-void test_poll(CGPIO &gpio)
+void test_poll(GPIO &gpio)
 {
 
 }
 
-void test_mirror(CGPIO &gpio)
+void test_mirror(GPIO &gpio)
 {
 
 }
@@ -101,7 +101,7 @@ int main (int argc, char** argv)
 	double avg;
 	double stddev;
 
-	CGPIO gpio(gpio_pin);
+	GPIO gpio(gpio_pin);
 	try
 	{
 		gpio.Open();
@@ -120,11 +120,11 @@ int main (int argc, char** argv)
 
 		//test_mirror();
 	}
-	catch (CGPIO::PermissionException &e)
+	catch (GPIO::PermissionException &e)
 	{
 		printf("Could not export the GPIO pin. Try running as root\n");
 	}
-	catch (CGPIO::Exception &e)
+	catch (GPIO::Exception &e)
 	{
 		printf("GPIO Exception occurred: %s\n", e.what());
 	}

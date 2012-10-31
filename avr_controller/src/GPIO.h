@@ -20,15 +20,15 @@
 #include <exception>  // For std::exception
 #include <sys/time.h> // For gettimeofday()
 
-class CGPIO
+class GPIO
 {
 public:
 	/**
-	 * CGPIO Exceptions
+	 * GPIO Exceptions
 	 *
 	 * These objects are thrown polymorphically to indicate a raised exception.
 	 * In the generic case, a problem has most likely occurred reading or
-	 * writing to the sysfs. If a member function of the CGPIO class requires
+	 * writing to the sysfs. If a member function of the GPIO class requires
 	 * special handling, it will be signified by the addition of the throw()
 	 * clause in the function's definition.
 	 *
@@ -41,7 +41,7 @@ public:
 	class Exception : public std::exception
 	{
 	public:
-		Exception(const CGPIO &gpio, const char *function, const char *msg) throw();
+		Exception(const GPIO &gpio, const char *function, const char *msg) throw();
 		virtual ~Exception() throw() { };
 		virtual const char* what() const throw() { return m_msg; }
 	private:
@@ -52,7 +52,7 @@ public:
 	class PermissionException : Exception
 	{
 	public:
-		PermissionException(const CGPIO &gpio, const char *function) :
+		PermissionException(const GPIO &gpio, const char *function) :
 			Exception(gpio, function, "Insufficient user rights") { }
 	};
 
@@ -60,7 +60,7 @@ public:
 	class TimeoutException : Exception
 	{
 	public:
-		TimeoutException(const CGPIO &gpio, const char *function) :
+		TimeoutException(const GPIO &gpio, const char *function) :
 			Exception(gpio, function, "Timeout occurred") { }
 	};
 
@@ -68,7 +68,7 @@ public:
 	class ADDException : Exception
 	{
 	public:
-		ADDException(const CGPIO &gpio, const char *function) :
+		ADDException(const GPIO &gpio, const char *function) :
 			Exception(gpio, function, "nanosleep() attempts exceeded") { }
 	};
 
@@ -89,39 +89,39 @@ public:
 	};
 
 	/**
-	 * A CGPIO object is constructed in an invalid state and a call to Open()
+	 * A GPIO object is constructed in an invalid state and a call to Open()
 	 * must be performed before other functions are called.
 	 */
-	CGPIO(unsigned int gpio);
+	GPIO(unsigned int gpio);
 
 	/**
-	 * Because CGPIO objects are constructed in an invalid state, they are
-	 * copy-safe. Passing a valid, open CGPIO object will create an invalid
-	 * (unopened) CGPIO object with the same pin number (the original valid
+	 * Because GPIO objects are constructed in an invalid state, they are
+	 * copy-safe. Passing a valid, open GPIO object will create an invalid
+	 * (unopened) GPIO object with the same pin number (the original valid
 	 * pin will be unmodified). Before the new object can be used, the previous
 	 * one must be closed/destructed because Open() will fail as long as the
 	 * pin number is open in another object/thread/process.
 	 */
-	CGPIO(const CGPIO &other);
+	GPIO(const GPIO &other);
 
 	/**
-	 * The CGPIO class follows a quasi-RAII model. A call to Open() acquires
+	 * The GPIO class follows a quasi-RAII model. A call to Open() acquires
 	 * the resource (pin), and the resource is released when Close() is called
 	 * or the object falls out of scope.
 	 */
-	~CGPIO() throw() { Close(); }
+	~GPIO() throw() { Close(); }
 
 	/**
 	 * The overwritten object will close and export its pin, freeing it to be
 	 * used by another object
 	 */
-	CGPIO& operator=(const CGPIO &rhs);
+	GPIO& operator=(const GPIO &rhs);
 
 	/**
 	 * Open the pin by exporting it, recording its current state, and getting
 	 * it ready to be manipulated.
 	 */
-	void Open() throw(CGPIO::Exception, CGPIO::PermissionException);
+	void Open() throw(GPIO::Exception, GPIO::PermissionException);
 
 	/**
 	 * Returns true if the pin is exported and ready to be manhandled.
@@ -199,7 +199,7 @@ public:
 	 * internally only supports "change from last read", so when an interrupt
 	 * occurs a dummy read is performed internally to reset this value.
 	 *
-	 * \return The edge of type enum CGPIO::Edge (NONE, RISING, FALLING, or BOTH).
+	 * \return The edge of type enum GPIO::Edge (NONE, RISING, FALLING, or BOTH).
 	 */
 	Edge GetEdge() const { return m_edge; }
 	void SetEdge(Edge edge) throw(Exception);
@@ -231,7 +231,7 @@ public:
 	 *
 	 * \param  pin_object The pin to read the value from.
 	 */
-	CGPIO& Mirror(CGPIO &pin_object) throw(Exception);
+	GPIO& Mirror(GPIO &pin_object) throw(Exception);
 
 	/*!
 	 * Maintains a steady pulse on the GPIO pin. If the pin's direction is IN,
@@ -281,7 +281,7 @@ private:
 	/*!
 	 * Reopen the pin's value node in the specified RW mode. No function exists
 	 * for getting the current RW mode because it is assumed that a direction
-	 * of IN means read-only and a direction of OUT means write-only. The CGPIO
+	 * of IN means read-only and a direction of OUT means write-only. The GPIO
 	 * class maintains this consistency.
 	 *
 	 * \param mode One of: O_RDONLY (00), O_WRONLY (01)
@@ -293,7 +293,7 @@ private:
 	 * be used as a caching variable so we don't have to hit the sysfs every
 	 * time we want to know the direction.
 	 *
-	 * \throw CGPIO::Exception if, for whatever reason, m_dir is not set,
+	 * \throw GPIO::Exception if, for whatever reason, m_dir is not set,
 	 */
 	void ReadDirection() throw(Exception);
 
@@ -302,7 +302,7 @@ private:
 	 * used as a caching variable so we don't have to hit the sysfs every time
 	 * we want to know the edge.
 	 *
-	 * \throw CGPIO::Exception if, for whatever reason, m_edge is not set,
+	 * \throw GPIO::Exception if, for whatever reason, m_edge is not set,
 	 */
 	void ReadEdge() throw(Exception);
 
@@ -326,7 +326,7 @@ private:
 	Edge m_edge;
 };
 
-inline long CGPIO::Elapsed(struct timeval &start)
+inline long GPIO::Elapsed(struct timeval &start)
 {
 	struct timeval end;
 	gettimeofday(&end, 0);

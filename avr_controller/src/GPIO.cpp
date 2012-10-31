@@ -34,20 +34,20 @@
 	#define INVALID_SOCKET -1
 #endif
 
-CGPIO::Exception::Exception(const CGPIO &gpio, const char *function, const char *msg) throw()
+GPIO::Exception::Exception(const GPIO &gpio, const char *function, const char *msg) throw()
 {
 	snprintf(m_msg, sizeof(m_msg), "%s: Error on pin %d: %s", function, gpio.Describe(), msg);
 }
 
-CGPIO::CGPIO(unsigned int gpio) : m_gpio(gpio), m_gpio_fd(INVALID_SOCKET), m_dir(IN), m_edge(NONE)
+GPIO::GPIO(unsigned int gpio) : m_gpio(gpio), m_gpio_fd(INVALID_SOCKET), m_dir(IN), m_edge(NONE)
 {
 }
 
-CGPIO::CGPIO(const CGPIO &other) : m_gpio(other.m_gpio), m_gpio_fd(INVALID_SOCKET), m_dir(IN), m_edge(NONE)
+GPIO::GPIO(const GPIO &other) : m_gpio(other.m_gpio), m_gpio_fd(INVALID_SOCKET), m_dir(IN), m_edge(NONE)
 {
 }
 
-CGPIO& CGPIO::operator=(const CGPIO &rhs)
+GPIO& GPIO::operator=(const GPIO &rhs)
 {
 	if (this != &rhs)
 	{
@@ -57,7 +57,7 @@ CGPIO& CGPIO::operator=(const CGPIO &rhs)
 	return *this;
 }
 
-void CGPIO::Open() throw(CGPIO::Exception, CGPIO::PermissionException)
+void GPIO::Open() throw(GPIO::Exception, GPIO::PermissionException)
 {
 	// If the pin is already open, don't do anything
 	if (!IsOpen())
@@ -97,7 +97,7 @@ void CGPIO::Open() throw(CGPIO::Exception, CGPIO::PermissionException)
 	}
 }
 
-void CGPIO::Export() throw(CGPIO::Exception, CGPIO::PermissionException)
+void GPIO::Export() throw(GPIO::Exception, GPIO::PermissionException)
 {
 	// If pin is already exported, throw an exception
 	// TODO: Test me!
@@ -139,7 +139,7 @@ void CGPIO::Export() throw(CGPIO::Exception, CGPIO::PermissionException)
 /**
  * Post-condition: Exceptions are suppressed, so no guarantees!
  */
-void CGPIO::Close() throw()
+void GPIO::Close() throw()
 {
 	if (IsOpen())
 	{
@@ -153,7 +153,7 @@ void CGPIO::Close() throw()
  * Post-condition: No guarantees. No exceptions are thrown, so if an error
  * occurred, the pin will be in an inconsistent state.
  */
-void CGPIO::Unexport() throw()
+void GPIO::Unexport() throw()
 {
 	// Write the pin number to /sys/class/gpio/unexport
 	int fd_unexport;
@@ -175,7 +175,7 @@ void CGPIO::Unexport() throw()
  * If an exception is thrown, the pin is invalid (unexported). The unexport may
  * have failed, so the pin may have to be exported manually before Open() works.
  */
-void CGPIO::Reopen(int mode) throw(CGPIO::Exception)
+void GPIO::Reopen(int mode) throw(GPIO::Exception)
 {
 	if (IsOpen())
 	{
@@ -205,7 +205,7 @@ void CGPIO::Reopen(int mode) throw(CGPIO::Exception)
  *
  * TODO: Add a new exception, EphemeralException, signifying state 3.
  */
-unsigned int CGPIO::GetValue() throw(CGPIO::Exception)
+unsigned int GPIO::GetValue() throw(GPIO::Exception)
 {
 	char ch; // '0' or '1'
 	ssize_t num; // number of bytes read
@@ -260,7 +260,7 @@ unsigned int CGPIO::GetValue() throw(CGPIO::Exception)
  * If an exception is thrown, the value may or may not have been written to the
  * pin, and the object may or may not be in an inconsistent state.
  */
-void CGPIO::SetValue(unsigned int value) throw(CGPIO::Exception)
+void GPIO::SetValue(unsigned int value) throw(GPIO::Exception)
 {
 	// No effect if direction is IN, also prevents writing to a read-only file
 	if (m_dir == OUT)
@@ -282,7 +282,7 @@ void CGPIO::SetValue(unsigned int value) throw(CGPIO::Exception)
 	}
 }
 
-void CGPIO::ReadDirection() throw(CGPIO::Exception)
+void GPIO::ReadDirection() throw(GPIO::Exception)
 {
 	// Open /sys/class/gpio/gpioXXX/direction for reading
 	int fd_dir;
@@ -313,7 +313,7 @@ void CGPIO::ReadDirection() throw(CGPIO::Exception)
 	}
 }
 
-void CGPIO::SetDirection(Direction dir, unsigned int initial_value /* = 0 */) throw(CGPIO::Exception)
+void GPIO::SetDirection(Direction dir, unsigned int initial_value /* = 0 */) throw(GPIO::Exception)
 {
 	// If the pin is already set to this direction, there's no effect
 	if (m_dir != dir)
@@ -361,7 +361,7 @@ void CGPIO::SetDirection(Direction dir, unsigned int initial_value /* = 0 */) th
 	}
 }
 
-void CGPIO::ReadEdge() throw(CGPIO::Exception)
+void GPIO::ReadEdge() throw(GPIO::Exception)
 {
 	// Open /sys/class/gpio/gpioXXX/edge for reading
 	int fd_edge;
@@ -395,7 +395,7 @@ void CGPIO::ReadEdge() throw(CGPIO::Exception)
 	}
 }
 
-void CGPIO::SetEdge(Edge edge) throw(CGPIO::Exception)
+void GPIO::SetEdge(Edge edge) throw(GPIO::Exception)
 {
 	// If the edge for this pin is already set to this edge, there's no effect
 	if (m_edge != edge)
@@ -440,8 +440,8 @@ void CGPIO::SetEdge(Edge edge) throw(CGPIO::Exception)
 	}
 }
 
-long CGPIO::Poll(unsigned long timeout, bool verify /* = true */, unsigned int *value /* = NULL */)
-		throw(CGPIO::Exception, CGPIO::TimeoutException)
+long GPIO::Poll(unsigned long timeout, bool verify /* = true */, unsigned int *value /* = NULL */)
+		throw(GPIO::Exception, GPIO::TimeoutException)
 {
 	// Sanity checks
 	if (m_dir != OUT && m_edge != NONE && timeout)
@@ -556,7 +556,7 @@ long CGPIO::Poll(unsigned long timeout, bool verify /* = true */, unsigned int *
 	return 0; // m_dir == OUT || m_edge == NONE || !timeout
 }
 
-CGPIO& CGPIO::Mirror(CGPIO &pin_object) throw(CGPIO::Exception)
+GPIO& GPIO::Mirror(GPIO &pin_object) throw(GPIO::Exception)
 {
 	if (this != &pin_object)
 	{
@@ -575,7 +575,7 @@ CGPIO& CGPIO::Mirror(CGPIO &pin_object) throw(CGPIO::Exception)
  *
  * Heads up, duration is specified in microseconds.
  */
-void CGPIO::Pulse(unsigned long duration, unsigned int count /* = 1 */) throw(CGPIO::Exception, CGPIO::ADDException)
+void GPIO::Pulse(unsigned long duration, unsigned int count /* = 1 */) throw(GPIO::Exception, GPIO::ADDException)
 {
 	// Can't pulse an input pin
 	if (m_dir != IN)
@@ -629,7 +629,7 @@ void CGPIO::Pulse(unsigned long duration, unsigned int count /* = 1 */) throw(CG
  *
  * Heads up, period and time are specified in microseconds.
  */
-void CGPIO::PWM(unsigned long period, unsigned long time, double duty_cycle /* = 0.5 */) throw(CGPIO::Exception, CGPIO::ADDException)
+void GPIO::PWM(unsigned long period, unsigned long time, double duty_cycle /* = 0.5 */) throw(GPIO::Exception, GPIO::ADDException)
 {
 	// Can't pulse an input pin
 	if (m_dir != IN && time)

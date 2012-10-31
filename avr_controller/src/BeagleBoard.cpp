@@ -19,7 +19,7 @@
 
 using namespace NBeagleBoard;
 
-unsigned int CExpansionPin::Demux(unsigned int pin)
+unsigned int ExpansionPin::Demux(unsigned int pin)
 {
 	unsigned int expansionHeader[] =
 	{
