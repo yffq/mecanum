@@ -120,13 +120,9 @@ int main (int argc, char** argv)
 
 		//test_mirror();
 	}
-	catch (GPIO::PermissionException &e)
-	{
-		printf("Could not export the GPIO pin. Try running as root\n");
-	}
 	catch (GPIO::Exception &e)
 	{
-		printf("GPIO Exception occurred: %s\n", e.what());
+		printf(e.what());
 	}
 }
 

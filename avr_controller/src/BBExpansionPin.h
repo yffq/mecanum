@@ -18,13 +18,10 @@
 
 #include "GPIO.h"
 
-namespace NBeagleBoard
-{
-
-class ExpansionPin : public GPIO
+class BBExpansionPin : public GPIO
 {
 public:
-	ExpansionPin(unsigned int pin) : GPIO(Demux(pin)) { }
+	BBExpansionPin(unsigned int pin) : GPIO(Demux(pin)) { }
 
 private:
 	/**
@@ -37,5 +34,3 @@ private:
 	 */
 	unsigned int Demux(unsigned int pin);
 };
-
-} // namespace NBeagleBoard

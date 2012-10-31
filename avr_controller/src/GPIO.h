@@ -69,7 +69,7 @@ public:
 	 * the resource (pin), and the resource is released when Close() is called
 	 * or the object falls out of scope.
 	 */
-	~GPIO() throw() { Close(); }
+	~GPIO() throw() { /*Close();*/ }
 
 	/**
 	 * Open the pin by exporting it, recording its current state, and getting
@@ -180,9 +180,10 @@ public:
 	 *                 the final value of the pin after a successful interrupt
 	 *                 occurs will be placed here.
 	 * \throw          GPIO::Exception
-	 * \return false   if Poll() timed out
+	 * \return false   if Poll() timed out or pin conditions are invalid
 	 */
-	bool Poll(unsigned long timeout, unsigned long &duration, bool verify = false, unsigned int &value = 0);
+	bool Poll(unsigned long timeout, unsigned long &duration, bool verify = false,
+			unsigned int *value = (unsigned int*)0);
 
 	/*!
 	 * Copy a value from one pin to another. This function can be chained:

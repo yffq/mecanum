@@ -15,13 +15,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "BeagleBoard.h"
+#include "BBExpansionPin.h"
 
-using namespace NBeagleBoard;
-
-unsigned int ExpansionPin::Demux(unsigned int pin)
+unsigned int BBExpansionPin::Demux(unsigned int pin)
 {
-	unsigned int expansionHeader[] =
+	const unsigned int expansionHeader[] =
 	{
 		/*  1 */  // VIO_1V8
 		/*  2 */  // DC_5V

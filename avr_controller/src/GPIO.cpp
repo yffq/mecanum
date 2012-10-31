@@ -95,10 +95,7 @@ bool GPIO::Export()
 	char gpio_dir[MAX_BUF];
 	snprintf(gpio_dir, sizeof(gpio_dir), SYSFS_GPIO_DIR "/gpio%d", m_gpio);
 	if (stat(gpio_dir, &st) == 0)
-	{
-		std::cerr << "GPIO::Export - GPIO pin " << m_str_gpio << " is already exported" << std::endl;
-		return false;
-	}
+		return true;
 
 	// Open /sys/class/gpio/export for writing
 	int fd_export;
@@ -149,7 +146,8 @@ void GPIO::Unexport() throw()
 	fd_unexport = open(SYSFS_GPIO_DIR "/unexport", O_WRONLY);
 	if (fd_unexport >= 0)
 	{
-		write(fd_unexport, m_str_gpio, strlen(m_str_gpio));
+		int success = write(fd_unexport, m_str_gpio, strlen(m_str_gpio));
+		(void)success; // silence "unused return value" warning
 		close(fd_unexport);
 	}
 	else
@@ -296,7 +294,7 @@ void GPIO::ReadDirection()
 		throw Exception(*this, __func__, "Unknown direction value");
 }
 
-void GPIO::SetDirection(Direction dir, unsigned int initial_value /* = 0 */) throw(GPIO::Exception)
+void GPIO::SetDirection(Direction dir, unsigned int initial_value /* = 0 */)
 {
 	// If the pin is already set to this direction, there's no effect
 	if (m_dir == dir)
@@ -399,6 +397,7 @@ int fd_edge;
 		success = (write(fd_edge, "falling", 8) == 8);
 		break;
 	case BOTH:
+	default:
 		success = (write(fd_edge, "both", 5) == 5);
 		break;
 	}
@@ -410,13 +409,25 @@ int fd_edge;
 	m_edge = edge;
 }
 
-bool GPIO::Poll(unsigned long timeout, unsigned long &duration, bool verify /* = false */, unsigned int &value /* = 0 */)
+bool GPIO::Poll(unsigned long timeout, unsigned long &duration, bool verify /* = false */,
+		unsigned int *value /* = NULL */)
 {
+	duration = 0;
+
 	// Sanity checks
-	if (m_dir != OUT && m_edge != NONE && timeout)
+	if (m_dir == OUT)
 	{
-		duration = 0;
-		return true;
+		std::cerr << "GPIO::Poll - GPIO pin " << m_str_gpio << " direction is set to OUT" << std::endl;
+		return false;
+	}
+	if (m_edge == NONE)
+	{
+		std::cerr << "GPIO::Poll - GPIO pin " << m_str_gpio << " edge is set to NONE" << std::endl;
+		return false;
+	}
+	if (timeout == 0)
+	{
+		return false;
 	}
 
 	int initial_value; // used to check for spurious wakeups
@@ -430,12 +441,14 @@ bool GPIO::Poll(unsigned long timeout, unsigned long &duration, bool verify /* =
 	// If m_edge == BOTH, this is used to verify the invariant
 	if (verify && m_edge == BOTH)
 		initial_value = GetValue();
+	else
+		initial_value = 2; // unused
 
 	while ((remaining = timeout - Elapsed(start)) > 0)
 	{
-		memset((void*)fd_value_ptr, 0, sizeof(fd_value_ptr));
-		fd_value_ptr[0].events = POLLPRI;
-		fd_value_ptr[0].fd = m_gpio_fd;
+		memset(reinterpret_cast<void*>(fd_value_ptr), 0, sizeof(fd_value_ptr));
+		fd_value_ptr[0].fd = m_gpio_fd;   // File descriptor to poll
+		fd_value_ptr[0].events = POLLPRI; // Types of events we care about
 
 		// Block until triggered by an interrupt or timeout occurs. Timeouts are
 		// in milliseconds! To preserve the timeout condition that "duration
@@ -483,11 +496,12 @@ bool GPIO::Poll(unsigned long timeout, unsigned long &duration, bool verify /* =
 								false_alarm = true;
 							break;
 						case NONE:
+						default:
 							break; // Shouldn't be here
 						}
 						// Record the new value if it wasn't a false alarm
-						if (!false_alarm)
-							value = new_value;
+						if (!false_alarm && value)
+							*value = new_value;
 					}
 				}
 
@@ -495,10 +509,14 @@ bool GPIO::Poll(unsigned long timeout, unsigned long &duration, bool verify /* =
 				if (!false_alarm)
 				{
 					// Clamp time below timeout
-					if (time > (long)timeout)
-						time = timeout;
-					return time;
+					duration = (time <= (long)timeout) ? time : timeout;
+					return true;
 				}
+				else
+				{
+					std::cerr << "GPIO::Poll - False alarm detected, probably harmless" << std::endl;
+				}
+				// Continue
 			}
 			else if (fd_value_ptr[0].revents & POLLERR)
 			{
@@ -509,9 +527,10 @@ bool GPIO::Poll(unsigned long timeout, unsigned long &duration, bool verify /* =
 			{
 				// What else can cause poll() to return? Notify the user here
 				char buffer[40];
-				snprintf(buffer, sizeof(buffer), "Unknown poll(). \"revents\": %d\n", fd_value_ptr[0].revents);
+				snprintf(buffer, sizeof(buffer), "Unknown poll(), \"revents\": %d\n", fd_value_ptr[0].revents);
 				throw Exception(*this, "GPIO::Poll", buffer);
 			}
+			// Continue
 		}
 		else if (ret == 0)
 		{
@@ -523,6 +542,7 @@ bool GPIO::Poll(unsigned long timeout, unsigned long &duration, bool verify /* =
 			// Negative value indicating error
 			throw Exception(*this, "GPIO::Poll", strerror(errno));
 		}
+		// Continue
 	}
 	return false;
 
