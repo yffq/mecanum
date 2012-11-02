@@ -133,8 +133,20 @@ void AVRController::Send(const std::string &msg)
 {
 	// Require 2-byte message length and target FSM ID
 	if (msg.length() < sizeof(uint16_t) + 1)
+	{
+		cerr << "AVRController::Send - Message is too short, skipping"<< endl;
 		return;
+	}
 
+	// Require consistent lengths
+	uint16_t length = GetMsgLength(msg.c_str());
+	if (length != msg.length())
+	{
+		cerr << "AVRController::Send - lengths are not consistent (" << msg.length() << " vs "<< length << ")" << endl;
+		return;
+	}
+
+	/*
 	cout << "-- Sending: [";
 	for (unsigned int i = 0; i < msg.length(); i++)
 	{
@@ -143,6 +155,7 @@ void AVRController::Send(const std::string &msg)
 		cout << (unsigned int)msg[i];
 	}
 	cout << "]" << endl;
+	*/
 
 	boost::mutex::scoped_lock writeQueueLock(m_writeQueueMutex);
 	m_writeQueue.push_back(msg);
@@ -189,7 +202,7 @@ bool AVRController::QueryInternal(unsigned int fsmId, bool sendMsg, const std::s
 	if (responseCondition->timed_wait(privateLock, endtime) && strResponse->length() > sizeof(uint16_t))
 	{
 		// Verify the length
-		if (strResponse->length() == *reinterpret_cast<const uint16_t*>(strResponse->c_str()))
+		if (strResponse->length() == GetMsgLength(strResponse->c_str()))
 		{
 			response = *strResponse;
 			return true;
@@ -292,7 +305,7 @@ void AVRController::ReadCallback(const boost::system::error_code &error, size_t 
 	}
 }
 
-void AVRController::ListFiniteStateMachines(std::vector<std::string> &fsmv)
+bool AVRController::ListFiniteStateMachines(std::vector<std::string> &fsmv)
 {
 	fsmv.clear();
 
@@ -322,7 +335,7 @@ void AVRController::ListFiniteStateMachines(std::vector<std::string> &fsmv)
 		while (resLength > sizeof(uint16_t))
 		{
 			// Minus two, because FSM length is message length minus length word
-			uint16_t fsmLength = *reinterpret_cast<const uint16_t*>(resPtr) - sizeof(uint16_t);
+			uint16_t fsmLength = GetMsgLength(resPtr) - sizeof(uint16_t);
 			resLength -= sizeof(uint16_t);
 			resPtr += sizeof(uint16_t);
 
@@ -334,7 +347,9 @@ void AVRController::ListFiniteStateMachines(std::vector<std::string> &fsmv)
 			resLength -= fsmLength;
 			resPtr += fsmLength;
 		}
+		return true;
 	}
+	return false;
 }
 
 void AVRController::DestroyFiniteStateMachine(const std::string &fsm)
@@ -444,7 +459,7 @@ void AVRController::Message::Advance(size_t bytes)
 			m_msg.push_back(m_nextBuffer[0]);
 		}
 		// Use native endian to recover the length
-		m_msgLength = *reinterpret_cast<const uint16_t*>(m_msg.c_str());
+		m_msgLength = GetMsgLength(m_msg.c_str());
 		// Validate the input
 		if (3 <= m_msgLength && m_msgLength <= MAX_LENGTH)
 		{

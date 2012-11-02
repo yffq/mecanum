@@ -1,5 +1,5 @@
-//#include "AVRController.h"
-//#include "ParamServer.h"
+#include "AVRController.h"
+#include "ParamServer.h"
 #include "BBExpansionPin.h"
 #include "Thumbwheel.h"
 
@@ -9,33 +9,6 @@
 #include <vector>
 
 using namespace std;
-
-/*
-AVRController arduino;
-
-TEST(AVRTest, test)
-{
-	ASSERT_TRUE(arduino.Open("/dev/ttyACM0"));
-	ASSERT_TRUE(arduino.IsOpen());
-
-	vector<string> fsmv;
-	arduino.ListFiniteStateMachines(fsmv);
-	EXPECT_GT(fsmv.size(), 0);
-
-	for (vector<string>::const_iterator it = fsmv.begin(); it != fsmv.end(); it++)
-		arduino.DestroyFiniteStateMachine(*it);
-
-	arduino.ListFiniteStateMachines(fsmv);
-	EXPECT_EQ(fsmv.size(), 0);
-
-	string xmastree;
-	xmastree.push_back((uint8_t)FSM_CHRISTMASTREE);
-	arduino.CreateFiniteStateMachine(xmastree);
-
-	arduino.ListFiniteStateMachines(fsmv);
-	EXPECT_EQ(fsmv.size(), 1);
-}
-*/
 
 #define BUTTON_TIMEOUT 10000000L  // 10.0s
 #define THUMBWHEEL_SETTLE 1000000 // 1.0s
@@ -100,6 +73,95 @@ TEST(GPIOTest, thumnbwheel)
 		EXPECT_NO_THROW(TestThumbwheel(tw, 2));
 		EXPECT_NO_THROW(TestThumbwheel(tw, 4));
 	}
+}
+
+AVRController arduino;
+
+TEST(AVRTest, fsm)
+{
+	ASSERT_TRUE(arduino.Open("/dev/ttyACM0"));
+	ASSERT_TRUE(arduino.IsOpen());
+
+	vector<string> fsmv;
+	EXPECT_TRUE(arduino.ListFiniteStateMachines(fsmv));
+	EXPECT_GT(fsmv.size(), 0);
+
+	for (vector<string>::const_iterator it = fsmv.begin(); it != fsmv.end(); it++)
+		arduino.DestroyFiniteStateMachine(*it);
+
+	EXPECT_TRUE(arduino.ListFiniteStateMachines(fsmv));
+	EXPECT_EQ(fsmv.size(), 0);
+
+	string xmastree;
+	xmastree.push_back((uint8_t)FSM_CHRISTMASTREE);
+	arduino.CreateFiniteStateMachine(xmastree);
+
+	EXPECT_TRUE(arduino.ListFiniteStateMachines(fsmv));
+	EXPECT_EQ(fsmv.size(), 1);
+}
+
+void TestBridge(unsigned int beaglePin, unsigned int arduinoPin)
+{
+	ASSERT_TRUE(arduino.IsOpen());
+
+	BBExpansionPin gpio(beaglePin);
+	ASSERT_TRUE(gpio.Open());
+	EXPECT_NO_THROW(gpio.SetDirection(GPIO::IN));
+	EXPECT_NO_THROW(gpio.SetEdge(GPIO::BOTH));
+	EXPECT_EQ(gpio.GetValue(), 1);
+
+	// Record the initial number of FSMs
+	vector<string> fsmv;
+	EXPECT_TRUE(arduino.ListFiniteStateMachines(fsmv));
+	size_t initialLength = fsmv.size();
+
+	// Create a toggle FSM. On creation it will pull the pin low
+	string toggle;
+	toggle.push_back((char)FSM_TOGGLE);
+	toggle.push_back((char)arduinoPin);
+	arduino.CreateFiniteStateMachine(toggle);
+	EXPECT_TRUE(arduino.ListFiniteStateMachines(fsmv));
+	ASSERT_EQ(fsmv.size(), initialLength + 1); // Don't continue if the FSM hasn't been installed
+
+	usleep(1000);
+	EXPECT_EQ(gpio.GetValue(), 0);
+
+	// Turn the pin on
+	ParamServer::ToggleSubscriberMsg toggleMsg(arduinoPin, 1);
+	string strMsg(reinterpret_cast<const char*>(toggleMsg.GetBuffer()), toggleMsg.GetLength());
+	arduino.Send(strMsg);
+	usleep(1000);
+	EXPECT_EQ(gpio.GetValue(), 1);
+}
+
+TEST(AVRTest, bridge1)
+{
+	EXPECT_NO_THROW(TestBridge(14, BEAGLEBOARD_BRIDGE1)); // 162
+}
+
+TEST(AVRTest, bridge2)
+{
+	EXPECT_NO_THROW(TestBridge(10, BEAGLEBOARD_BRIDGE2)); // 145
+}
+
+TEST(AVRTest, bridge3)
+{
+	EXPECT_NO_THROW(TestBridge(16, BEAGLEBOARD_BRIDGE3)); // 161
+}
+
+TEST(AVRTest, bridge4)
+{
+	EXPECT_NO_THROW(TestBridge(18, BEAGLEBOARD_BRIDGE4)); // 159
+}
+
+TEST(AVRTest, bridge5)
+{
+	EXPECT_NO_THROW(TestBridge(9, BEAGLEBOARD_BRIDGE5)); // 136
+}
+
+TEST(AVRTest, bridge6)
+{
+	EXPECT_NO_THROW(TestBridge(12, BEAGLEBOARD_BRIDGE6)); // 158
 }
 
 int main(int argc, char **argv)

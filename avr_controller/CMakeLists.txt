@@ -39,6 +39,6 @@ rosbuild_add_gtest(avrtest test/avrtest.cpp
                            src/BBExpansionPin.cpp
                            src/GPIO.cpp
                            src/Thumbwheel.cpp)
-#target_link_libraries(avrtest ${PROJECT_NAME})
+target_link_libraries(avrtest ${PROJECT_NAME})
 
 

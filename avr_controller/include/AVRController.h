@@ -91,9 +91,11 @@ public:
 	/**
 	 * Interface with the MecanumMaster program running on the AVR.
 	 */
-	void ListFiniteStateMachines(std::vector<std::string> &fsmv);
+	bool ListFiniteStateMachines(std::vector<std::string> &fsmv);
 	void DestroyFiniteStateMachine(const std::string &fsm);
 	void CreateFiniteStateMachine(const std::string &fsm);
+
+	static uint16_t GetMsgLength(const void *bytes) { return *reinterpret_cast<const uint16_t*>(bytes); }
 
 private:
 
