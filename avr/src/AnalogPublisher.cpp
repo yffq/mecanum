@@ -16,7 +16,7 @@ AnalogPublisher *AnalogPublisher::NewFromArray(const TinyBuffer &params)
 	if (Validate(params.Buffer(), params.Length()))
 	{
 		ParamServer::AnalogPublisher ap(params.Buffer());
-		new AnalogPublisher(ap.GetPin(), ap.GetDelay());
+		return new AnalogPublisher(ap.GetPin(), ap.GetDelay());
 	}
 	return NULL;
 }

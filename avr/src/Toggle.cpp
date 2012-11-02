@@ -21,7 +21,7 @@ Toggle *Toggle::NewFromArray(const TinyBuffer &params)
 	if (Validate(params.Buffer(), params.Length()))
 	{
 		ParamServer::Toggle toggle(params.Buffer());
-		new Toggle(toggle.GetPin());
+		return new Toggle(toggle.GetPin());
 	}
 	return NULL;
 }

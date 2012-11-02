@@ -46,7 +46,7 @@ Fade *Fade::NewFromArray(const TinyBuffer &params)
 	if (Validate(params.Buffer(), params.Length()))
 	{
 		ParamServer::Fade fade(params.Buffer());
-		new Fade(fade.GetPin(), fade.GetPeriod(), fade.GetDelay(), fade.GetCurve());
+		return new Fade(fade.GetPin(), fade.GetPeriod(), fade.GetDelay(), fade.GetCurve());
 	}
 	return NULL;
 }

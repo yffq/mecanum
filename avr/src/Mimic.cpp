@@ -19,7 +19,7 @@ Mimic *Mimic::NewFromArray(const TinyBuffer &params)
 	if (Validate(params.Buffer(), params.Length()))
 	{
 		ParamServer::Mimic mimic(params.Buffer());
-		new Mimic(mimic.GetSource(), mimic.GetDest(), mimic.GetDelay());
+		return new Mimic(mimic.GetSource(), mimic.GetDest(), mimic.GetDelay());
 	}
 	return NULL;
 }

@@ -17,7 +17,7 @@ DigitalPublisher *DigitalPublisher::NewFromArray(const TinyBuffer &params)
 	if (Validate(params.Buffer(), params.Length()))
 	{
 		ParamServer::DigitalPublisher dp(params.Buffer());
-		new DigitalPublisher(dp.GetPin(), dp.GetDelay());
+		return new DigitalPublisher(dp.GetPin(), dp.GetDelay());
 	}
 	return NULL;
 }

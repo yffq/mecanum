@@ -21,7 +21,7 @@ Blink *Blink::NewFromArray(const TinyBuffer &params)
 	if (Validate(params.Buffer(), params.Length()))
 	{
 		ParamServer::Blink blink(params.Buffer());
-		new Blink(blink.GetPin(), blink.GetDelay());
+		return new Blink(blink.GetPin(), blink.GetDelay());
 	}
 	return NULL;
 }
