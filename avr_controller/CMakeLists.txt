@@ -35,7 +35,10 @@ rosbuild_link_boost(${PROJECT_NAME} system thread)
 
 # Build the test
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread") # fix for Ubuntu 11.10+
-rosbuild_add_gtest(avrtest test/avrtest.cpp src/BBExpansionPin.cpp src/GPIO.cpp)
+rosbuild_add_gtest(avrtest test/avrtest.cpp
+                           src/BBExpansionPin.cpp
+                           src/GPIO.cpp
+                           src/Thumbwheel.cpp)
 #target_link_libraries(avrtest ${PROJECT_NAME})
 
 
