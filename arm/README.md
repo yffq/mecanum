@@ -30,7 +30,7 @@ Install samba (`sudo apt-get install samba`) if not already installed. Edit `/et
     browsable = yes
     guest ok = no
     read only = no
-    create mask = 0755
+    create mask = 0644
 ```
 
 Create a samba password for the account: `sudo smbpasswd -a garrett`. Finally, add the mapping to `/etc/samba/smbusers`:
