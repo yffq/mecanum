@@ -31,7 +31,6 @@
 
 #define SYSFS_GPIO_DIR "/sys/class/gpio"
 #define EXPORT_COMMAND "`rospack find avr_controller`/gpio_export.sh %d"
-#define MAX_BUF        64
 
 #ifndef INVALID_SOCKET
 	#define INVALID_SOCKET -1
@@ -55,7 +54,7 @@ bool GPIO::Open()
 	{
 		// First start by checking to see if the pin is exported
 		struct stat st;
-		char gpio_dir[MAX_BUF];
+		char gpio_dir[sizeof(SYSFS_GPIO_DIR "/gpio%d") + 5]; // 5 digits for GPIO number
 		snprintf(gpio_dir, sizeof(gpio_dir), SYSFS_GPIO_DIR "/gpio%d", m_gpio);
 		if (stat(gpio_dir, &st) != 0)
 		{
@@ -111,7 +110,7 @@ void GPIO::Reopen(int mode)
 		close(m_gpio_fd);
 		m_gpio_fd = INVALID_SOCKET;
 	}
-	char value_buffer[MAX_BUF];
+	char value_buffer[sizeof(SYSFS_GPIO_DIR "/gpio%d/value") + 5];
 	snprintf(value_buffer, sizeof(value_buffer), SYSFS_GPIO_DIR "/gpio%d/value", m_gpio);
 	m_gpio_fd = open(value_buffer, mode);
 	if (!IsOpen())
@@ -206,24 +205,25 @@ void GPIO::ReadDirection()
 {
 	// Open /sys/class/gpio/gpioXXX/direction for reading
 	int fd_dir;
-	char buffer_dir[MAX_BUF];
+	char buffer_dir[sizeof(SYSFS_GPIO_DIR "/gpio%d/direction") + 5];
 	snprintf(buffer_dir, sizeof(buffer_dir), SYSFS_GPIO_DIR "/gpio%d/direction", m_gpio);
 	fd_dir = open(buffer_dir, O_RDONLY);
 	if (fd_dir < 0)
 		throw Exception(*this, __func__, strerror(errno));
 
 	ssize_t num; // number of bytes read
-	num = read(fd_dir, buffer_dir, 4); // Re-use buffer_dir
+	char read_value[4];
+	num = read(fd_dir, read_value, sizeof(read_value));
 	close(fd_dir);
 
 	if (num < 2) // minimum 2 chars for "in"
 		throw Exception(*this, __func__, "Direction string is too short");
 
-	if (strncmp(buffer_dir, "in", 2) == 0)
+	if (strncmp(read_value, "in", 2) == 0)
 		m_dir = IN;
-	else if (strncmp(buffer_dir, "out", 3) == 0 || // These three are equivalent.
-			 strncmp(buffer_dir, "low", 3) == 0 || // Only "out" should be read,
-			 strncmp(buffer_dir, "high", 4) == 0)  // but just in case.
+	else if (strncmp(read_value, "out", 3) == 0 || // These three are equivalent.
+			 strncmp(read_value, "low", 3) == 0 || // Only "out" should be read,
+			 strncmp(read_value, "high", 4) == 0)  // but just in case.
 		m_dir = OUT;
 	else
 		throw Exception(*this, __func__, "Unknown direction value");
@@ -235,9 +235,6 @@ void GPIO::SetDirection(Direction dir, unsigned int initial_value /* = 0 */)
 	if (m_dir == dir)
 		return;
 
-	int fd_dir;
-	char buffer_dir[MAX_BUF];
-
 	// Close the fd for the value node so it can be re-opened as read/write only
 	if (IsOpen())
 	{
@@ -246,6 +243,8 @@ void GPIO::SetDirection(Direction dir, unsigned int initial_value /* = 0 */)
 	}
 
 	// Open /sys/class/gpio/gpioXXX/direction for writing
+	int fd_dir;
+	char buffer_dir[sizeof(SYSFS_GPIO_DIR "/gpio%d/direction") + 5];
 	snprintf(buffer_dir, sizeof(buffer_dir), SYSFS_GPIO_DIR "/gpio%d/direction", m_gpio);
 	fd_dir = open(buffer_dir, O_WRONLY);
 	if (fd_dir < 0)
@@ -277,27 +276,28 @@ void GPIO::ReadEdge()
 {
 	// Open /sys/class/gpio/gpioXXX/edge for reading
 	int fd_edge;
-	char buffer_edge[MAX_BUF];
+	char buffer_edge[sizeof(SYSFS_GPIO_DIR "/gpio%d/edge") + 5];
 	snprintf(buffer_edge, sizeof(buffer_edge), SYSFS_GPIO_DIR "/gpio%d/edge", m_gpio);
 	fd_edge = open(buffer_edge, O_RDONLY);
 	if (fd_edge < 0)
 		throw Exception(*this, "GPIO::ReadEdge", strerror(errno));
 
 	ssize_t num; // number of bytes read
-	num = read(fd_edge, buffer_edge, 7); // length of "falling"
+	char read_value[7];
+	num = read(fd_edge, read_value, sizeof(read_value)); // length of "falling"
 	close(fd_edge);
 
 	if (num < 4) // minimum 4 chars for "none"
 		throw Exception(*this, "GPIO::ReadEdge", "Direction string is too short");
 
 	// We just compare the first 4 bytes. Sometimes this is all that's read
-	if (strncmp(buffer_edge, "none", 4) == 0)
+	if (strncmp(read_value, "none", 4) == 0)
 		m_edge = NONE;
-	else if (strncmp(buffer_edge, "rising", 4) == 0)
+	else if (strncmp(read_value, "rising", 4) == 0)
 		m_edge = RISING;
-	else if (strncmp(buffer_edge, "falling", 4) == 0)
+	else if (strncmp(read_value, "falling", 4) == 0)
 		m_edge = FALLING;
-	else if (strncmp(buffer_edge, "both", 4) == 0)
+	else if (strncmp(read_value, "both", 4) == 0)
 		m_edge = BOTH;
 	else
 		throw Exception(*this, "GPIO::ReadEdge", "Unknown edge value");
@@ -309,10 +309,9 @@ void GPIO::SetEdge(Edge edge)
 	if (m_edge == edge)
 		return;
 
-int fd_edge;
-	char buffer_edge[MAX_BUF];
-
 	// Open /sys/class/gpio/gpioXXX/edge for writing
+	int fd_edge;
+	char buffer_edge[sizeof(SYSFS_GPIO_DIR "/gpio%d/edge") + 5];
 	snprintf(buffer_edge, sizeof(buffer_edge), SYSFS_GPIO_DIR "/gpio%d/edge", m_gpio);
 	fd_edge = open(buffer_edge, O_WRONLY);
 	if (fd_edge < 0)
