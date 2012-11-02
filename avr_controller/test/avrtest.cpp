@@ -132,6 +132,40 @@ void TestBridge(unsigned int beaglePin, unsigned int arduinoPin)
 	arduino.Send(strMsg);
 	usleep(1000);
 	EXPECT_EQ(gpio.GetValue(), 1);
+
+	// Remove the FSM, pin is pulled low as a post-condition
+	arduino.DestroyFiniteStateMachine(toggle);
+	EXPECT_TRUE(arduino.ListFiniteStateMachines(fsmv));
+	ASSERT_EQ(fsmv.size(), initialLength);
+	usleep(1000);
+	EXPECT_EQ(gpio.GetValue(), 0);
+
+	// Test subscribing to the BeagleBoard's GPIO pins
+	string digitalPub;
+	uint32_t delay = 100000; // ms (run on command only)
+	digitalPub.push_back((char)FSM_DIGITALPUBLISHER);
+	digitalPub.push_back((char)arduinoPin);
+	digitalPub.append(reinterpret_cast<char*>(&delay), sizeof(delay));
+	arduino.CreateFiniteStateMachine(digitalPub);
+	EXPECT_TRUE(arduino.ListFiniteStateMachines(fsmv));
+	ASSERT_EQ(fsmv.size(), initialLength + 1);
+
+	// Test the pin
+	EXPECT_NO_THROW(gpio.SetDirection(GPIO::OUT, 1));
+	ParamServer::DigitalPublisherSubscriberMsg msg(arduinoPin);
+	string strMsg2(reinterpret_cast<const char*>(msg.GetBuffer()), msg.GetLength());
+	string strResponse;
+	EXPECT_TRUE(arduino.Query(strMsg2, strResponse, 1000)); // 1s
+	ASSERT_TRUE(strResponse.length() == ParamServer::DigitalPublisherPublisherMsg::GetLength());
+	ParamServer::DigitalPublisherPublisherMsg res(reinterpret_cast<const uint8_t*>(strResponse.c_str()));
+	EXPECT_TRUE(res.GetValue() == 1);
+
+	// Flip the pin and test again
+	EXPECT_NO_THROW(gpio.SetValue(0));
+	ASSERT_TRUE(arduino.Query(strMsg2, strResponse, 1000)); // 1s
+	ASSERT_TRUE(strResponse.length() == ParamServer::DigitalPublisherPublisherMsg::GetLength());
+	ParamServer::DigitalPublisherPublisherMsg res2(reinterpret_cast<const uint8_t*>(strResponse.c_str()));
+	EXPECT_TRUE(res2.GetValue() == 0);
 }
 
 TEST(AVRTest, bridge1)
