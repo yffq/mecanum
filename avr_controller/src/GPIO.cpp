@@ -22,6 +22,7 @@
 #include <iostream>   // for cerr
 #include <poll.h>     // for poll()
 #include <stdio.h>    // for snprintf()
+#include <stdlib.h>   // for system()
 #include <string.h>   // for strerror()
 #include <sys/stat.h> // for stat()
 #include <sys/time.h> // for gettimeofday()
@@ -29,6 +30,7 @@
 #include <unistd.h>   // for I/O functions
 
 #define SYSFS_GPIO_DIR "/sys/class/gpio"
+#define EXPORT_COMMAND "`rospack find avr_controller`/gpio_export.sh %d"
 #define MAX_BUF        64
 
 #ifndef INVALID_SOCKET
@@ -56,7 +58,14 @@ bool GPIO::Open()
 		char gpio_dir[MAX_BUF];
 		snprintf(gpio_dir, sizeof(gpio_dir), SYSFS_GPIO_DIR "/gpio%d", m_gpio);
 		if (stat(gpio_dir, &st) != 0)
-			return false;
+		{
+			Export();
+			if (stat(gpio_dir, &st) != 0)
+			{
+				std::cerr << "GPIO::Open - Pin " << m_gpio << ": Unable to export pin" << std::endl;
+				return false;
+			}
+		}
 
 		// Now, sync m_dir and m_edge with the sysfs values
 		try
@@ -74,8 +83,6 @@ bool GPIO::Open()
 	return true;
 }
 
-//"`rospack find avr_controller`/gpio_export.sh %d"
-
 void GPIO::Close() throw()
 {
 	if (IsOpen())
@@ -83,6 +90,14 @@ void GPIO::Close() throw()
 		close(m_gpio_fd);
 		m_gpio_fd = INVALID_SOCKET;
 	}
+}
+
+void GPIO::Export()
+{
+	char cmd_buffer[sizeof(EXPORT_COMMAND) + 5]; // allocate 5 digits
+	snprintf(cmd_buffer, sizeof(cmd_buffer), EXPORT_COMMAND, m_gpio);
+	int ret = system(cmd_buffer);
+	(void)ret;
 }
 
 /**
@@ -113,8 +128,6 @@ void GPIO::Reopen(int mode)
  *    1. Invalid (unexported)
  *    2. Inconsistent -- Close() must be called
  *    3. Ready for another read; the exception was just ephemeral
- *
- * TODO: Add a new exception, EphemeralException, signifying state 3.
  */
 unsigned int GPIO::GetValue()
 {

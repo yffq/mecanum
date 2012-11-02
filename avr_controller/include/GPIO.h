@@ -226,6 +226,11 @@ public:
 	bool PWM(unsigned long period, unsigned long time, double duty_cycle = 0.5);
 
 private:
+	/**
+	 * Export a pin so that Open() may proceed.
+	 */
+	void Export();
+
 	/*!
 	 * Reopen the pin's value node in the specified RW mode. No function exists
 	 * for getting the current RW mode because it is assumed that a direction
