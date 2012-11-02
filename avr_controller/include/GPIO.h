@@ -24,10 +24,7 @@ class GPIO
 {
 public:
 	/**
-	 * GPIO::Exception
-	 *
-	 * Thrown when a problem has occured in reading or writing to the sysfs.
-	 *
+	 * Thrown when a problem has occurred in reading or writing to the sysfs.
 	 * The post-condition of GPIO public functions is that the GPIO pin is in
 	 * an open and usable state. If this cannot be guaranteed by the function,
 	 * this exception is thrown before the function runs to completion.
@@ -38,8 +35,10 @@ public:
 		Exception(const GPIO &gpio, const char *function, const char *msg) throw();
 		virtual ~Exception() throw() { };
 		virtual const char* what() const throw() { return m_msg; }
+		unsigned int GetPin() const { return m_pin; }
 	private:
 		char m_msg[128];
+		unsigned int m_pin;
 	};
 
 	// Direction of the GPIO pin
@@ -69,11 +68,11 @@ public:
 	 * the resource (pin), and the resource is released when Close() is called
 	 * or the object falls out of scope.
 	 */
-	~GPIO() throw() { /*Close();*/ }
+	~GPIO() throw() { Close(); }
 
 	/**
-	 * Open the pin by exporting it, recording its current state, and getting
-	 * it ready to be manipulated.
+	 * Open the pin, recording its current state, and get it ready to be
+	 * manipulated.
 	 */
 	bool Open();
 
@@ -182,12 +181,7 @@ public:
 	 * \throw          GPIO::Exception
 	 * \return false   if Poll() timed out or pin conditions are invalid
 	 */
-	bool Poll(unsigned long timeout, unsigned long &duration, bool verify = true)
-	{
-		unsigned int value;
-		return Poll(timeout, duration, verify, value);
-		(void)value; // silence compiler warning
-	}
+	bool Poll(unsigned long timeout, unsigned long &duration, bool verify = true);
 	bool Poll(unsigned long timeout, unsigned long &duration, bool verify, unsigned int &value);
 
 	/*!
@@ -232,22 +226,6 @@ public:
 	bool PWM(unsigned long period, unsigned long time, double duty_cycle = 0.5);
 
 private:
-	/*!
-	 * Exporting a pin means to enable its use for GPIO functionality. Pins are
-	 * exported by writing their number to /sys/class/gpio/export, for example:
-	 * echo 139 > /sys/class/gpio/export. The export sysfs file must be write-
-	 * enabled for the current user.
-	 */
-	bool Export();
-
-	/*!
-	 * Disable the GPIO pin. This is done by writing the pin number to
-	 * /sys/class/gpio/unexport, similar to Open(). The GPIO sysfs directory
-	 * is deleted, so make sure that all file connections (value, direction and
-	 * edge) are closed before unexporting the pin.
-	 */
-	void Unexport() throw(); // Called by destructor, no exceptions allowed
-
 	/*!
 	 * Reopen the pin's value node in the specified RW mode. No function exists
 	 * for getting the current RW mode because it is assumed that a direction

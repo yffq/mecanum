@@ -36,8 +36,9 @@
 #endif
 
 GPIO::Exception::Exception(const GPIO &gpio, const char *function, const char *msg) throw()
+	: m_pin(gpio.Describe())
 {
-	snprintf(m_msg, sizeof(m_msg), "%s - Pin %d: %s", function, gpio.Describe(), msg);
+	snprintf(m_msg, sizeof(m_msg), "%s - Pin %d: %s", function, m_pin, msg);
 }
 
 GPIO::GPIO(unsigned int gpio) : m_gpio(gpio), m_gpio_fd(INVALID_SOCKET), m_dir(IN), m_edge(NONE)
@@ -50,10 +51,11 @@ bool GPIO::Open()
 	// If the pin is already open, don't do anything
 	if (!IsOpen())
 	{
-		// First start by exporting the pin. If this fails (e.g. due to a
-		// permission error or otherwise) then the pin will be left
-		// unmodified (that is, still invalid).
-		if (!Export())
+		// First start by checking to see if the pin is exported
+		struct stat st;
+		char gpio_dir[MAX_BUF];
+		snprintf(gpio_dir, sizeof(gpio_dir), SYSFS_GPIO_DIR "/gpio%d", m_gpio);
+		if (stat(gpio_dir, &st) != 0)
 			return false;
 
 		// Now, sync m_dir and m_edge with the sysfs values
@@ -61,22 +63,6 @@ bool GPIO::Open()
 		{
 			ReadDirection();
 			ReadEdge();
-		}
-		catch (const Exception &e)
-		{
-			std::cerr << e.what() << std::endl;
-			// If either function failed, this function's contract guarantees
-			// that the pin (and underlying sysfs system) is unmodified.
-			// Unexporting the pin lets us maintain consistency and allows
-			// Open() to be called again.
-			Unexport();
-			return false;
-		}
-
-		// Exclude Reopen() from the try-catch above because it handles
-		// unexporting the pin itself.
-		try
-		{
 			Reopen(m_dir == OUT ? O_WRONLY : O_RDONLY);
 		}
 		catch (const Exception &e)
@@ -88,81 +74,20 @@ bool GPIO::Open()
 	return true;
 }
 
-bool GPIO::Export()
-{
-	// If pin is already exported
-	struct stat st;
-	char gpio_dir[MAX_BUF];
-	snprintf(gpio_dir, sizeof(gpio_dir), SYSFS_GPIO_DIR "/gpio%d", m_gpio);
-	if (stat(gpio_dir, &st) == 0)
-		return true;
+//"`rospack find avr_controller`/gpio_export.sh %d"
 
-	// Open /sys/class/gpio/export for writing
-	int fd_export;
-	fd_export = open(SYSFS_GPIO_DIR "/export", O_WRONLY);
-	if (fd_export < 0)
-	{
-		int export_errno = errno;
-		std::cerr << "GPIO::Export - Failed to export pin " << m_str_gpio << ": " <<
-				strerror(export_errno) << std::endl;
-		return false;
-	}
-
-	// Echo the pin number into the export node
-	int success, write_errno;
-	success = write(fd_export, m_str_gpio, strlen(m_str_gpio));
-	write_errno = errno; // In case of an error, this is used later on
-	close(fd_export);
-	if (success <= 0)
-	{
-		std::cerr << "GPIO::Export - Failed to export pin " << m_str_gpio << ": " <<
-				strerror(write_errno) << std::endl;
-		return false;
-	}
-	return true;
-}
-
-/**
- * Post-condition: No guarantees!
- */
 void GPIO::Close() throw()
 {
 	if (IsOpen())
 	{
 		close(m_gpio_fd);
 		m_gpio_fd = INVALID_SOCKET;
-		Unexport();
 	}
 }
 
 /**
- * Post-condition: No guarantees. If an error occurs, the pin will be in an
- * inconsistent state.
- */
-void GPIO::Unexport() throw()
-{
-	// Write the pin number to /sys/class/gpio/unexport
-	int fd_unexport;
-	fd_unexport = open(SYSFS_GPIO_DIR "/unexport", O_WRONLY);
-	if (fd_unexport >= 0)
-	{
-		int success = write(fd_unexport, m_str_gpio, strlen(m_str_gpio));
-		(void)success; // silence "unused return value" warning
-		close(fd_unexport);
-	}
-	else
-	{
-		int export_errno = errno;
-		std::cerr << "GPIO::Unexport - Failed to unexport pin " << m_str_gpio << ": " <<
-				strerror(export_errno) << std::endl;
-	}
-}
-
-/**
- * Post-condition: Pin is ready for reading/writing.
- *
- * If an exception is thrown, the pin is invalid (unexported). The unexport may
- * have failed, so the pin may have to be exported manually before Open() works.
+ * Post-condition: Pin is ready for reading/writing. An exception is thrown to
+ * indicate an invalid pin.
  */
 void GPIO::Reopen(int mode)
 {
@@ -175,10 +100,7 @@ void GPIO::Reopen(int mode)
 	snprintf(value_buffer, sizeof(value_buffer), SYSFS_GPIO_DIR "/gpio%d/value", m_gpio);
 	m_gpio_fd = open(value_buffer, mode);
 	if (!IsOpen())
-	{
-		Unexport();
 		throw Exception(*this, __func__, strerror(errno));
-	}
 }
 
 /**
@@ -407,6 +329,14 @@ int fd_edge;
 
 	// Record the new edge
 	m_edge = edge;
+}
+
+bool GPIO::Poll(unsigned long timeout, unsigned long &duration, bool verify /* = true */)
+{
+	unsigned int value;
+	bool ret = Poll(timeout, duration, verify, value);
+	(void)value; // silence compiler warning
+	return ret;
 }
 
 bool GPIO::Poll(unsigned long timeout, unsigned long &duration, bool verify, unsigned int &value)

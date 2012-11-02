@@ -57,19 +57,26 @@ void TestButton(const char *color, unsigned int expansionPin)
 	EXPECT_EQ(post_value, 0);
 }
 
+bool bTestButtons;
+
 TEST(GPIOTest, green)
 {
-	EXPECT_NO_THROW(TestButton("green", 3)); // 139
+	cout << "Test hardware buttons? (y/n)" << endl;
+	bTestButtons = (cin.get() == 'y');
+	if (bTestButtons)
+		EXPECT_NO_THROW(TestButton("green", 3)); // 139
 }
 
 TEST(GPIOTest, yellow)
 {
-	EXPECT_NO_THROW(TestButton("yellow", 5)); // 138
+	if (bTestButtons)
+		EXPECT_NO_THROW(TestButton("yellow", 5)); // 138
 }
 
 TEST(GPIOTest, red)
 {
-	EXPECT_NO_THROW(TestButton("red", 8)); // 143
+	if (bTestButtons)
+		EXPECT_NO_THROW(TestButton("red", 8)); // 143
 }
 
 unsigned int GetThumbwheelValue(BBExpansionPin &tw1, BBExpansionPin &tw2, BBExpansionPin &tw4)
@@ -91,32 +98,35 @@ void ThumbwheelTarget(BBExpansionPin &tw1, BBExpansionPin &tw2, BBExpansionPin &
 
 TEST(GPIOTest, thumnbwheel)
 {
-	BBExpansionPin tw1(19); // 131
-	BBExpansionPin tw2(6); // 146
-	BBExpansionPin tw4(7); // 137
-	ASSERT_TRUE(tw1.Open());
-	ASSERT_TRUE(tw2.Open());
-	ASSERT_TRUE(tw4.Open());
-	EXPECT_NO_THROW(tw1.SetDirection(GPIO::IN));
-	EXPECT_NO_THROW(tw2.SetDirection(GPIO::IN));
-	EXPECT_NO_THROW(tw4.SetDirection(GPIO::IN));
-	EXPECT_NO_THROW(tw1.SetEdge(GPIO::BOTH));
-	EXPECT_NO_THROW(tw2.SetEdge(GPIO::BOTH));
-	EXPECT_NO_THROW(tw4.SetEdge(GPIO::BOTH));
+	if (bTestButtons)
+	{
+		BBExpansionPin tw1(19); // 131
+		BBExpansionPin tw2(6); // 146
+		BBExpansionPin tw4(7); // 137
+		ASSERT_TRUE(tw1.Open());
+		ASSERT_TRUE(tw2.Open());
+		ASSERT_TRUE(tw4.Open());
+		EXPECT_NO_THROW(tw1.SetDirection(GPIO::IN));
+		EXPECT_NO_THROW(tw2.SetDirection(GPIO::IN));
+		EXPECT_NO_THROW(tw4.SetDirection(GPIO::IN));
+		EXPECT_NO_THROW(tw1.SetEdge(GPIO::BOTH));
+		EXPECT_NO_THROW(tw2.SetEdge(GPIO::BOTH));
+		EXPECT_NO_THROW(tw4.SetEdge(GPIO::BOTH));
 
-	unsigned int value;
-	EXPECT_NO_THROW(value = GetThumbwheelValue(tw1, tw2, tw4));
+		unsigned int value;
+		EXPECT_NO_THROW(value = GetThumbwheelValue(tw1, tw2, tw4));
 
-	if (value > 0)
-		ThumbwheelTarget(tw1, tw2, tw4, 0);
+		if (value > 0)
+			ThumbwheelTarget(tw1, tw2, tw4, 0);
 
-	ThumbwheelTarget(tw1, tw2, tw4, 1);
-	ThumbwheelTarget(tw1, tw2, tw4, 2);
-	ThumbwheelTarget(tw1, tw2, tw4, 3);
-	ThumbwheelTarget(tw1, tw2, tw4, 4);
-	ThumbwheelTarget(tw1, tw2, tw4, 5);
-	ThumbwheelTarget(tw1, tw2, tw4, 6);
-	ThumbwheelTarget(tw1, tw2, tw4, 7);
+		ThumbwheelTarget(tw1, tw2, tw4, 1);
+		ThumbwheelTarget(tw1, tw2, tw4, 2);
+		ThumbwheelTarget(tw1, tw2, tw4, 3);
+		ThumbwheelTarget(tw1, tw2, tw4, 4);
+		ThumbwheelTarget(tw1, tw2, tw4, 5);
+		ThumbwheelTarget(tw1, tw2, tw4, 6);
+		ThumbwheelTarget(tw1, tw2, tw4, 7);
+	}
 }
 
 int main(int argc, char **argv)
