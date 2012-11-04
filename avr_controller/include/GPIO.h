@@ -231,6 +231,12 @@ public:
 
 private:
 	/**
+	 * This object is noncopyable.
+	 */
+	GPIO(const GPIO &other);
+	GPIO& operator=(const GPIO &rhs);
+
+	/**
 	 * Export a pin so that Open() may proceed.
 	 */
 	void Export();
@@ -277,13 +283,6 @@ private:
 		gettimeofday(&end, 0);
 		return (end.tv_sec - start.tv_sec) * 1000000 + end.tv_usec - start.tv_usec;
 	}
-
-private:
-	/**
-	 * This object is noncopyable.
-	 */
-	GPIO(const GPIO &other);
-	GPIO& operator=(const GPIO &rhs);
 
 	// GPIO pin number for this class
 	unsigned int m_gpio;

@@ -25,35 +25,42 @@
 
 #include <errno.h>    // for errno
 #include <fcntl.h>    // for open()
+#include <iostream>   // for cerr
 #include <stdio.h>    // for snprintf()
 #include <string.h>   // for strerror()
-
-#include <iostream>   // for cerr
 
 #define I2C_BUS_FILENAME "/dev/i2c-%d"
 
 #define I2C_FIRST_ADDRESS 0x03 // Set to 0x00 for non-regular addresses
 #define I2C_LAST_ADDRESS  0x77 // Set to 0x7F for non-regular addresses
 
-#ifndef INVALID_DESCRIPTOR
-	#define INVALID_DESCRIPTOR -1
-#endif
-
 using namespace std;
 
-bool I2CBus::DetectDevices(unsigned int i2cbus, vector<unsigned int> &devices)
+bool I2CBus::Open()
 {
-	char filename[sizeof(I2C_BUS_FILENAME) + 2]; // Allow 4 digits for the bus number
-	snprintf(filename, sizeof(filename), I2C_BUS_FILENAME, i2cbus);
-	int fd = open(filename, O_RDWR);
-	if (fd < 0)
+	if (!IsOpen())
 	{
-		cerr << "I2CBus::DetectDevices - Could not open " << filename << " for R/W" << endl;
-		return false;
+		char filename[sizeof(I2C_BUS_FILENAME) + 2]; // Allow 4 digits for the bus number
+		snprintf(filename, sizeof(filename), I2C_BUS_FILENAME, m_i2cbus);
+		m_fd = open(filename, O_RDWR);
+		return m_fd >= 0;
 	}
+	return true;
+}
 
+void I2CBus::Close() throw()
+{
+	if (IsOpen())
+	{
+		close(m_fd);
+		m_fd = INVALID_DESCRIPTOR;
+	}
+}
+
+bool I2CBus::DetectDevices(vector<unsigned int> &devices)
+{
 	unsigned long funcs;
-	if (ioctl(fd, I2C_FUNCS, &funcs) < 0)
+	if (ioctl(m_fd, I2C_FUNCS, &funcs) < 0)
 	{
 		cerr << "I2CBus::DetectDevices - Could not get the adapter functionality matrix";
 		return false;
@@ -69,7 +76,7 @@ bool I2CBus::DetectDevices(unsigned int i2cbus, vector<unsigned int> &devices)
 	for (unsigned int i = I2C_FIRST_ADDRESS; i < I2C_LAST_ADDRESS; i++)
 	{
 		// Set the slave address
-		if (ioctl(fd, I2C_SLAVE, i) < 0)
+		if (ioctl(m_fd, I2C_SLAVE, i) < 0)
 		{
 			if (errno == EBUSY)
 			{
@@ -87,10 +94,8 @@ bool I2CBus::DetectDevices(unsigned int i2cbus, vector<unsigned int> &devices)
 		}
 
 		// Probe the address
-		if (i2c_smbus_read_byte(fd) >= 0)
+		if (i2c_smbus_read_byte(m_fd) >= 0)
 			devices.push_back(i);
 	}
-
-	close(fd);
 	return true;
 }

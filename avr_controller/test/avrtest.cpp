@@ -24,6 +24,7 @@
 #include "ParamServer.h"
 #include "BBExpansionPin.h"
 #include "I2CBus.h"
+#include "IMU.h"
 #include "Thumbwheel.h"
 
 #include <gtest/gtest.h>
@@ -233,11 +234,37 @@ TEST(AVRTest, bridge6)
 
 TEST(I2CTest, detect)
 {
+	I2CBus i2c2(2);
+	ASSERT_TRUE(i2c2.Open());
 	vector<unsigned int> devices;
-	ASSERT_TRUE(I2CBus::DetectDevices(2, devices));
+	ASSERT_TRUE(i2c2.DetectDevices(devices));
 	EXPECT_EQ(devices.size(), 2);
 	EXPECT_TRUE(std::find(devices.begin(), devices.end(), 0x53) != devices.end());
 	EXPECT_TRUE(std::find(devices.begin(), devices.end(), 0x68) != devices.end());
+}
+
+TEST(IMUTest, imu)
+{
+	IMU imu;
+	ASSERT_TRUE(imu.Open());
+
+	int16_t xyz[3];
+
+	usleep(10000 * 16);
+	EXPECT_TRUE(imu.GetFrame(xyz));
+	cout << "*** X: " << xyz[0] << endl;
+	cout << "*** Y: " << xyz[1] << endl;
+	cout << "*** Z: " << xyz[2] << endl;
+	cout << "***********" << endl;
+
+	usleep(10000 * 32);
+	EXPECT_TRUE(imu.GetFrame(xyz));
+	cout << "*** X: " << xyz[0] << endl;
+	cout << "*** Y: " << xyz[1] << endl;
+	cout << "*** Z: " << xyz[2] << endl;
+	cout << "***********" << endl;
+
+
 }
 
 int main(int argc, char **argv)
