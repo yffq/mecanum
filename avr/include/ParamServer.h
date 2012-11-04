@@ -58,7 +58,6 @@ public:
 		return false;
 	}
 
-protected:
 	struct Parameters
 	{
 		uint8_t id;
@@ -66,6 +65,7 @@ protected:
 		uint32_t delay;
 	} __attribute__((packed));
 
+protected:
 	Parameters m_params;
 };
 
@@ -146,12 +146,12 @@ public:
 		return false;
 	}
 
-protected:
 	struct Parameters
 	{
 		uint8_t id;
 	} __attribute__((packed));
 
+protected:
 	Parameters m_params;
 };
 
@@ -182,7 +182,6 @@ public:
 		return false;
 	}
 
-protected:
 	struct Parameters
 	{
 		uint8_t id;
@@ -190,6 +189,7 @@ protected:
 		uint32_t delay;
 	} __attribute__((packed));
 
+protected:
 	Parameters m_params;
 };
 
@@ -213,12 +213,12 @@ public:
 		return false;
 	}
 
-protected:
 	struct Parameters
 	{
 		uint8_t id;
 	} __attribute__((packed));
 
+protected:
 	Parameters m_params;
 };
 
@@ -248,7 +248,6 @@ public:
 		return false;
 	}
 
-protected:
 	struct Parameters
 	{
 		uint8_t id;
@@ -256,6 +255,7 @@ protected:
 		uint32_t delay;
 	} __attribute__((packed));
 
+protected:
 	Parameters m_params;
 };
 
@@ -348,7 +348,6 @@ public:
 		return false;
 	}
 
-protected:
 	struct Parameters
 	{
 		uint8_t id;
@@ -358,6 +357,7 @@ protected:
 		uint32_t delay;
 	} __attribute__((packed));
 
+protected:
 	Parameters m_params;
 };
 
@@ -391,7 +391,6 @@ public:
 		return false;
 	}
 
-protected:
 	struct Parameters
 	{
 		uint8_t id;
@@ -400,6 +399,7 @@ protected:
 		uint32_t delay;
 	} __attribute__((packed));
 
+protected:
 	Parameters m_params;
 };
 
@@ -426,13 +426,13 @@ public:
 		return false;
 	}
 
-protected:
 	struct Parameters
 	{
 		uint8_t id;
 		uint8_t pin;
 	} __attribute__((packed));
 
+protected:
 	Parameters m_params;
 };
 
