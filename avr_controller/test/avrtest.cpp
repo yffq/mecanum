@@ -23,6 +23,7 @@
 #include "AVRController.h"
 #include "ParamServer.h"
 #include "BBExpansionPin.h"
+#include "I2CBus.h"
 #include "Thumbwheel.h"
 
 #include <gtest/gtest.h>
@@ -36,6 +37,7 @@ using namespace std;
 #define THUMBWHEEL_SETTLE 1000000 // 1.0s
 
 bool bTestButtons = true;
+bool bTestAVR = true;
 
 void TestButton(const char *color, unsigned int expansionPin)
 {
@@ -101,25 +103,28 @@ AVRController arduino;
 
 TEST(AVRTest, fsm)
 {
-	ASSERT_TRUE(arduino.Open("/dev/ttyACM0"));
-	ASSERT_TRUE(arduino.IsOpen());
+	if (bTestAVR)
+	{
+		ASSERT_TRUE(arduino.Open("/dev/ttyACM0"));
+		ASSERT_TRUE(arduino.IsOpen());
 
-	vector<string> fsmv;
-	EXPECT_TRUE(arduino.ListFiniteStateMachines(fsmv));
-	EXPECT_GT(fsmv.size(), 0);
+		vector<string> fsmv;
+		EXPECT_TRUE(arduino.ListFiniteStateMachines(fsmv));
+		EXPECT_GT(fsmv.size(), 0);
 
-	for (vector<string>::const_iterator it = fsmv.begin(); it != fsmv.end(); it++)
-		arduino.DestroyFiniteStateMachine(*it);
+		for (vector<string>::const_iterator it = fsmv.begin(); it != fsmv.end(); it++)
+			arduino.DestroyFiniteStateMachine(*it);
 
-	EXPECT_TRUE(arduino.ListFiniteStateMachines(fsmv));
-	EXPECT_EQ(fsmv.size(), 0);
+		EXPECT_TRUE(arduino.ListFiniteStateMachines(fsmv));
+		EXPECT_EQ(fsmv.size(), 0);
 
-	string xmastree;
-	xmastree.push_back((uint8_t)FSM_CHRISTMASTREE);
-	arduino.CreateFiniteStateMachine(xmastree);
+		string xmastree;
+		xmastree.push_back((uint8_t)FSM_CHRISTMASTREE);
+		arduino.CreateFiniteStateMachine(xmastree);
 
-	EXPECT_TRUE(arduino.ListFiniteStateMachines(fsmv));
-	EXPECT_EQ(fsmv.size(), 1);
+		EXPECT_TRUE(arduino.ListFiniteStateMachines(fsmv));
+		EXPECT_EQ(fsmv.size(), 1);
+	}
 }
 
 void TestBridge(unsigned int beaglePin, unsigned int arduinoPin)
@@ -192,38 +197,58 @@ void TestBridge(unsigned int beaglePin, unsigned int arduinoPin)
 
 TEST(AVRTest, bridge1)
 {
-	EXPECT_NO_THROW(TestBridge(14, BEAGLEBOARD_BRIDGE1)); // 162
+	if (bTestAVR)
+		EXPECT_NO_THROW(TestBridge(14, BEAGLEBOARD_BRIDGE1)); // 162
 }
 
 TEST(AVRTest, bridge2)
 {
-	EXPECT_NO_THROW(TestBridge(10, BEAGLEBOARD_BRIDGE2)); // 145
+	if (bTestAVR)
+		EXPECT_NO_THROW(TestBridge(10, BEAGLEBOARD_BRIDGE2)); // 145
 }
 
 TEST(AVRTest, bridge3)
 {
-	EXPECT_NO_THROW(TestBridge(16, BEAGLEBOARD_BRIDGE3)); // 161
+	if (bTestAVR)
+		EXPECT_NO_THROW(TestBridge(16, BEAGLEBOARD_BRIDGE3)); // 161
 }
 
 TEST(AVRTest, bridge4)
 {
-	EXPECT_NO_THROW(TestBridge(18, BEAGLEBOARD_BRIDGE4)); // 159
+	if (bTestAVR)
+		EXPECT_NO_THROW(TestBridge(18, BEAGLEBOARD_BRIDGE4)); // 159
 }
 
 TEST(AVRTest, bridge5)
 {
-	EXPECT_NO_THROW(TestBridge(9, BEAGLEBOARD_BRIDGE5)); // 136
+	if (bTestAVR)
+		EXPECT_NO_THROW(TestBridge(9, BEAGLEBOARD_BRIDGE5)); // 136
 }
 
 TEST(AVRTest, bridge6)
 {
-	EXPECT_NO_THROW(TestBridge(12, BEAGLEBOARD_BRIDGE6)); // 158
+	if (bTestAVR)
+		EXPECT_NO_THROW(TestBridge(12, BEAGLEBOARD_BRIDGE6)); // 158
+}
+
+TEST(I2CTest, detect)
+{
+	vector<unsigned int> devices;
+	ASSERT_TRUE(I2CBus::DetectDevices(2, devices));
+	EXPECT_EQ(devices.size(), 2);
+	EXPECT_TRUE(std::find(devices.begin(), devices.end(), 0x53) != devices.end());
+	EXPECT_TRUE(std::find(devices.begin(), devices.end(), 0x68) != devices.end());
 }
 
 int main(int argc, char **argv)
 {
 	cout << "Test hardware buttons? (y/n)" << endl;
 	bTestButtons = (cin.get() == 'y');
+	cin.ignore(1000, '\n');
+
+	cout << "Test AVR? (y/n)" << endl;
+	bTestAVR = (cin.get() == 'y');
+	cin.ignore(1000, '\n');
 
 	testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();
