@@ -128,8 +128,8 @@ bool IMU::InitAcc()
 
 	ret &= SetTarget(ACC);
 
-	// Set the Range to +/- 4G
-	ret &= (i2c_smbus_write_byte_data(i2c.File(), ADXL345_DATA_FORMAT, ADXL345_RANGE_4G) >= 0);
+	// Set the range to +/- 4G (using the same resolution as 2G)
+	ret &= (i2c_smbus_write_byte_data(i2c.File(), ADXL345_DATA_FORMAT, ADXL345_RANGE_4G | ADXL345_FULL_RES) >= 0);
 
 	// Default ADXL345 rate is 100 Hz. Perfect!
 
