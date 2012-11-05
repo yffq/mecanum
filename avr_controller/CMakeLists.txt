@@ -43,4 +43,7 @@ rosbuild_add_gtest(avrtest test/avrtest.cpp
                            src/Thumbwheel.cpp)
 target_link_libraries(avrtest ${PROJECT_NAME})
 
+# Create the GPIO helper program
+execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/gpio_export/build.sh)
+
 
