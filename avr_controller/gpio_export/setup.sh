@@ -2,7 +2,7 @@
 cd `rospack find avr_controller`/gpio_export # Location of this script
 
 # Test to see if the file exists with the correct permissions
-if [ `ls -l gpio_export 2>/dev/null | grep "\-rwsr\-xr\-x"` ]; then
+if [ -n "`ls -l gpio_export 2>/dev/null | grep \"\-rwsr\-xr\-x\"`" ]; then
 	echo "Program gpio_export already exists with the correct permissions"
 	exit 0
 fi
