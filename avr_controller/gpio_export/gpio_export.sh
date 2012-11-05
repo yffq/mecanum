@@ -4,9 +4,9 @@ then
   echo "Incorrect usage. Call this script with a gpio pin number"
   exit
 fi
-sudo chmod a+w /sys/class/gpio/export
-sudo chmod a+w /sys/class/gpio/unexport
+chmod a+w /sys/class/gpio/export
+chmod a+w /sys/class/gpio/unexport
 echo $1 > /sys/class/gpio/export
-sudo chmod a+w /sys/class/gpio/gpio$1/value \
+chmod a+w /sys/class/gpio/gpio$1/value \
                /sys/class/gpio/gpio$1/direction \
                /sys/class/gpio/gpio$1/edge
