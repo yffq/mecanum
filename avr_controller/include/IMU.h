@@ -37,14 +37,24 @@ public:
 	bool IsOpen() { return i2c.IsOpen(); } // All three resources are opened together
 	void Close() throw();
 
-	bool GetFrame(int16_t (&xyz)[3]);
+	struct Frame
+	{
+		int16_t x;
+		int16_t y;
+		int16_t z;
+		int16_t xRot;
+		int16_t yRot;
+		int16_t zRot;
+		int16_t temp;
+	};
+	bool GetFrame(Frame &frame);
 
 private:
 	/**
 	 * Set the target of the next read or write operation.
 	 */
 	enum Device { ACC, GYRO };
-	bool SetTarget(Device device);
+	bool Select(Device device);
 
 	bool InitAcc();
 	bool InitGyro();

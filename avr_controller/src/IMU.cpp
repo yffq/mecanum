@@ -97,14 +97,14 @@
 #define ITG3200_DLPF_FS           0x16 // DLPF, Full Scale
 #define ITG3200_INT_CFG           0x17 // Interrupt Configuration
 #define ITG3200_INT_STATUS        0x1A // Interrupt Status
-#define ITG3200_TEMP_OUT_H        0x1B // Temperature Data 0
-#define ITG3200_TEMP_OUT_L        0x1C // Temperature Data 1
-#define ITG3200_GYRO_XOUT_H       0x1D // Gyro-X Data 0
-#define ITG3200_GYRO_XOUT_L       0x1E // Gyro-X Data 1
-#define ITG3200_GYRO_YOUT_H       0x1F // Gyro-Y Data 0
-#define ITG3200_GYRO_YOUT_L       0x20 // Gyro-Y Data 1
-#define ITG3200_GYRO_ZOUT_H       0x21 // Gyro-Z Data 0
-#define ITG3200_GYRO_ZOUT_L       0x22 // Gyro-Z Data 1
+#define ITG3200_TEMP_OUT_H        0x1B // Temperature Data High
+#define ITG3200_TEMP_OUT_L        0x1C // Temperature Data Low
+#define ITG3200_GYRO_XOUT_H       0x1D // Gyro-X Data High
+#define ITG3200_GYRO_XOUT_L       0x1E // Gyro-X Data Low
+#define ITG3200_GYRO_YOUT_H       0x1F // Gyro-Y Data High
+#define ITG3200_GYRO_YOUT_L       0x20 // Gyro-Y Data Low
+#define ITG3200_GYRO_ZOUT_H       0x21 // Gyro-Z Data High
+#define ITG3200_GYRO_ZOUT_L       0x22 // Gyro-Z Data Low
 #define ITG3200_PWR_MGM           0x3E // Power Management
 
 // DLPF, Full Scale Register Bits
@@ -168,7 +168,7 @@ void IMU::Close() throw()
 	gyroInt.Close();
 }
 
-bool IMU::SetTarget(Device device)
+bool IMU::Select(Device device)
 {
 	return ioctl(i2c.File(), I2C_SLAVE, device == ACC ? I2C_ADDRESS_ADXL345 : I2C_ADDRESS_ITG3200) >= 0;
 }
@@ -177,7 +177,7 @@ bool IMU::InitAcc()
 {
 	bool ret = true;
 
-	ret &= SetTarget(ACC);
+	ret &= Select(ACC);
 
 	// Set the range to +/- 4G (using the same resolution as 2G)
 	ret &= (i2c_smbus_write_byte_data(i2c.File(), ADXL345_DATA_FORMAT, ADXL345_RANGE_4G | ADXL345_FULL_RES) >= 0);
@@ -194,7 +194,7 @@ bool IMU::InitGyro()
 {
 	bool ret = true;
 
-	ret &= SetTarget(GYRO);
+	ret &= Select(GYRO);
 
 	// Set internal clock to 1kHz with 42Hz LPF and Full Scale to 3 for proper operation
 	ret &= (i2c_smbus_write_byte_data(i2c.File(), ITG3200_DLPF_FS,
@@ -205,7 +205,7 @@ bool IMU::InitGyro()
 
 	// Setup the interrupt to trigger when new data is ready
 	ret &= (i2c_smbus_write_byte_data(i2c.File(), ITG3200_INT_CFG,
-			ITG3200_INT_CFG_RAW_RDY_EN | ITG3200_INT_CFG_ITG_RDY_EN) >= 0);
+			ITG3200_INT_CFG_RAW_RDY_EN /* | ITG3200_INT_CFG_ITG_RDY_EN */) >= 0);
 
 	// Select X gyro PLL for clock source
 	ret &= (i2c_smbus_write_byte_data(i2c.File(), ITG3200_PWR_MGM, ITG3200_PWR_MGM_CLK_SEL_0) >= 0);
@@ -213,10 +213,25 @@ bool IMU::InitGyro()
 	return ret;
 }
 
-bool IMU::GetFrame(int16_t (&xyz)[3])
+bool IMU::GetFrame(Frame &frame)
 {
-	return i2c_smbus_read_i2c_block_data(i2c.File(), ADXL345_DATAX0, sizeof(xyz), reinterpret_cast<uint8_t*>(xyz)) >= 0;
+	bool ret = true;
+
+	Select(ACC);
+	int16_t acc_read[3];
+	ret &= i2c_smbus_read_i2c_block_data(i2c.File(), ADXL345_DATAX0, sizeof(acc_read),
+			reinterpret_cast<uint8_t*>(acc_read)) >= 0;
+	frame.x = acc_read[0];
+	frame.y = acc_read[1];
+	frame.z = acc_read[2];
+
+	Select(GYRO);
+	uint8_t gyro_read[8];
+	ret &= i2c_smbus_read_i2c_block_data(i2c.File(), ITG3200_TEMP_OUT_H, sizeof(gyro_read), gyro_read) >= 0;
+	frame.temp = (gyro_read[0] << 8) | gyro_read[1];
+	frame.xRot = (gyro_read[2] << 8) | gyro_read[3];
+	frame.yRot = (gyro_read[4] << 8) | gyro_read[5];
+	frame.zRot = (gyro_read[6] << 8) | gyro_read[7];
+
+	return ret;
 }
-
-
-

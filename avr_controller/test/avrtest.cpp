@@ -248,23 +248,19 @@ TEST(IMUTest, imu)
 	IMU imu;
 	ASSERT_TRUE(imu.Open());
 
-	int16_t xyz[3];
+	IMU::Frame frame;
 
 	usleep(10000 * 16);
-	EXPECT_TRUE(imu.GetFrame(xyz));
-	cout << "*** X: " << xyz[0] << endl;
-	cout << "*** Y: " << xyz[1] << endl;
-	cout << "*** Z: " << xyz[2] << endl;
-	cout << "***********" << endl;
-
-	usleep(10000 * 32);
-	EXPECT_TRUE(imu.GetFrame(xyz));
-	cout << "*** X: " << xyz[0] << endl;
-	cout << "*** Y: " << xyz[1] << endl;
-	cout << "*** Z: " << xyz[2] << endl;
-	cout << "***********" << endl;
-
-
+	EXPECT_TRUE(imu.GetFrame(frame));
+	cout << "**************" << endl;
+	cout << "*** X: " << frame.x << endl;
+	cout << "*** Y: " << frame.y << endl;
+	cout << "*** Z: " << frame.z << endl;
+	cout << "*** XRot: " << frame.xRot << endl;
+	cout << "*** YRot: " << frame.yRot << endl;
+	cout << "*** ZRot: " << frame.zRot << endl;
+	cout << "*** Temp: " << frame.temp << endl;
+	cout << "**************" << endl;
 }
 
 int main(int argc, char **argv)
