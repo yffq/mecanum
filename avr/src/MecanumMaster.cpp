@@ -22,7 +22,7 @@
 
 #include "MecanumMaster.h"
 
-#include "AddressBook.h"
+#include "ArduinoAddressBook.h"
 
 // Finite state machines
 #include "AnalogPublisher.h"

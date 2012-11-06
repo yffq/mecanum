@@ -22,7 +22,7 @@
 
 #include "ChristmasTree.h"
 
-#include "AddressBook.h"
+#include "ArduinoAddressBook.h"
 
 #define SPEED 1200 // this gives a period of about 1285ms
 

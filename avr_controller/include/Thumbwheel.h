@@ -21,12 +21,13 @@
  */
 #pragma once
 
-#include "BBExpansionPin.h"
+#include "GPIO.h"
+#include "BeagleBoardAddressBook.h"
 
 class Thumbwheel
 {
 public:
-	Thumbwheel() : m_pin1(19), m_pin2(6), m_pin4(7) { }
+	Thumbwheel() : m_pin1(THUMBWHEEL1), m_pin2(THUMBWHEEL2), m_pin4(THUMBWHEEL4) { }
 	~Thumbwheel() { }
 
 	/**
@@ -53,7 +54,7 @@ private:
 	Thumbwheel(const Thumbwheel &other);
 	Thumbwheel& operator=(const Thumbwheel &rhs);
 
-	BBExpansionPin m_pin1;
-	BBExpansionPin m_pin2;
-	BBExpansionPin m_pin4;
+	GPIO m_pin1;
+	GPIO m_pin2;
+	GPIO m_pin4;
 };

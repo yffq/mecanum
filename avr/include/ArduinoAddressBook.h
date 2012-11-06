@@ -1,5 +1,5 @@
-#ifndef ADDRESSBOOK_H
-#define ADDRESSBOOK_H
+#ifndef ARDUINOADDRESSBOOK_H
+#define ARDUINOADDRESSBOOK_H
 
 #define FSM_MASTER           0
 #define FSM_BATTERYMONITOR   1
@@ -92,8 +92,8 @@
 
 // Battery voltage divider: R1 = 16.05k, R2 = 9.87k
 #define BATTERY_VOLTAGE 11    // Analog
-#define BATTERY_R1      16.05 // kOhm
-#define BATTERY_R2      9.87  // kOhm
+#define BATTERY_R1      16.05f // kOhm
+#define BATTERY_R2      9.87f  // kOhm
 
 // Not Connected
 #define REGULATOR_ENABLE 21
@@ -102,4 +102,4 @@
 #define THATSNOTYOURS2   33
 
 
-#endif // ADDRESSBOOK_H
+#endif // ARDUINOADDRESSBOOK_H

@@ -41,7 +41,6 @@ set(BEAGLEBOARD_XM_FLAGS "-march=armv7-a -mtune=cortex-a8 -mfpu=neon -ftree-vect
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread") # fix for Ubuntu 11.10+
 rosbuild_add_gtest(avrtest test/avrtest.cpp
                            src/AVRController.cpp
-                           src/BBExpansionPin.cpp
                            src/GPIO.cpp
                            src/I2CBus.cpp
                            src/IMU.cpp

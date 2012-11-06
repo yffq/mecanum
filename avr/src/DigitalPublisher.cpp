@@ -21,7 +21,7 @@
  */
 
 #include "DigitalPublisher.h"
-#include "AddressBook.h"
+#include "ArduinoAddressBook.h"
 
 #include <Arduino.h>
 

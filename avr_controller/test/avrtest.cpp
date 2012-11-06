@@ -21,8 +21,8 @@
  */
 
 #include "AVRController.h"
+#include "BeagleBoardAddressBook.h"
 #include "ParamServer.h"
-#include "BBExpansionPin.h"
 #include "I2CBus.h"
 #include "IMU.h"
 #include "Thumbwheel.h"
@@ -35,14 +35,13 @@
 using namespace std;
 
 #define BUTTON_TIMEOUT 10000000L  // 10.0s
-#define THUMBWHEEL_SETTLE 1000000 // 1.0s
 
 bool bTestButtons = true;
 bool bTestAVR = true;
 
 void TestButton(const char *color, unsigned int expansionPin)
 {
-	BBExpansionPin gpio(expansionPin);
+	GPIO gpio(expansionPin);
 	ASSERT_TRUE(gpio.Open());
 	EXPECT_NO_THROW(gpio.SetDirection(GPIO::IN));
 	EXPECT_NO_THROW(gpio.SetEdge(GPIO::BOTH));
@@ -61,19 +60,19 @@ void TestButton(const char *color, unsigned int expansionPin)
 TEST(GPIOTest, green)
 {
 	if (bTestButtons)
-		EXPECT_NO_THROW(TestButton("green", 3)); // 139
+		EXPECT_NO_THROW(TestButton("green", BUTTON_GREEN));
 }
 
 TEST(GPIOTest, yellow)
 {
 	if (bTestButtons)
-		EXPECT_NO_THROW(TestButton("yellow", 5)); // 138
+		EXPECT_NO_THROW(TestButton("yellow", BUTTON_YELLOW));
 }
 
 TEST(GPIOTest, red)
 {
 	if (bTestButtons)
-		EXPECT_NO_THROW(TestButton("red", 8)); // 143
+		EXPECT_NO_THROW(TestButton("red", BUTTON_RED));
 }
 
 void TestThumbwheel(Thumbwheel &tw, unsigned int target)
@@ -132,7 +131,7 @@ void TestBridge(unsigned int beaglePin, unsigned int arduinoPin)
 {
 	ASSERT_TRUE(arduino.IsOpen());
 
-	BBExpansionPin gpio(beaglePin);
+	GPIO gpio(beaglePin);
 	ASSERT_TRUE(gpio.Open());
 	EXPECT_NO_THROW(gpio.SetDirection(GPIO::IN));
 	EXPECT_NO_THROW(gpio.SetEdge(GPIO::BOTH));
@@ -199,37 +198,37 @@ void TestBridge(unsigned int beaglePin, unsigned int arduinoPin)
 TEST(AVRTest, bridge1)
 {
 	if (bTestAVR)
-		EXPECT_NO_THROW(TestBridge(14, BEAGLEBOARD_BRIDGE1)); // 162
+		EXPECT_NO_THROW(TestBridge(ARDUINO_BRIDGE1, BEAGLEBOARD_BRIDGE1));
 }
 
 TEST(AVRTest, bridge2)
 {
 	if (bTestAVR)
-		EXPECT_NO_THROW(TestBridge(10, BEAGLEBOARD_BRIDGE2)); // 145
+		EXPECT_NO_THROW(TestBridge(ARDUINO_BRIDGE2, BEAGLEBOARD_BRIDGE2));
 }
 
 TEST(AVRTest, bridge3)
 {
 	if (bTestAVR)
-		EXPECT_NO_THROW(TestBridge(16, BEAGLEBOARD_BRIDGE3)); // 161
+		EXPECT_NO_THROW(TestBridge(ARDUINO_BRIDGE3, BEAGLEBOARD_BRIDGE3));
 }
 
 TEST(AVRTest, bridge4)
 {
 	if (bTestAVR)
-		EXPECT_NO_THROW(TestBridge(18, BEAGLEBOARD_BRIDGE4)); // 159
+		EXPECT_NO_THROW(TestBridge(ARDUINO_BRIDGE4, BEAGLEBOARD_BRIDGE4));
 }
 
 TEST(AVRTest, bridge5)
 {
 	if (bTestAVR)
-		EXPECT_NO_THROW(TestBridge(9, BEAGLEBOARD_BRIDGE5)); // 136
+		EXPECT_NO_THROW(TestBridge(ARDUINO_BRIDGE5, BEAGLEBOARD_BRIDGE5));
 }
 
 TEST(AVRTest, bridge6)
 {
 	if (bTestAVR)
-		EXPECT_NO_THROW(TestBridge(12, BEAGLEBOARD_BRIDGE6)); // 158
+		EXPECT_NO_THROW(TestBridge(ARDUINO_BRIDGE6, BEAGLEBOARD_BRIDGE6));
 }
 
 TEST(I2CTest, detect)

@@ -22,7 +22,7 @@
 
 #include "Blink.h"
 
-#include "AddressBook.h"
+#include "ArduinoAddressBook.h"
 
 #include <Arduino.h>
 

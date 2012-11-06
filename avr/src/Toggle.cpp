@@ -22,7 +22,7 @@
 
 #include "Toggle.h"
 
-#include "AddressBook.h"
+#include "ArduinoAddressBook.h"
 
 #include <Arduino.h>
 #include <limits.h> // for ULONG_MAX

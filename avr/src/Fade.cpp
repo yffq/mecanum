@@ -21,7 +21,7 @@
  */
 
 #include "Fade.h"
-#include "AddressBook.h"
+#include "ArduinoAddressBook.h"
 
 #include <Arduino.h>
 #include <avr/pgmspace.h>

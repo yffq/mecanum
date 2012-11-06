@@ -21,7 +21,8 @@
  */
 #pragma once
 
-#include "BBExpansionPin.h"
+#include "GPIO.h"
+#include "BeagleBoardAddressBook.h"
 #include "I2CBus.h"
 
 #include <boost/thread.hpp>
@@ -30,7 +31,7 @@
 class IMU
 {
 public:
-	IMU() : m_i2c(2), m_accInt(22), m_gyroInt(21), m_bRunning(false), m_frame() { }
+	IMU() : m_i2c(2), m_accInt(IMU_INT1), m_gyroInt(IMU_INT0), m_bRunning(false), m_frame() { }
 	~IMU() throw() { Close(); }
 
 	bool Open();
@@ -66,8 +67,8 @@ private:
 
 	I2CBus         m_i2c;
 	boost::mutex   m_i2cMutex;
-	BBExpansionPin m_accInt;
-	BBExpansionPin m_gyroInt;
+	GPIO           m_accInt;
+	GPIO           m_gyroInt;
 
 	volatile bool  m_bRunning;
 	boost::thread  m_accThread;

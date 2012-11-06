@@ -1,7 +1,7 @@
 #ifndef PARAMSERVER_H
 #define PARAMSERVER_H
 
-#include "AddressBook.h"
+#include "ArduinoAddressBook.h"
 #include <string.h> // for memcpy()
 
 namespace ArduinoVerifier

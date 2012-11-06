@@ -21,7 +21,7 @@
  */
 
 #include "AVRController.h"
-#include "AddressBook.h" // from avr package
+#include "ArduinoAddressBook.h" // from avr package
 
 #include <boost/bind.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp> // for boost::posix_time::milliseconds
