@@ -259,7 +259,7 @@ TEST(IMUTest, imu)
 	cout << "*** XRot: " << frame.xrot << endl;
 	cout << "*** YRot: " << frame.yrot << endl;
 	cout << "*** ZRot: " << frame.zrot << endl;
-	cout << "*** Temp: " << frame.temp << endl;
+	cout << "*** Temp: " << (frame.temp * 9 / 5 + 32) << endl;
 	cout << "**************" << endl;
 }
 

@@ -294,9 +294,9 @@ void IMU::AccRun()
 
 		{
 			boost::mutex::scoped_lock frameLock(m_frameMutex);
-			m_frame.x = acc_read[0] * 0.0039;
-			m_frame.y = acc_read[1] * 0.0039;
-			m_frame.z = acc_read[2] * 0.0039;
+			m_frame.x = acc_read[0] * 0.0039f;
+			m_frame.y = acc_read[1] * 0.0039f;
+			m_frame.z = acc_read[2] * 0.0039f;
 		}
 	}
 }
@@ -322,17 +322,17 @@ void IMU::GyroRun()
 
 		{
 			boost::mutex::scoped_lock frameLock(m_frameMutex);
-			m_frame.temp = (gyro_read[0] << 8) | gyro_read[1];
-			m_frame.xrot = (gyro_read[2] << 8) | gyro_read[3];
-			m_frame.yrot = (gyro_read[4] << 8) | gyro_read[5];
-			m_frame.zrot = (gyro_read[6] << 8) | gyro_read[7];
+			m_frame.temp = (13200 + static_cast<int16_t>((gyro_read[0] << 8) | gyro_read[1])) / 280.0f + 35;
+			m_frame.xrot = static_cast<int16_t>((gyro_read[2] << 8) | gyro_read[3]) / 14.375f;
+			m_frame.yrot = static_cast<int16_t>((gyro_read[4] << 8) | gyro_read[5]) / 14.375f;
+			m_frame.zrot = static_cast<int16_t>((gyro_read[6] << 8) | gyro_read[7]) / 14.375f;
 		}
 	}
 }
 
 bool IMU::GetFrame(Frame &frame)
 {
-	usleep(1000 * 1000); // 1s
+	usleep(100 * 1000); // 1s
 	boost::mutex::scoped_lock frameLock(m_frameMutex);
 	frame = m_frame;
 	return true;

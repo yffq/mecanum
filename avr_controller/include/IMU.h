@@ -42,10 +42,10 @@ public:
 		float x;
 		float y;
 		float z;
-		int16_t xrot;
-		int16_t yrot;
-		int16_t zrot;
-		int16_t temp;
+		float xrot;
+		float yrot;
+		float zrot;
+		float temp;
 		timespec timestamp; // timestamp of the latter sample
 	};
 
