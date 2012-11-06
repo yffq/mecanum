@@ -25,16 +25,16 @@
 #include "I2CBus.h"
 
 #include <boost/thread.hpp>
-#include <boost/thread/condition.hpp>
+#include <time.h> // for timespec
 
 class IMU
 {
 public:
-	IMU() : gyroInt(21), accInt(22), i2c(2) { }
+	IMU() : m_i2c(2), m_accInt(22), m_gyroInt(21), m_bRunning(false) { }
 	~IMU() throw() { Close(); }
 
 	bool Open();
-	bool IsOpen() const { return i2c.IsOpen(); } // All three resources are opened together
+	bool IsOpen() const { return m_i2c.IsOpen(); } // All three resources are opened together
 	void Close() throw();
 
 	struct Frame
@@ -42,11 +42,13 @@ public:
 		int16_t x;
 		int16_t y;
 		int16_t z;
-		int16_t xRot;
-		int16_t yRot;
-		int16_t zRot;
+		int16_t xrot;
+		int16_t yrot;
+		int16_t zrot;
 		int16_t temp;
+		struct timespec timestamp; // timestamp of the latter sample
 	};
+
 	bool GetFrame(Frame &frame);
 
 private:
@@ -59,10 +61,18 @@ private:
 	bool InitAcc();
 	bool InitGyro();
 
-	BBExpansionPin gyroInt;
-	BBExpansionPin accInt;
-	I2CBus         i2c;
+	void AccRun();
+	void GyroRun();
 
-	boost::mutex     i2cMutex;
-	boost::condition i2cCondition;
+	I2CBus         m_i2c;
+	boost::mutex   m_i2cMutex;
+	BBExpansionPin m_accInt;
+	BBExpansionPin m_gyroInt;
+
+	volatile bool  m_bRunning;
+	boost::thread  m_accThread;
+	boost::thread  m_gyroThread;
+
+	Frame          m_frame;
+	boost::mutex   m_frameMutex;
 };

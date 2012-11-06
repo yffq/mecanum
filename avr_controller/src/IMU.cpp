@@ -42,8 +42,8 @@
 #define ADXL345_THRESH_INACT      0x25   // Inactivity Threshold
 #define ADXL345_TIME_INACT        0x26   // Inactivity Time
 #define ADXL345_ACT_INACT_CTL     0x27   // Axis enable control for activity and inactivity detection
-#define ADXL345_THRESH_FF         0x28   // free-fall threshold
-#define ADXL345_TIME_FF           0x29   // Free-Fall Time
+#define ADXL345_THRESH_FF         0x28   // Free-fall threshold
+#define ADXL345_TIME_FF           0x29   // Free-fall time
 #define ADXL345_TAP_AXES          0x2A   // Axis control for tap/double tap
 #define ADXL345_ACT_TAP_STATUS    0x2B   // Source of tap/double tap
 #define ADXL345_BW_RATE           0x2C   // Data rate and power mode control
@@ -60,6 +60,18 @@
 #define ADXL345_DATAZ1            0x37   // Z-Axis Data 1
 #define ADXL345_FIFO_CTL          0x38   // FIFO control
 #define ADXL345_FIFO_STATUS       0x39   // FIFO status
+
+// Data rate control bits
+#define ADXL345_DATA_RATE_6_25_HZ 0b0110
+#define ADXL345_DATA_RATE_12_5_HZ 0b0111
+#define ADXL345_DATA_RATE_25_HZ   0b1000
+#define ADXL345_DATA_RATE_50_HZ   0b1001
+#define ADXL345_DATA_RATE_100_HZ  0b1010
+#define ADXL345_DATA_RATE_200_HZ  0b1011
+#define ADXL345_DATA_RATE_400_HZ  0b1100
+#define ADXL345_DATA_RATE_800_HZ  0b1101
+#define ADXL345_DATA_RATE_1600_HZ 0b1110
+#define ADXL345_DATA_RATE_3200_HZ 0b1111
 
 // Power Control Register Bits
 #define ADXL345_WU_0              (1<<0)   // Wake Up Mode - Bit 0
@@ -79,6 +91,10 @@
 #define ADXL345_SINGLE_TAP        (1<<6)
 #define ADXL345_DATA_READY        (1<<7)
 
+// Interrupt masks, used in interrupt map INT_MAP
+#define ADXL345_INTERRUPT1        0x00
+#define ADXL345_INTERRUPT2        0xFF
+
 // Data Format Bits
 #define ADXL345_RANGE_2G          (0<<0)
 #define ADXL345_RANGE_4G          (1<<0)
@@ -90,6 +106,12 @@
 #define ADXL345_INT_INVERT        (1<<5)
 #define ADXL345_SPI               (1<<6)
 #define ADXL345_SELF_TEST         (1<<7)
+
+// FIFO Control Bits (ADXL345_FIFO_CTL)
+#define ADXL345_BYPASS            (0<<6)
+#define ADXL345_FIFO              (1<<6)
+#define ADXL345_STREAM            (1<<7)
+#define ADXL345_TRIGGER           (1<<6)|(1<<7)
 
 // ITG3200 Register Map
 #define ITG3200_WHO_AM_I          0x00 // Who Am I
@@ -140,17 +162,26 @@ using namespace std;
 
 bool IMU::Open()
 {
-	if (i2c.Open() && accInt.Open() && gyroInt.Open())
+	if (m_i2c.Open() && m_accInt.Open() && m_gyroInt.Open())
 	{
 		vector<unsigned int> devices;
-		if (i2c.DetectDevices(devices) &&
+		if (m_i2c.DetectDevices(devices) &&
 				find(devices.begin(), devices.end(), I2C_ADDRESS_ADXL345) != devices.end() &&
 				find(devices.begin(), devices.end(), I2C_ADDRESS_ITG3200) != devices.end())
 		{
 			if (InitAcc() && InitGyro())
+			{
+				m_bRunning = true;
+				boost::thread accTemp(boost::bind(&IMU::AccRun, this));
+				m_accThread.swap(accTemp);
+				boost::thread gyroTemp(boost::bind(&IMU::GyroRun, this));
+				m_gyroThread.swap(gyroTemp);
 				return true;
+			}
 			else
+			{
 				cerr << "IMU::Open - Failed to initialize accelerometer and gyroscope settings" << endl;
+			}
 		}
 		else
 		{
@@ -163,14 +194,17 @@ bool IMU::Open()
 
 void IMU::Close() throw()
 {
-	i2c.Close();
-	accInt.Close();
-	gyroInt.Close();
+	m_bRunning = false;
+	m_accThread.join();
+	m_gyroThread.join();
+	m_i2c.Close();
+	m_accInt.Close();
+	m_gyroInt.Close();
 }
 
 bool IMU::Select(Device device)
 {
-	return ioctl(i2c.File(), I2C_SLAVE, device == ACC ? I2C_ADDRESS_ADXL345 : I2C_ADDRESS_ITG3200) >= 0;
+	return ioctl(m_i2c.File(), I2C_SLAVE, device == ACC ? I2C_ADDRESS_ADXL345 : I2C_ADDRESS_ITG3200) >= 0;
 }
 
 bool IMU::InitAcc()
@@ -179,13 +213,21 @@ bool IMU::InitAcc()
 
 	ret &= Select(ACC);
 
-	// Set the range to +/- 4G (using the same resolution as 2G)
-	ret &= (i2c_smbus_write_byte_data(i2c.File(), ADXL345_DATA_FORMAT, ADXL345_RANGE_4G | ADXL345_FULL_RES) >= 0);
+	// Default ADXL345 rate is 100 Hz, which is exactly what we want
+	ret &= (i2c_smbus_write_byte_data(m_i2c.File(), ADXL345_BW_RATE, ADXL345_DATA_RATE_100_HZ) >= 0);
 
-	// Default ADXL345 rate is 100 Hz. Perfect!
+	// Install the data-ready event on interrupt 1
+	ret &= (i2c_smbus_write_byte_data(m_i2c.File(), ADXL345_INT_ENABLE, ADXL345_DATA_READY) >= 0);
+	ret &= (i2c_smbus_write_byte_data(m_i2c.File(), ADXL345_INT_MAP, ADXL345_DATA_READY & ADXL345_INTERRUPT1) >= 0);
+
+	// Set the range to +/- 4G (using the same resolution as 2G)
+	ret &= (i2c_smbus_write_byte_data(m_i2c.File(), ADXL345_DATA_FORMAT, ADXL345_RANGE_4G | ADXL345_FULL_RES) >= 0);
+
+	// Disable the "patent pending FIFO technology"
+	ret &= (i2c_smbus_write_byte_data(m_i2c.File(), ADXL345_FIFO_CTL, ADXL345_BYPASS) >= 0);
 
 	// Put the accelerometer in MEASURE mode
-	ret &= (i2c_smbus_write_byte_data(i2c.File(), ADXL345_POWER_CTL, ADXL345_MEASURE) >= 0);
+	ret &= (i2c_smbus_write_byte_data(m_i2c.File(), ADXL345_POWER_CTL, ADXL345_MEASURE) >= 0);
 
 	return ret;
 }
@@ -197,20 +239,36 @@ bool IMU::InitGyro()
 	ret &= Select(GYRO);
 
 	// Set internal clock to 1kHz with 42Hz LPF and Full Scale to 3 for proper operation
-	ret &= (i2c_smbus_write_byte_data(i2c.File(), ITG3200_DLPF_FS,
+	ret &= (i2c_smbus_write_byte_data(m_i2c.File(), ITG3200_DLPF_FS,
 			ITG3200_DLPF_FS_SEL_0 | ITG3200_DLPF_FS_SEL_1 | ITG3200_DLPF_CFG_0) >= 0);
 
 	// Set sample rate divider for 100 Hz operation (1KHz / (9 + 1))
-	ret &= (i2c_smbus_write_byte_data(i2c.File(), ITG3200_SMPLRT_DIV, 9) >= 0);
+	ret &= (i2c_smbus_write_byte_data(m_i2c.File(), ITG3200_SMPLRT_DIV, 9) >= 0);
 
 	// Setup the interrupt to trigger when new data is ready
-	ret &= (i2c_smbus_write_byte_data(i2c.File(), ITG3200_INT_CFG,
+	ret &= (i2c_smbus_write_byte_data(m_i2c.File(), ITG3200_INT_CFG,
 			ITG3200_INT_CFG_RAW_RDY_EN /* | ITG3200_INT_CFG_ITG_RDY_EN */) >= 0);
 
 	// Select X gyro PLL for clock source
-	ret &= (i2c_smbus_write_byte_data(i2c.File(), ITG3200_PWR_MGM, ITG3200_PWR_MGM_CLK_SEL_0) >= 0);
+	ret &= (i2c_smbus_write_byte_data(m_i2c.File(), ITG3200_PWR_MGM, ITG3200_PWR_MGM_CLK_SEL_0) >= 0);
 
 	return ret;
+}
+
+void IMU::AccRun()
+{
+	while (m_bRunning)
+	{
+		usleep(100 * 1000);
+	}
+}
+
+void IMU::GyroRun()
+{
+	while (m_bRunning)
+	{
+		usleep(100 * 1000);
+	}
 }
 
 bool IMU::GetFrame(Frame &frame)
@@ -220,7 +278,7 @@ bool IMU::GetFrame(Frame &frame)
 	Select(ACC);
 	// ADXL345 outputs little endian. Allocate three shorts so the data is memory-aligned
 	int16_t acc_read[3];
-	ret &= i2c_smbus_read_i2c_block_data(i2c.File(), ADXL345_DATAX0, sizeof(acc_read),
+	ret &= i2c_smbus_read_i2c_block_data(m_i2c.File(), ADXL345_DATAX0, sizeof(acc_read),
 			reinterpret_cast<uint8_t*>(acc_read)) >= 0;
 	frame.x = acc_read[0];
 	frame.y = acc_read[1];
@@ -229,11 +287,11 @@ bool IMU::GetFrame(Frame &frame)
 	Select(GYRO);
 	// ITG3200 outputs big endian. Conversion is necessary, so alignment doesn't matter
 	uint8_t gyro_read[8];
-	ret &= i2c_smbus_read_i2c_block_data(i2c.File(), ITG3200_TEMP_OUT_H, sizeof(gyro_read), gyro_read) >= 0;
+	ret &= i2c_smbus_read_i2c_block_data(m_i2c.File(), ITG3200_TEMP_OUT_H, sizeof(gyro_read), gyro_read) >= 0;
 	frame.temp = (gyro_read[0] << 8) | gyro_read[1];
-	frame.xRot = (gyro_read[2] << 8) | gyro_read[3];
-	frame.yRot = (gyro_read[4] << 8) | gyro_read[5];
-	frame.zRot = (gyro_read[6] << 8) | gyro_read[7];
+	frame.xrot = (gyro_read[2] << 8) | gyro_read[3];
+	frame.yrot = (gyro_read[4] << 8) | gyro_read[5];
+	frame.zrot = (gyro_read[6] << 8) | gyro_read[7];
 
 	return ret;
 }

@@ -249,6 +249,13 @@ TEST(IMUTest, imu)
 	ASSERT_TRUE(imu.Open());
 
 	IMU::Frame frame;
+	frame.x = 0; // just in case
+	frame.y = 0;
+	frame.z = 0;
+	frame.xrot = 0;
+	frame.yrot = 0;
+	frame.zrot = 0;
+	frame.temp = 0;
 
 	usleep(10000 * 16);
 	EXPECT_TRUE(imu.GetFrame(frame));
@@ -256,9 +263,9 @@ TEST(IMUTest, imu)
 	cout << "*** X: " << frame.x << endl;
 	cout << "*** Y: " << frame.y << endl;
 	cout << "*** Z: " << frame.z << endl;
-	cout << "*** XRot: " << frame.xRot << endl;
-	cout << "*** YRot: " << frame.yRot << endl;
-	cout << "*** ZRot: " << frame.zRot << endl;
+	cout << "*** XRot: " << frame.xrot << endl;
+	cout << "*** YRot: " << frame.yrot << endl;
+	cout << "*** ZRot: " << frame.zrot << endl;
 	cout << "*** Temp: " << frame.temp << endl;
 	cout << "**************" << endl;
 }

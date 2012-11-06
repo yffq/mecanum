@@ -6,6 +6,13 @@
 
 using namespace std;
 
+/**
+ * Export a GPIO pin and configure it as globally-writable. The owner and group
+ * of this program must be root:
+ *
+ * sudo chown root:root gpio_export
+ * sudo chmod 4755 gpio_export
+ */
 int main(int argc, char **argv)
 {
 	if (argc != 2)
