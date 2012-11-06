@@ -38,7 +38,7 @@ public:
 	~I2CBus() throw() { Close(); }
 
 	bool Open();
-	bool IsOpen() { return m_fd >= 0; }
+	bool IsOpen() const { return m_fd >= 0; }
 	void Close() throw();
 
 	/**
@@ -46,7 +46,7 @@ public:
 	 * after Open() returns true and until Close() is called or the object
 	 * falls out of scope.
 	 */
-	int File() { return m_fd; }
+	int File() const { return m_fd; }
 
 	/**
 	 * Scan an I2C bus for devices. Use SMBus "read byte" commands for probing.

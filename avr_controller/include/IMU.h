@@ -34,7 +34,7 @@ public:
 	~IMU() throw() { Close(); }
 
 	bool Open();
-	bool IsOpen() { return i2c.IsOpen(); } // All three resources are opened together
+	bool IsOpen() const { return i2c.IsOpen(); } // All three resources are opened together
 	void Close() throw();
 
 	struct Frame

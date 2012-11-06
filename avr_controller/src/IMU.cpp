@@ -218,6 +218,7 @@ bool IMU::GetFrame(Frame &frame)
 	bool ret = true;
 
 	Select(ACC);
+	// ADXL345 outputs little endian. Allocate three shorts so the data is memory-aligned
 	int16_t acc_read[3];
 	ret &= i2c_smbus_read_i2c_block_data(i2c.File(), ADXL345_DATAX0, sizeof(acc_read),
 			reinterpret_cast<uint8_t*>(acc_read)) >= 0;
@@ -226,6 +227,7 @@ bool IMU::GetFrame(Frame &frame)
 	frame.z = acc_read[2];
 
 	Select(GYRO);
+	// ITG3200 outputs big endian. Conversion is necessary, so alignment doesn't matter
 	uint8_t gyro_read[8];
 	ret &= i2c_smbus_read_i2c_block_data(i2c.File(), ITG3200_TEMP_OUT_H, sizeof(gyro_read), gyro_read) >= 0;
 	frame.temp = (gyro_read[0] << 8) | gyro_read[1];
