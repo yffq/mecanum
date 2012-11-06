@@ -23,8 +23,12 @@
 #include "IMU.h"
 #include "i2c-dev.h"
 
-#include <vector>
 #include <algorithm> // for std::find()
+#include <iostream>  // for cerr
+#include <vector>
+
+#define ACCELEROMETER_UPDATE_FREQ 100 // Hz
+#define GYROSCOPE_UPDATE_FREQ     100 // Hz
 
 #define I2C_ADDRESS_ADXL345       0x53
 #define I2C_ADDRESS_ITG3200       0x68
@@ -162,6 +166,9 @@ using namespace std;
 
 bool IMU::Open()
 {
+	if (IsOpen())
+		return true;
+
 	if (m_i2c.Open() && m_accInt.Open() && m_gyroInt.Open())
 	{
 		vector<unsigned int> devices;
@@ -209,6 +216,10 @@ bool IMU::Select(Device device)
 
 bool IMU::InitAcc()
 {
+	// Interrupt is triggered when logic is high
+	m_accInt.SetDirection(GPIO::IN);
+	m_accInt.SetEdge(GPIO::RISING);
+
 	bool ret = true;
 
 	ret &= Select(ACC);
@@ -234,64 +245,95 @@ bool IMU::InitAcc()
 
 bool IMU::InitGyro()
 {
+	// Interrupt is triggered when logic is high
+	m_gyroInt.SetDirection(GPIO::IN);
+	m_gyroInt.SetEdge(GPIO::RISING);
+
 	bool ret = true;
 
 	ret &= Select(GYRO);
 
-	// Set internal clock to 1kHz with 42Hz LPF and Full Scale to 3 for proper operation
-	ret &= (i2c_smbus_write_byte_data(m_i2c.File(), ITG3200_DLPF_FS,
-			ITG3200_DLPF_FS_SEL_0 | ITG3200_DLPF_FS_SEL_1 | ITG3200_DLPF_CFG_0) >= 0);
-
 	// Set sample rate divider for 100 Hz operation (1KHz / (9 + 1))
 	ret &= (i2c_smbus_write_byte_data(m_i2c.File(), ITG3200_SMPLRT_DIV, 9) >= 0);
 
-	// Setup the interrupt to trigger when new data is ready
-	ret &= (i2c_smbus_write_byte_data(m_i2c.File(), ITG3200_INT_CFG,
-			ITG3200_INT_CFG_RAW_RDY_EN /* | ITG3200_INT_CFG_ITG_RDY_EN */) >= 0);
+	// Set internal clock to 1kHz with 42Hz LPF and Full Scale to 3 for proper operation
+	ret &= (i2c_smbus_write_byte_data(m_i2c.File(), ITG3200_DLPF_FS,
+		ITG3200_DLPF_FS_SEL_0 | ITG3200_DLPF_FS_SEL_1 | ITG3200_DLPF_CFG_0) >= 0);
 
+	// Setup the interrupt to trigger when new data is ready: Stay high until any register is read
+	ret &= (i2c_smbus_write_byte_data(m_i2c.File(), ITG3200_INT_CFG,
+		ITG3200_INT_CFG_LATCH_INT_EN | ITG3200_INT_CFG_INT_ANYRD | ITG3200_INT_CFG_RAW_RDY_EN) >= 0);
+
+	/*
 	// Select X gyro PLL for clock source
 	ret &= (i2c_smbus_write_byte_data(m_i2c.File(), ITG3200_PWR_MGM, ITG3200_PWR_MGM_CLK_SEL_0) >= 0);
+	*/
 
 	return ret;
 }
 
 void IMU::AccRun()
 {
+	// ADXL345 outputs little endian. Allocate three shorts so the data is memory-aligned
+	int16_t acc_read[3];
+	unsigned long duration = 0; // Unused
+
 	while (m_bRunning)
 	{
-		usleep(100 * 1000);
+		// Wait twice the period for the interrupt to rise (or a timeout if already risen)
+		if (!m_accInt.Poll(2 * 1000000 / ACCELEROMETER_UPDATE_FREQ, duration, false) && m_accInt.GetValue() != 1)
+			continue;
+
+		{
+			boost::mutex::scoped_lock i2cLock(m_i2cMutex);
+			Select(ACC);
+			if (i2c_smbus_read_i2c_block_data(m_i2c.File(), ADXL345_DATAX0, sizeof(acc_read),
+					reinterpret_cast<uint8_t*>(acc_read)) < 0)
+				continue; // what else can we do?
+		}
+
+		{
+			boost::mutex::scoped_lock frameLock(m_frameMutex);
+			m_frame.x = acc_read[0];
+			m_frame.y = acc_read[1];
+			m_frame.z = acc_read[2];
+		}
 	}
 }
 
 void IMU::GyroRun()
 {
+	// ITG3200 outputs big endian. Conversion is necessary, so alignment doesn't matter
+	uint8_t gyro_read[8];
+	unsigned long duration = 0; // Unused
+
 	while (m_bRunning)
 	{
-		usleep(100 * 1000);
+		// Wait twice the period for the interrupt to rise (or a timeout if already risen)
+		if (!m_gyroInt.Poll(2 * 1000000 / GYROSCOPE_UPDATE_FREQ, duration, false) && m_gyroInt.GetValue() != 1)
+			continue;
+
+		{
+			boost::mutex::scoped_lock i2cLock(m_i2cMutex);
+			Select(GYRO);
+			if (i2c_smbus_read_i2c_block_data(m_i2c.File(), ITG3200_TEMP_OUT_H, sizeof(gyro_read), gyro_read) < 0)
+				continue; // what else can we do?
+		}
+
+		{
+			boost::mutex::scoped_lock frameLock(m_frameMutex);
+			m_frame.temp = (gyro_read[0] << 8) | gyro_read[1];
+			m_frame.xrot = (gyro_read[2] << 8) | gyro_read[3];
+			m_frame.yrot = (gyro_read[4] << 8) | gyro_read[5];
+			m_frame.zrot = (gyro_read[6] << 8) | gyro_read[7];
+		}
 	}
 }
 
 bool IMU::GetFrame(Frame &frame)
 {
-	bool ret = true;
-
-	Select(ACC);
-	// ADXL345 outputs little endian. Allocate three shorts so the data is memory-aligned
-	int16_t acc_read[3];
-	ret &= i2c_smbus_read_i2c_block_data(m_i2c.File(), ADXL345_DATAX0, sizeof(acc_read),
-			reinterpret_cast<uint8_t*>(acc_read)) >= 0;
-	frame.x = acc_read[0];
-	frame.y = acc_read[1];
-	frame.z = acc_read[2];
-
-	Select(GYRO);
-	// ITG3200 outputs big endian. Conversion is necessary, so alignment doesn't matter
-	uint8_t gyro_read[8];
-	ret &= i2c_smbus_read_i2c_block_data(m_i2c.File(), ITG3200_TEMP_OUT_H, sizeof(gyro_read), gyro_read) >= 0;
-	frame.temp = (gyro_read[0] << 8) | gyro_read[1];
-	frame.xrot = (gyro_read[2] << 8) | gyro_read[3];
-	frame.yrot = (gyro_read[4] << 8) | gyro_read[5];
-	frame.zrot = (gyro_read[6] << 8) | gyro_read[7];
-
-	return ret;
+	usleep(1000 * 1000); // 1s
+	boost::mutex::scoped_lock frameLock(m_frameMutex);
+	frame = m_frame;
+	return true;
 }
