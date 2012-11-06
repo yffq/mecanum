@@ -294,9 +294,9 @@ void IMU::AccRun()
 
 		{
 			boost::mutex::scoped_lock frameLock(m_frameMutex);
-			m_frame.x = acc_read[0];
-			m_frame.y = acc_read[1];
-			m_frame.z = acc_read[2];
+			m_frame.x = acc_read[0] * 0.0039;
+			m_frame.y = acc_read[1] * 0.0039;
+			m_frame.z = acc_read[2] * 0.0039;
 		}
 	}
 }

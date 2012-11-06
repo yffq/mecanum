@@ -248,14 +248,7 @@ TEST(IMUTest, imu)
 	IMU imu;
 	ASSERT_TRUE(imu.Open());
 
-	IMU::Frame frame;
-	frame.x = 0; // just in case
-	frame.y = 0;
-	frame.z = 0;
-	frame.xrot = 0;
-	frame.yrot = 0;
-	frame.zrot = 0;
-	frame.temp = 0;
+	IMU::Frame frame = {0, 0, 0, 0, 0, 0, 0, {0, 0}};
 
 	usleep(10000 * 16);
 	EXPECT_TRUE(imu.GetFrame(frame));

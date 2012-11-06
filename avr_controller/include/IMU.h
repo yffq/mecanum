@@ -30,7 +30,7 @@
 class IMU
 {
 public:
-	IMU() : m_i2c(2), m_accInt(22), m_gyroInt(21), m_bRunning(false) { }
+	IMU() : m_i2c(2), m_accInt(22), m_gyroInt(21), m_bRunning(false), m_frame() { }
 	~IMU() throw() { Close(); }
 
 	bool Open();
@@ -39,14 +39,14 @@ public:
 
 	struct Frame
 	{
-		int16_t x;
-		int16_t y;
-		int16_t z;
+		float x;
+		float y;
+		float z;
 		int16_t xrot;
 		int16_t yrot;
 		int16_t zrot;
 		int16_t temp;
-		struct timespec timestamp; // timestamp of the latter sample
+		timespec timestamp; // timestamp of the latter sample
 	};
 
 	bool GetFrame(Frame &frame);
