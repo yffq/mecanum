@@ -330,10 +330,8 @@ void IMU::GyroRun()
 	}
 }
 
-bool IMU::GetFrame(Frame &frame)
+void IMU::GetFrame(Frame &frame)
 {
-	usleep(100 * 1000); // 1s
 	boost::mutex::scoped_lock frameLock(m_frameMutex);
 	frame = m_frame;
-	return true;
 }

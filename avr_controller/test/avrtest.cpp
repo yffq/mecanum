@@ -248,19 +248,25 @@ TEST(IMUTest, imu)
 	IMU imu;
 	ASSERT_TRUE(imu.Open());
 
+	usleep(1000 * 50); // 50ms (5 samples)
 	IMU::Frame frame = {0, 0, 0, 0, 0, 0, 0, {0, 0}};
-
-	usleep(10000 * 16);
-	EXPECT_TRUE(imu.GetFrame(frame));
-	cout << "**************" << endl;
-	cout << "*** X: " << frame.x << endl;
-	cout << "*** Y: " << frame.y << endl;
-	cout << "*** Z: " << frame.z << endl;
-	cout << "*** XRot: " << frame.xrot << endl;
-	cout << "*** YRot: " << frame.yrot << endl;
-	cout << "*** ZRot: " << frame.zrot << endl;
-	cout << "*** Temp: " << (frame.temp * 9 / 5 + 32) << endl;
-	cout << "**************" << endl;
+	imu.GetFrame(frame);
+	cout << "*********************" << endl;
+	cout << "*** X: " << frame.x << "g" << endl;
+	cout << "*** Y: " << frame.y << "g" << endl;
+	cout << "*** Z: " << frame.z << "g" << endl;
+	cout << "*** XRot: " << frame.xrot << "°/s" << endl;
+	cout << "*** YRot: " << frame.yrot << "°/s" << endl;
+	cout << "*** ZRot: " << frame.zrot << "°/s" << endl;
+	cout << "*** Temp: " << (frame.temp * 9 / 5 + 32) << "°F" << endl;
+	cout << "*********************" << endl;
+	EXPECT_NE(frame.x, 0);
+	EXPECT_NE(frame.y, 0);
+	EXPECT_NE(frame.z, 0);
+	EXPECT_NE(frame.xrot, 0);
+	EXPECT_NE(frame.yrot, 0);
+	EXPECT_NE(frame.zrot, 0);
+	EXPECT_NE(frame.temp, 0);
 }
 
 int main(int argc, char **argv)

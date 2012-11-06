@@ -49,7 +49,7 @@ public:
 		timespec timestamp; // timestamp of the latter sample
 	};
 
-	bool GetFrame(Frame &frame);
+	void GetFrame(Frame &frame);
 
 private:
 	/**
