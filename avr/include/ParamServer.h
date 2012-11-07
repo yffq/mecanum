@@ -404,6 +404,105 @@ protected:
 };
 
 
+class MotorController
+{
+public:
+	MotorController() { m_params.id = FSM_MOTORCONTROLLER; }
+	MotorController(const uint8_t *bytes) { memcpy(&m_params, bytes, sizeof(Parameters)); }
+
+	static bool Validate(const uint8_t *bytes, uint16_t length)
+	{
+		if (length == sizeof(Parameters))
+		{
+			Parameters params;
+			memcpy(&params, bytes, sizeof(Parameters));
+			return (params.id == FSM_MOTORCONTROLLER);
+		}
+		return false;
+	}
+
+	struct Parameters
+	{
+		uint8_t id;
+	} __attribute__((packed));
+
+protected:
+	Parameters m_params;
+};
+
+class MotorControllerPublisherMsg
+{
+public:
+	MotorControllerPublisherMsg(int16_t motor1cs, int16_t motor2cs, int16_t motor3cs, int16_t motor4cs)
+	{
+		m_msg.length = sizeof(Message);
+		m_msg.id = FSM_MOTORCONTROLLER;
+		m_msg.motor1cs = motor1cs;
+		m_msg.motor2cs = motor2cs;
+		m_msg.motor3cs = motor3cs;
+		m_msg.motor4cs = motor4cs;
+	}
+	MotorControllerPublisherMsg(const uint8_t *bytes) { memcpy(&m_msg, bytes, sizeof(Message)); }
+
+	static uint16_t GetLength() { return sizeof(Message); }
+	uint8_t GetId() const { return m_msg.id; }
+	int16_t GetMotor1cs() const { return m_msg.motor1cs; }
+	int16_t GetMotor2cs() const { return m_msg.motor2cs; }
+	int16_t GetMotor3cs() const { return m_msg.motor3cs; }
+	int16_t GetMotor4cs() const { return m_msg.motor4cs; }
+	const uint8_t *GetBuffer() const { return reinterpret_cast<const uint8_t*>(&m_msg); }
+
+private:
+	struct Message
+	{
+		uint16_t length;
+		uint8_t id;
+		int16_t motor1cs;
+		int16_t motor2cs;
+		int16_t motor3cs;
+		int16_t motor4cs;
+	} __attribute__((packed));
+
+	Message m_msg;
+};
+
+class MotorControllerSubscriberMsg
+{
+public:
+	MotorControllerSubscriberMsg(int16_t motor1, int16_t motor2, int16_t motor3, int16_t motor4)
+	{
+		m_msg.length = sizeof(Message);
+		m_msg.id = FSM_MOTORCONTROLLER;
+		m_msg.motor1 = motor1;
+		m_msg.motor2 = motor2;
+		m_msg.motor3 = motor3;
+		m_msg.motor4 = motor4;
+	}
+	MotorControllerSubscriberMsg(const uint8_t *bytes) { memcpy(&m_msg, bytes, sizeof(Message)); }
+
+	static uint16_t GetLength() { return sizeof(Message); }
+	uint8_t GetId() const { return m_msg.id; }
+	int16_t GetMotor1() const { return m_msg.motor1; }
+	int16_t GetMotor2() const { return m_msg.motor2; }
+	int16_t GetMotor3() const { return m_msg.motor3; }
+	int16_t GetMotor4() const { return m_msg.motor4; }
+	const uint8_t *GetBuffer() const { return reinterpret_cast<const uint8_t*>(&m_msg); }
+
+private:
+	struct Message
+	{
+		uint16_t length;
+		uint8_t id;
+		int16_t motor1;
+		int16_t motor2;
+		int16_t motor3;
+		int16_t motor4;
+	} __attribute__((packed));
+
+	Message m_msg;
+};
+
+
 
 
 class Toggle

@@ -70,6 +70,7 @@ set(mecanum_srcs src/main.cpp
                  src/FSMVector.cpp
                  src/MecanumMaster.cpp
                  src/Mimic.cpp
+                 src/MotorController.cpp
                  src/TinyBuffer.cpp
                  src/Toggle.cpp
 )
