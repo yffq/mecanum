@@ -25,6 +25,7 @@
 #include "ParamServer.h"
 #include "I2CBus.h"
 #include "IMU.h"
+#include "MotorController.h"
 #include "Thumbwheel.h"
 
 #include <gtest/gtest.h>
@@ -34,10 +35,12 @@
 
 using namespace std;
 
+#define ARDUINO_PORT "/dev/ttyACM0"
 #define BUTTON_TIMEOUT 10000000L  // 10.0s
 
 bool bTestButtons = true;
 bool bTestAVR = true;
+bool bTestIMU = true;
 
 void TestButton(const char *color, unsigned int expansionPin)
 {
@@ -105,7 +108,7 @@ TEST(AVRTest, fsm)
 {
 	if (bTestAVR)
 	{
-		ASSERT_TRUE(arduino.Open("/dev/ttyACM0"));
+		ASSERT_TRUE(arduino.Open(ARDUINO_PORT));
 		ASSERT_TRUE(arduino.IsOpen());
 
 		vector<string> fsmv;
@@ -233,39 +236,55 @@ TEST(AVRTest, bridge6)
 
 TEST(I2CTest, detect)
 {
-	I2CBus i2c2(2);
-	ASSERT_TRUE(i2c2.Open());
-	vector<unsigned int> devices;
-	ASSERT_TRUE(i2c2.DetectDevices(devices));
-	EXPECT_EQ(devices.size(), 2);
-	EXPECT_TRUE(std::find(devices.begin(), devices.end(), 0x53) != devices.end());
-	EXPECT_TRUE(std::find(devices.begin(), devices.end(), 0x68) != devices.end());
+	if (bTestIMU)
+	{
+		I2CBus i2c2(2);
+		ASSERT_TRUE(i2c2.Open());
+		vector<unsigned int> devices;
+		ASSERT_TRUE(i2c2.DetectDevices(devices));
+		EXPECT_EQ(devices.size(), 2);
+		EXPECT_TRUE(std::find(devices.begin(), devices.end(), 0x53) != devices.end());
+		EXPECT_TRUE(std::find(devices.begin(), devices.end(), 0x68) != devices.end());
+	}
 }
 
 TEST(IMUTest, imu)
 {
-	IMU imu;
-	ASSERT_TRUE(imu.Open());
+	if (bTestIMU)
+	{
+		IMU imu;
+		ASSERT_TRUE(imu.Open());
 
-	usleep(1000 * 50); // 50ms (5 samples)
-	IMU::Frame frame = {0, 0, 0, 0, 0, 0, 0, {0, 0}};
-	imu.GetFrame(frame);
-	cout << "*********************" << endl;
-	cout << "*** X: " << frame.x << "g" << endl;
-	cout << "*** Y: " << frame.y << "g" << endl;
-	cout << "*** Z: " << frame.z << "g" << endl;
-	cout << "*** XRot: " << frame.xrot << "°/s" << endl;
-	cout << "*** YRot: " << frame.yrot << "°/s" << endl;
-	cout << "*** ZRot: " << frame.zrot << "°/s" << endl;
-	cout << "*** Temp: " << (frame.temp * 9 / 5 + 32) << "°F" << endl;
-	cout << "*********************" << endl;
-	EXPECT_NE(frame.x, 0);
-	EXPECT_NE(frame.y, 0);
-	EXPECT_NE(frame.z, 0);
-	EXPECT_NE(frame.xrot, 0);
-	EXPECT_NE(frame.yrot, 0);
-	EXPECT_NE(frame.zrot, 0);
-	EXPECT_NE(frame.temp, 0);
+		usleep(1000 * 50); // 50ms (5 samples)
+		IMU::Frame frame = {0, 0, 0, 0, 0, 0, 0, {0, 0}};
+		imu.GetFrame(frame);
+		cout << "*********************" << endl;
+		cout << "*** X: " << frame.x << "g" << endl;
+		cout << "*** Y: " << frame.y << "g" << endl;
+		cout << "*** Z: " << frame.z << "g" << endl;
+		cout << "*** XRot: " << frame.xrot << "°/s" << endl;
+		cout << "*** YRot: " << frame.yrot << "°/s" << endl;
+		cout << "*** ZRot: " << frame.zrot << "°/s" << endl;
+		cout << "*** Temp: " << (frame.temp * 9 / 5 + 32) << "°F" << endl;
+		cout << "*********************" << endl;
+		EXPECT_NE(frame.x, 0);
+		EXPECT_NE(frame.y, 0);
+		EXPECT_NE(frame.z, 0);
+		EXPECT_NE(frame.xrot, 0);
+		EXPECT_NE(frame.yrot, 0);
+		EXPECT_NE(frame.zrot, 0);
+		EXPECT_NE(frame.temp, 0);
+	}
+}
+
+TEST(MotorController, setSpeed)
+{
+	if (!arduino.IsOpen())
+		ASSERT_TRUE(arduino.Open(ARDUINO_PORT));
+	ASSERT_TRUE(arduino.IsOpen());
+
+	MotorController motors(&arduino);
+	motors.SetSpeed(0, 0, 0, 0);
 }
 
 int main(int argc, char **argv)
@@ -276,6 +295,10 @@ int main(int argc, char **argv)
 
 	cout << "Test AVR? (y/n)" << endl;
 	bTestAVR = (cin.get() == 'y');
+	cin.ignore(1000, '\n');
+
+	cout << "Test IMU? (y/n)" << endl;
+	bTestIMU = (cin.get() == 'y');
 	cin.ignore(1000, '\n');
 
 	testing::InitGoogleTest(&argc, argv);

@@ -44,6 +44,7 @@ rosbuild_add_gtest(avrtest test/avrtest.cpp
                            src/GPIO.cpp
                            src/I2CBus.cpp
                            src/IMU.cpp
+                           src/MotorController.cpp
                            src/Thumbwheel.cpp)
 target_link_libraries(avrtest ${PROJECT_NAME})
 rosbuild_add_compile_flags(avrtest ${BEAGLEBOARD_XM_FLAGS})
