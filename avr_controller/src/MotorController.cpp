@@ -23,9 +23,53 @@
 #include "MotorController.h"
 #include "ParamServer.h"
 
+#include <algorithm>
 #include <string>
+#include <vector>
+
+#include <iostream>
 
 using namespace std;
+
+bool MotorController::Connect(AVRController *avr)
+{
+	if (!avr || !avr->IsOpen())
+	{
+		cout << "AVR is not open" << endl;
+		return false;
+	}
+
+	// Create the FSM if it doesn't exist
+	string strFsm;
+	strFsm.push_back((char)FSM_MOTORCONTROLLER);
+	vector<string> fsmv;
+	if (!avr->ListFiniteStateMachines(fsmv))
+	{
+		cout << "Could not list FSMs" << endl;
+		return false;
+	}
+	if (find(fsmv.begin(), fsmv.end(), strFsm) == fsmv.end())
+	{
+		cout << "Creating FSM " << fsmv.size() << endl;
+		// Doesn't exist, create it now
+		avr->CreateFiniteStateMachine(strFsm);
+
+		// Repeat the above check. TODO: Add a parameter, verify, to Create..()
+		if (!avr->ListFiniteStateMachines(fsmv))
+			return false;
+		if (find(fsmv.begin(), fsmv.end(), strFsm) == fsmv.end())
+		{
+			cout << "Failed to load FSM. Loaded FSMs are:" << fsmv.size() << endl;
+			for (vector<string>::const_iterator it = fsmv.begin(); it != fsmv.end(); it++)
+				cout << (unsigned int)(*it->c_str()) << endl;
+
+			return false;
+		}
+	}
+
+	m_avr = avr;
+	return true;
+}
 
 void MotorController::SetSpeed(int16_t motor1, int16_t motor2, int16_t motor3, int16_t motor4)
 {

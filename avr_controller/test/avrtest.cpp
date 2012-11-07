@@ -283,8 +283,12 @@ TEST(MotorController, setSpeed)
 		ASSERT_TRUE(arduino.Open(ARDUINO_PORT));
 	ASSERT_TRUE(arduino.IsOpen());
 
-	MotorController motors(&arduino);
+	MotorController motors;
+	ASSERT_TRUE(motors.Connect(&arduino));
 	motors.SetSpeed(0, 0, 0, 0);
+	usleep(10 * 1000);
+	motors.SetSpeed(-20, -20, -20, -20);
+	usleep(10 * 1000);
 }
 
 int main(int argc, char **argv)

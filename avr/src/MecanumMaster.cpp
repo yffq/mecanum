@@ -32,6 +32,7 @@
 #include "DigitalPublisher.h"
 #include "Fade.h"
 #include "Mimic.h"
+#include "MotorController.h"
 #include "Toggle.h"
 
 #include <Arduino.h> // for millis()
@@ -45,7 +46,8 @@ extern HardwareSerial Serial;
 MecanumMaster::MecanumMaster()
 {
 	// Test FSMs
-	fsmv.PushBack(new ChristmasTree());
+	//fsmv.PushBack(new ChristmasTree());
+	fsmv.PushBack(new Fade(LED_RED, 1500, 50));
 	//fsmv.PushBack(new AnalogPublisher(BATTERY_VOLTAGE, FOREVER));
 	//fsmv.PushBack(new BatteryMonitor());
 	//fsmv.PushBack(new Toggle(LED_BATTERY_EMPTY));
@@ -86,6 +88,7 @@ void MecanumMaster::Spin()
 {
 	for (;;)
 	{
+		// TODO: This needs to read length, and then only read if (length-2) is available
 		while (Serial.available())
 			SerialCallback();
 
@@ -187,6 +190,8 @@ void MecanumMaster::Message(TinyBuffer &msg)
 			case FSM_MIMIC:
 				fsmv.PushBack(Mimic::NewFromArray(msg));
 				break;
+			case FSM_MOTORCONTROLLER:
+				fsmv.PushBack(MotorController::NewFromArray(msg));
 			case FSM_TOGGLE:
 				fsmv.PushBack(Toggle::NewFromArray(msg));
 				break;

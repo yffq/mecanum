@@ -26,8 +26,11 @@
 class MotorController
 {
 public:
-	MotorController(AVRController *avr) : m_avr(avr) { }
+	MotorController() : m_avr(NULL) { }
 	~MotorController() throw() { }
+
+	bool Connect(AVRController *avr);
+	bool IsConnected() const { return m_avr != NULL; }
 
 	void SetSpeed(int16_t motor1, int16_t motor2, int16_t motor3, int16_t motor4);
 
