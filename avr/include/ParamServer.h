@@ -503,6 +503,44 @@ private:
 };
 
 
+class ServoSweep
+{
+public:
+	ServoSweep() { m_params.id = FSM_SERVOSWEEP; }
+	ServoSweep(const uint8_t *bytes) { memcpy(&m_params, bytes, sizeof(Parameters)); }
+
+	uint8_t GetPin() const { return m_params.pin; }
+	void SetPin(uint8_t pin) { m_params.pin = pin; }
+
+	uint32_t GetPeriod() const { return m_params.period; }
+	void SetPeriod(uint32_t period) { m_params.period = period; }
+
+	uint32_t GetDelay() const { return m_params.delay; }
+	void SetDelay(uint32_t delay) { m_params.delay = delay; }
+
+	static bool Validate(const uint8_t *bytes, uint16_t length)
+	{
+		if (length == sizeof(Parameters))
+		{
+			Parameters params;
+			memcpy(&params, bytes, sizeof(Parameters));
+			return (params.id == FSM_SERVOSWEEP) && (ArduinoVerifier::IsDigital(params.pin));
+		}
+		return false;
+	}
+
+	struct Parameters
+	{
+		uint8_t id;
+		uint8_t pin;
+		uint32_t period;
+		uint32_t delay;
+	} __attribute__((packed));
+
+protected:
+	Parameters m_params;
+};
+
 
 
 class Toggle

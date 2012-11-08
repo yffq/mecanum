@@ -33,6 +33,7 @@
 #include "Fade.h"
 #include "Mimic.h"
 #include "MotorController.h"
+#include "ServoSweep.h"
 #include "Toggle.h"
 
 #include <Arduino.h> // for millis()
@@ -48,6 +49,7 @@ MecanumMaster::MecanumMaster()
 	// Test FSMs
 	//fsmv.PushBack(new ChristmasTree());
 	fsmv.PushBack(new Fade(LED_RED, 1500, 50));
+	fsmv.PushBack(new ServoSweep(PROXIMITY_SERVO, 15, 5400));
 	//fsmv.PushBack(new AnalogPublisher(BATTERY_VOLTAGE, FOREVER));
 	//fsmv.PushBack(new BatteryMonitor());
 	//fsmv.PushBack(new Toggle(LED_BATTERY_EMPTY));
@@ -192,6 +194,10 @@ void MecanumMaster::Message(TinyBuffer &msg)
 				break;
 			case FSM_MOTORCONTROLLER:
 				fsmv.PushBack(MotorController::NewFromArray(msg));
+				break;
+			case FSM_SERVOSWEEP:
+				fsmv.PushBack(ServoSweep::NewFromArray(msg));
+				break;
 			case FSM_TOGGLE:
 				fsmv.PushBack(Toggle::NewFromArray(msg));
 				break;

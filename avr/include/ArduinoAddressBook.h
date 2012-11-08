@@ -11,6 +11,7 @@
 #define FSM_DIGITALPUBLISHER 7
 #define FSM_ANALOGPUBLISHER  8
 #define FSM_MOTORCONTROLLER  9
+#define FSM_SERVOSWEEP       10
 
 #define MSG_MASTER_CREATE_FSM  0
 #define MSG_MASTER_DESTROY_FSM 1
@@ -72,8 +73,9 @@
 */
 
 // Base (to be determined)
+/**/
+#define PROXIMITY_SERVO 51
 /*
-#define PROXIMITY_SERVO 35
 #define BASE1           35
 #define PROXIMITY1      2 // Analog
 #define PROXIMITY2      3 // Analog

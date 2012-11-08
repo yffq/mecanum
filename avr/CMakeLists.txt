@@ -71,6 +71,7 @@ set(mecanum_srcs src/main.cpp
                  src/MecanumMaster.cpp
                  src/Mimic.cpp
                  src/MotorController.cpp
+                 src/ServoSweep.cpp
                  src/TinyBuffer.cpp
                  src/Toggle.cpp
 )

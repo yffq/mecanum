@@ -94,6 +94,56 @@
 		<interface pin="38" name="MOTOR2_B"/>
 		<interface pin="40" name="TEMPERATURE" not-connected="true"/>
 		
+		<!--
+		Base connections are looking from above with the aduino on the buttom
+		left and the beagle board on the bottom right.
+		
+		Left:
+		_ _ _ _ _
+		| 1 | 2 |
+		| 3 | 4 |
+		| 5 | 6 |
+		| 7 | 8 |
+		| 9 | 10|
+		| 11| 12|
+		- - - - -
+		
+		1. 5V
+		2. NC
+		3. 
+		4. 
+		5. 
+		6. 
+		7. 
+		8. 
+		9. 
+		10. 
+		11. 
+		12. 
+		
+		Right:
+		_ _ _ _ _
+		| 1 | 2 |
+		| 3 | 4 |
+		| 5 | 6 |
+		| 7 | 8 |
+		| 9 | 10|
+		| 11| 12|
+		- - - - -
+		
+		1. 5V
+		2. NC
+		3. GND
+		4. NC
+		5. 
+		6. 
+		7. 
+		8. 
+		9. 
+		10. 
+		11. 
+		12. 
+		-->
 /		<interface pin="35" name="MOTOR1_ENCODER1"/>
 /		<interface pin="37" name="MOTOR1_ENCODER2"/>
 /		<interface pin="39" name="MOTOR2_ENCODER1"/>
