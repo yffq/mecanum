@@ -110,16 +110,16 @@
 		
 		1. 5V
 		2. NC
-		3. 
-		4. 
-		5. 
-		6. 
-		7. 
-		8. 
-		9. 
-		10. 
-		11. 
-		12. 
+		3. GND
+		4. NC
+		5. Digital 47
+		6. Digital 45
+		7. Analog 8
+		8. Analog 7
+		9. Digital 49
+		10. NC
+		11. Digital 51
+		12. Digital 53
 		
 		Right:
 		_ _ _ _ _
@@ -131,18 +131,18 @@
 		| 11| 12|
 		- - - - -
 		
-		1. 5V
+		1. NC
 		2. NC
-		3. GND
+		3. NC
 		4. NC
-		5. 
-		6. 
-		7. 
-		8. 
-		9. 
-		10. 
-		11. 
-		12. 
+		5. Digital 41
+		6. Digital 39
+		7. Analog 3
+		8. Analog 2
+		9. NC
+		10. Digital 37
+		11. Digital 35
+		12. Digital 43
 		-->
 /		<interface pin="35" name="MOTOR1_ENCODER1"/>
 /		<interface pin="37" name="MOTOR1_ENCODER2"/>
