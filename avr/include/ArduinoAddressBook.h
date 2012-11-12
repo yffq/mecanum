@@ -61,22 +61,22 @@
 #define MOTOR4_CS  12 // Analog
 
 // Encoders (to be determined)
+#define SERVO_ENCODER   35
 /*
-#define MOTOR1_ENCODER1 35
-#define MOTOR1_ENCODER2 35
-#define MOTOR2_ENCODER1 35
-#define MOTOR2_ENCODER2 35
-#define MOTOR3_ENCODER1 35
-#define MOTOR3_ENCODER2 35
-#define MOTOR4_ENCODER1 35
-#define MOTOR4_ENCODER2 35
+#define MOTOR1_ENCODER1 35-53
+#define MOTOR1_ENCODER2 35-53
+#define MOTOR2_ENCODER1 35-53
+#define MOTOR2_ENCODER2 35-53
+#define MOTOR3_ENCODER1 35-53
+#define MOTOR3_ENCODER2 35-53
+#define MOTOR4_ENCODER1 35-53
+#define MOTOR4_ENCODER2 35-53
 */
 
 // Base (to be determined)
-/**/
-#define PROXIMITY_SERVO 51
+#define PROXIMITY_SERVO 53
 /*
-#define BASE1           35
+#define BASE_NC         35-53
 #define PROXIMITY1      2 // Analog
 #define PROXIMITY2      3 // Analog
 #define PROXIMITY3      7 // Analog
