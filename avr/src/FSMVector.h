@@ -72,7 +72,7 @@ public:
 	 * elements over by 1, giving an average runtime of O(N) but maintaining
 	 * the FSM ordering.
 	 */
-	void Erase(unsigned char i);
+	void Erase(uint8_t i);
 	void Erase(const TinyBuffer &params) { Erase(GetIndex(params)); }
 	void Erase(const FiniteStateMachine &fsm) { Erase(GetIndex(fsm)); }
 
@@ -80,7 +80,7 @@ public:
 	 * Erase the given element in O(1) time. The erased element is simply
 	 * replaced by the FSM at the end of the array.
 	 */
-	void QuickErase(unsigned char i);
+	void QuickErase(uint8_t i);
 	void QuickErase(const TinyBuffer &params) { QuickErase(GetIndex(params)); }
 	void QuickErase(const FiniteStateMachine &fsm) { QuickErase(GetIndex(fsm)); }
 

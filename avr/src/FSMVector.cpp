@@ -45,7 +45,7 @@ void FSMVector::PopBack()
 		delete m_fsmv[--m_size];
 }
 
-void FSMVector::Erase(unsigned char i)
+void FSMVector::Erase(uint8_t i)
 {
 	if (0 <= i && i < m_size)
 	{
@@ -56,7 +56,7 @@ void FSMVector::Erase(unsigned char i)
 	}
 }
 
-void FSMVector::QuickErase(unsigned char i)
+void FSMVector::QuickErase(uint8_t i)
 {
 	if (0 <= i && i < m_size)
 	{
