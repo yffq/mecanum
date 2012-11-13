@@ -25,7 +25,7 @@
 #include "ParamServer.h"
 
 // TODO: Have CMake pull libraries from /usr/share/arduino/libraries
-#include <Servo.h>
+#include <SoftwareServo.h>
 #include <stdint.h>
 
 /**
@@ -69,7 +69,7 @@ public:
 	virtual uint32_t Step();
 
 private:
-	Servo m_servo;
+	SoftwareServo m_servo;
 
 	Direction m_dir;
 	int m_angle;

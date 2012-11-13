@@ -49,12 +49,12 @@ MecanumMaster::MecanumMaster()
 	// Test FSMs
 	//fsmv.PushBack(new ChristmasTree());
 	fsmv.PushBack(new Fade(LED_RED, 1500, 50));
-	fsmv.PushBack(new ServoSweep(PROXIMITY_SERVO, 15, 5400));
+	fsmv.PushBack(new ServoSweep(PROXIMITY_SERVO, 5400, 15));
 	//fsmv.PushBack(new AnalogPublisher(BATTERY_VOLTAGE, FOREVER));
 	//fsmv.PushBack(new BatteryMonitor());
 	//fsmv.PushBack(new Toggle(LED_BATTERY_EMPTY));
 	//fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE6, LED_BATTERY_HIGH, 50));
-	//fsmv.PushBack(new Blink(LED_BATTERY_HIGH, 250));
+	fsmv.PushBack(new Blink(LED_BATTERY_HIGH, 250));
 	/*
 	// Everything on full brightness
 	uint8_t leds[] = {

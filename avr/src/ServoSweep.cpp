@@ -27,17 +27,19 @@
 #include <avr/pgmspace.h>
 
 ServoSweep::ServoSweep(uint8_t pin, uint32_t period, uint32_t delay) :
-	FiniteStateMachine(FSM_FADE, reinterpret_cast<uint8_t*>(&m_params), sizeof(m_params)),
+	FiniteStateMachine(FSM_SERVOSWEEP, reinterpret_cast<uint8_t*>(&m_params), sizeof(m_params)),
 	m_dir(UP), m_angle(90), m_angleStep(0)
 {
 	SetPin(pin);
 	SetPeriod(period);
 	SetDelay(delay);
 
-	// Use the period to calculate degree increments
-	m_angleStep = 180 * delay / period;
+	// Use half the period (because we go there and back) to calculate degree increments
+	m_angleStep = 2 * 180 * delay / period;
 
 	m_servo.attach(pin);
+	//m_servo.setMinimumPulse(1000);
+	//m_servo.setMaximumPulse(2000);
 	m_servo.write(m_angle);
 }
 
@@ -59,6 +61,8 @@ ServoSweep::~ServoSweep()
 // So we have the option to avoid hitting the VTable
 uint32_t ServoSweep::Step()
 {
+	SoftwareServo::refresh();
+
 	if (m_dir == UP)
 	{
 		m_angle += m_angleStep;
