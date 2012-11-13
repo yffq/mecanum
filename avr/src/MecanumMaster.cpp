@@ -44,12 +44,14 @@
 
 extern HardwareSerial Serial;
 
-MecanumMaster::MecanumMaster()
+void MecanumMaster::Init()
 {
-	// Test FSMs
+	Serial.begin(115200);
+	Serial.setTimeout(250); // ms
+
+	// Load initial FSMs
 	//fsmv.PushBack(new ChristmasTree());
 	fsmv.PushBack(new Fade(LED_RED, 1500, 50));
-	fsmv.PushBack(new ServoSweep(PROXIMITY_SERVO, 5400, 15));
 	//fsmv.PushBack(new AnalogPublisher(BATTERY_VOLTAGE, FOREVER));
 	//fsmv.PushBack(new BatteryMonitor());
 	//fsmv.PushBack(new Toggle(LED_BATTERY_EMPTY));
@@ -80,14 +82,9 @@ MecanumMaster::MecanumMaster()
 	*/
 }
 
-void MecanumMaster::SetupSerial()
-{
-	Serial.begin(115200);
-	Serial.setTimeout(250); // ms
-}
-
 void MecanumMaster::Spin()
 {
+	fsmv.PushBack(new ServoSweep(35, 2000));
 	for (;;)
 	{
 		// TODO: This needs to read length, and then only read if (length-2) is available

@@ -37,7 +37,7 @@ MecanumMaster master;
 void setup()
 {
 	// Set up our serial communications
-	master.SetupSerial();
+	master.Init();
 }
 
 /**

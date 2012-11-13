@@ -46,12 +46,13 @@
 class MecanumMaster
 {
 public:
-	MecanumMaster();
+	MecanumMaster() { }
 
 	/**
-	 * Set the baud rate and timeout duration for our serial communication.
+	 * Set the baud rate and timeout duration for our serial communication, and
+	 * create initial FSMs.
 	 */
-	void SetupSerial();
+	void Init();
 
 	/**
 	 * Don't get dizzy.

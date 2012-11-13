@@ -26,21 +26,14 @@
 #include <Arduino.h>
 #include <avr/pgmspace.h>
 
-ServoSweep::ServoSweep(uint8_t pin, uint32_t period, uint32_t delay) :
+ServoSweep::ServoSweep(uint8_t pin, uint32_t delay) :
 	FiniteStateMachine(FSM_SERVOSWEEP, reinterpret_cast<uint8_t*>(&m_params), sizeof(m_params)),
-	m_dir(UP), m_angle(90), m_angleStep(0)
+	m_dir(UP)
 {
 	SetPin(pin);
-	SetPeriod(period);
 	SetDelay(delay);
 
-	// Use half the period (because we go there and back) to calculate degree increments
-	m_angleStep = 2 * 180 * delay / period;
-
-	m_servo.attach(pin);
-	//m_servo.setMinimumPulse(1000);
-	//m_servo.setMaximumPulse(2000);
-	m_servo.write(m_angle);
+	m_servo.attach(pin, 1000, 2000);
 }
 
 ServoSweep *ServoSweep::NewFromArray(const TinyBuffer &params)
@@ -48,7 +41,7 @@ ServoSweep *ServoSweep::NewFromArray(const TinyBuffer &params)
 	if (Validate(params.Buffer(), params.Length()))
 	{
 		ParamServer::ServoSweep servoSweep(params.Buffer());
-		return new ServoSweep(servoSweep.GetPin(), servoSweep.GetPeriod(), servoSweep.GetDelay());
+		return new ServoSweep(servoSweep.GetPin(), servoSweep.GetDelay());
 	}
 	return NULL;
 }
@@ -61,28 +54,15 @@ ServoSweep::~ServoSweep()
 // So we have the option to avoid hitting the VTable
 uint32_t ServoSweep::Step()
 {
-	SoftwareServo::refresh();
-
 	if (m_dir == UP)
 	{
-		m_angle += m_angleStep;
-		if (m_angle >= 180)
-		{
-			m_angle = 180;
-			m_dir = DOWN;
-		}
+		m_dir = DOWN;
+		m_servo.write(180);
 	}
 	else
 	{
-		m_angle -= m_angleStep;
-		if (m_angle <= 0)
-		{
-			m_angle = 0;
-			m_dir = UP;
-		}
+		m_dir = UP;
+		m_servo.write(0);
 	}
-
-	m_servo.write(m_angle);
-
 	return GetDelay();
 }

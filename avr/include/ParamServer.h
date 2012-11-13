@@ -512,9 +512,6 @@ public:
 	uint8_t GetPin() const { return m_params.pin; }
 	void SetPin(uint8_t pin) { m_params.pin = pin; }
 
-	uint32_t GetPeriod() const { return m_params.period; }
-	void SetPeriod(uint32_t period) { m_params.period = period; }
-
 	uint32_t GetDelay() const { return m_params.delay; }
 	void SetDelay(uint32_t delay) { m_params.delay = delay; }
 
@@ -533,7 +530,6 @@ public:
 	{
 		uint8_t id;
 		uint8_t pin;
-		uint32_t period;
 		uint32_t delay;
 	} __attribute__((packed));
 

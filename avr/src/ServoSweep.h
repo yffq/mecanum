@@ -25,7 +25,7 @@
 #include "ParamServer.h"
 
 // TODO: Have CMake pull libraries from /usr/share/arduino/libraries
-#include <SoftwareServo.h>
+#include <Servo.h>
 #include <stdint.h>
 
 /**
@@ -50,13 +50,8 @@ public:
 
 	/**
 	 * Create a new servo sweeper on the specified pin.
-	 *
-	 * @param pin The pin, supposedly connected to an servo
-	 * @param period (ms) The servo goes from 0 to 180 degrees in half a period
-	 * @param delay The reciprocal of the update frequency, in ms. A delay
-	 *     of 50ms would update 20 times per second.
 	 */
-	ServoSweep(uint8_t pin, uint32_t period, uint32_t delay);
+	ServoSweep(uint8_t pin, uint32_t delay);
 
 	/**
 	 * Performs parameter validation and instantiates a new object. If the
@@ -69,9 +64,7 @@ public:
 	virtual uint32_t Step();
 
 private:
-	SoftwareServo m_servo;
+	Servo m_servo;
 
 	Direction m_dir;
-	int m_angle;
-	int m_angleStep;
 };
