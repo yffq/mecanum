@@ -23,6 +23,8 @@
 
 #include "FSMVector.h"
 
+class Encoder;
+
 /**
  * MecanumMaster is the FSM manager. It steps through each FSM, round-robin
  * style, checking serial traffic each on cycle.
@@ -46,7 +48,7 @@
 class MecanumMaster
 {
 public:
-	MecanumMaster() { }
+	MecanumMaster();
 
 	/**
 	 * Set the baud rate and timeout duration for our serial communication, and
@@ -75,6 +77,9 @@ private:
 	// 32,767 ms is half of 65,355; 65,355 is the upper limit of a 2-byte int...
 	// Coincidence??
 	unsigned long fsmDelay[FSMVector::MAX_FSM];
+
+	// A pointer to an Encoder. The Update() function is called every frame.
+	Encoder *m_encoder;
 
 	// Buffer to send and receive serial data. Must be <= 0xFE
 	static const unsigned int BUFFERLENGTH = 512;

@@ -73,11 +73,14 @@ private:
 	{
 		SEEKING_MIDPOINT_1,
 		SEEKING_LEFT,
+		SEEKING_MIDPOINT_2,
 		SEEKING_RIGHT,
 		FINISHED
 	};
 	State m_state;
 
-	int m_midpoint; // microseconds
-	int m_target;   // microseconds
+	int m_target;        // microseconds (pulse length)
+	int m_servoLeft;     // microseconds (pulse length)
+	int m_servoRight;    // microseconds (pulse length)
+	int m_servoMidpoint; // microseconds (pulse length)
 };

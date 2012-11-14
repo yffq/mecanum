@@ -45,6 +45,10 @@
 
 extern HardwareSerial Serial;
 
+MecanumMaster::MecanumMaster() : m_encoder(NULL)
+{
+}
+
 void MecanumMaster::Init()
 {
 	Serial.begin(115200);
@@ -87,7 +91,7 @@ void MecanumMaster::Spin()
 {
 	// TODO: Need to invalidate encoder when sentry gets deleted
 	Sentry *sentry = new Sentry();
-	Encoder *encoder = sentry->GetEncoder();
+	m_encoder = sentry->GetEncoder();
 	fsmv.PushBack(sentry);
 	for (;;)
 	{
@@ -103,8 +107,9 @@ void MecanumMaster::Spin()
 				fsmDelay[i] = fsmv[i]->Step() + millis();
 			}
 		}
-		// if (encoder)
-		encoder->Update();
+
+		if (m_encoder)
+			m_encoder->Update();
 	}
 }
 
@@ -199,8 +204,12 @@ void MecanumMaster::Message(TinyBuffer &msg)
 				fsmv.PushBack(MotorController::NewFromArray(msg));
 				break;
 			case FSM_SENTRY:
-				fsmv.PushBack(Sentry::NewFromArray(msg));
-				break;
+				{
+					Sentry *sentry = Sentry::NewFromArray(msg);
+					m_encoder = sentry->GetEncoder();
+					fsmv.PushBack(sentry);
+					break;
+				}
 			case FSM_SERVOSWEEP:
 				fsmv.PushBack(ServoSweep::NewFromArray(msg));
 				break;
@@ -213,8 +222,13 @@ void MecanumMaster::Message(TinyBuffer &msg)
 	}
 	case MSG_MASTER_DESTROY_FSM:
 	{
-		// Annihilate a FSM. msg is the fingerprint of the FSM to delete
-		fsmv.QuickErase(msg);
+		// Kill a FSM. msg is the fingerprint of the FSM to delete
+		if (msg.Length())
+		{
+			fsmv.QuickErase(msg);
+			if (msg[0] == FSM_SENTRY)
+				m_encoder = NULL;
+		}
 		break;
 	}
 	case MSG_MASTER_LIST_FSM:
