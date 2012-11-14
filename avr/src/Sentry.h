@@ -19,38 +19,46 @@
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  */
+#pragma once
 
-#include "MecanumMaster.h"
+#include "FiniteStateMachine.h"
+#include "ParamServer.h"
 
-#include <Arduino.h>
-#include <Servo.h> // temp: if this isn't here arduino-cmake can't find the Servo library
-
-/**
- * We need to declare master as a global variable. When it was declared locally
- * right before master.Spin() below, the Arduino would glitch out hardcore and
- * turn random LEDs on and off.
- */
-MecanumMaster master;
-
-/**
- * Called by Arduino's main() function before loop().
- */
-void setup()
+class Encoder
 {
-	// Set up our serial communications
-	master.Init();
-}
+public:
+	Encoder(uint8_t pin) : m_pin(pin), m_ticks(0), m_state(0) { }
+
+	void Start();
+	void Update();
+
+	int Ticks() const { return m_ticks; }
+	void Reset();
+
+private:
+	uint8_t m_pin;
+	int     m_ticks;
+	uint8_t m_state;
+};
+
 
 /**
- * master.Spin() uses an infinite loop to bypass Arduino's main loop. The
- * advantages here are twofold: we avoid the overhead of a function call, and
- * we skip Arduino's call to "if (serialEventRun) serialEventRun();" betwixt
- * every call to loop(). This is desirable because we are using master to
- * process serial data instead of the serialEvent() callback provided by
- * Arduino.
+ * Control the five colored LED arrays.
+ *
+ * Parameters:
+ * ---
+ * uint8  ID
+ * ---
  */
-void loop()
+class Sentry : public FiniteStateMachine, public ParamServer::Sentry
 {
-	master.Spin();
-}
+public:
+	Sentry();
 
+	static Sentry *NewFromArray(const TinyBuffer &params);
+
+	virtual ~Sentry() { }
+
+	virtual uint32_t Step();
+
+};

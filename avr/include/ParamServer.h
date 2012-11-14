@@ -503,6 +503,33 @@ private:
 };
 
 
+class Sentry
+{
+public:
+	Sentry() { m_params.id = FSM_SENTRY; }
+	Sentry(const uint8_t *bytes) { memcpy(&m_params, bytes, sizeof(Parameters)); }
+
+	static bool Validate(const uint8_t *bytes, uint16_t length)
+	{
+		if (length == sizeof(Parameters))
+		{
+			Parameters params;
+			memcpy(&params, bytes, sizeof(Parameters));
+			return (params.id == FSM_SENTRY);
+		}
+		return false;
+	}
+
+	struct Parameters
+	{
+		uint8_t id;
+	} __attribute__((packed));
+
+protected:
+	Parameters m_params;
+};
+
+
 class ServoSweep
 {
 public:

@@ -20,37 +20,43 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  */
 
-#include "MecanumMaster.h"
+#include "Sentry.h"
 
 #include <Arduino.h>
-#include <Servo.h> // temp: if this isn't here arduino-cmake can't find the Servo library
 
-/**
- * We need to declare master as a global variable. When it was declared locally
- * right before master.Spin() below, the Arduino would glitch out hardcore and
- * turn random LEDs on and off.
- */
-MecanumMaster master;
-
-/**
- * Called by Arduino's main() function before loop().
- */
-void setup()
+void Encoder::Start()
 {
-	// Set up our serial communications
-	master.Init();
+	m_ticks = 0;
+	pinMode(m_pin, INPUT);
+	m_state = digitalRead(m_pin);
 }
 
-/**
- * master.Spin() uses an infinite loop to bypass Arduino's main loop. The
- * advantages here are twofold: we avoid the overhead of a function call, and
- * we skip Arduino's call to "if (serialEventRun) serialEventRun();" betwixt
- * every call to loop(). This is desirable because we are using master to
- * process serial data instead of the serialEvent() callback provided by
- * Arduino.
- */
-void loop()
+void Encoder::Reset()
 {
-	master.Spin();
+	m_ticks = 0;
+	m_state = digitalRead(m_pin);
 }
 
+void Encoder::Update()
+{
+	if (digitalRead(m_pin) != m_state)
+	{
+		m_state = 1 - m_state;
+		m_ticks++;
+	}
+}
+
+Sentry::Sentry() :
+		FiniteStateMachine(FSM_SENTRY, reinterpret_cast<uint8_t*>(&m_params), sizeof(m_params))
+{
+}
+
+Sentry *Sentry::NewFromArray(const TinyBuffer &params)
+{
+	return Validate(params.Buffer(), params.Length()) ? new Sentry() : (Sentry*)0;
+}
+
+uint32_t Sentry::Step()
+{
+	return 24L * 60L * 60L * 1000L;
+}

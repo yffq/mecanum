@@ -12,6 +12,7 @@
 #define FSM_ANALOGPUBLISHER  8
 #define FSM_MOTORCONTROLLER  9
 #define FSM_SERVOSWEEP       10
+#define FSM_SENTRY           11
 
 #define MSG_MASTER_CREATE_FSM  0
 #define MSG_MASTER_DESTROY_FSM 1
