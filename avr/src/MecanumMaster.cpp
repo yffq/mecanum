@@ -33,6 +33,7 @@
 #include "Fade.h"
 #include "Mimic.h"
 #include "MotorController.h"
+#include "Sentry.h"
 #include "ServoSweep.h"
 #include "Toggle.h"
 
@@ -84,7 +85,10 @@ void MecanumMaster::Init()
 
 void MecanumMaster::Spin()
 {
-	fsmv.PushBack(new ServoSweep(35, 2000));
+	// TODO: Need to invalidate encoder when sentry gets deleted
+	Sentry *sentry = new Sentry();
+	Encoder *encoder = sentry->GetEncoder();
+	fsmv.PushBack(sentry);
 	for (;;)
 	{
 		// TODO: This needs to read length, and then only read if (length-2) is available
@@ -99,6 +103,8 @@ void MecanumMaster::Spin()
 				fsmDelay[i] = fsmv[i]->Step() + millis();
 			}
 		}
+		// if (encoder)
+		encoder->Update();
 	}
 }
 
@@ -191,6 +197,9 @@ void MecanumMaster::Message(TinyBuffer &msg)
 				break;
 			case FSM_MOTORCONTROLLER:
 				fsmv.PushBack(MotorController::NewFromArray(msg));
+				break;
+			case FSM_SENTRY:
+				fsmv.PushBack(Sentry::NewFromArray(msg));
 				break;
 			case FSM_SERVOSWEEP:
 				fsmv.PushBack(ServoSweep::NewFromArray(msg));

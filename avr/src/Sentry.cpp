@@ -24,6 +24,10 @@
 
 #include <Arduino.h>
 
+#define SERVO_PIN     35
+#define ENCODER_PIN   53
+#define PROXIMITY_PIN 8 // Analog
+
 void Encoder::Start()
 {
 	m_ticks = 0;
@@ -47,8 +51,13 @@ void Encoder::Update()
 }
 
 Sentry::Sentry() :
-		FiniteStateMachine(FSM_SENTRY, reinterpret_cast<uint8_t*>(&m_params), sizeof(m_params))
+		FiniteStateMachine(FSM_SENTRY, reinterpret_cast<uint8_t*>(&m_params), sizeof(m_params)),
+		m_encoder(ENCODER_PIN), m_state(SEEKING_MIDPOINT_1), m_midpoint(1500)
 {
+	m_encoder.Start();
+	m_servo.attach(SERVO_PIN);
+	m_target = 1500;
+	m_servo.writeMicroseconds(m_target);
 }
 
 Sentry *Sentry::NewFromArray(const TinyBuffer &params)
@@ -58,5 +67,14 @@ Sentry *Sentry::NewFromArray(const TinyBuffer &params)
 
 uint32_t Sentry::Step()
 {
+	switch (m_state)
+	{
+	case SEEKING_MIDPOINT_1:
+		m_state = SEEKING_LEFT;
+		// Allow 1 second to center the servo
+		return 1000;
+	case SEEKING_LEFT:
+		break;
+	}
 	return 24L * 60L * 60L * 1000L;
 }

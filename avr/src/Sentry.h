@@ -24,6 +24,8 @@
 #include "FiniteStateMachine.h"
 #include "ParamServer.h"
 
+#include <Servo.h>
+
 class Encoder
 {
 public:
@@ -61,4 +63,21 @@ public:
 
 	virtual uint32_t Step();
 
+	Encoder *GetEncoder() { return &m_encoder; }
+
+private:
+	Encoder m_encoder;
+	Servo   m_servo;
+
+	enum State
+	{
+		SEEKING_MIDPOINT_1,
+		SEEKING_LEFT,
+		SEEKING_RIGHT,
+		FINISHED
+	};
+	State m_state;
+
+	int m_midpoint; // microseconds
+	int m_target;   // microseconds
 };
