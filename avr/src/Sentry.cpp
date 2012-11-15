@@ -38,6 +38,8 @@ void Encoder::Start()
 {
 	m_ticks = 0;
 	pinMode(m_pin, INPUT);
+	pinMode(LED_BATTERY_HIGH, OUTPUT);
+	pinMode(LED_BATTERY_EMPTY, OUTPUT);
 	m_state = digitalRead(m_pin);
 }
 
@@ -53,6 +55,7 @@ void Encoder::Update()
 	{
 		m_state = 1 - m_state;
 		m_ticks++;
+		digitalWrite(LED_BATTERY_EMPTY, m_state);
 	}
 }
 
@@ -109,7 +112,7 @@ uint32_t Sentry::Step()
 				else
 				{
 					if (m_state == SEEKING_LEFT)
-						// Adjusted conversion factor is NOMINAL_uS_PER_TICK * (targetTicks - 1) / m_encoder.Ticks()
+						// Adjust conversion factor by (targetTicks - 1) / m_encoder.Ticks()
 						m_target = INITIAL_MIDPOINT - targetTicks * NOMINAL_uS_PER_TICK * (targetTicks - 1) / m_encoder.Ticks();
 					else
 						m_target = INITIAL_MIDPOINT + targetTicks * NOMINAL_uS_PER_TICK * (targetTicks - 1) / m_encoder.Ticks();
@@ -117,28 +120,33 @@ uint32_t Sentry::Step()
 
 				if (m_target < 1000 || m_target > 2000)
 				{
+					digitalWrite(LED_BATTERY_HIGH, HIGH);
 					// Outside the servo safe zone, proceed with caution
 					static int prevTicks = 0;
 					static int prevTarget = 0;
 
-					if (prevTicks != m_encoder.Ticks())
+					if (m_encoder.Ticks() == prevTicks)
+					{
+						// Reached the servo's left limit
+						m_state = (m_state == SEEKING_LEFT ? SEEKING_MIDPOINT_2 : FINISHED);
+						if (m_state == SEEKING_LEFT)
+							m_servoLeft = prevTarget;
+						else
+							m_servoRight = prevTarget;
+						prevTicks = 0;
+						targetTicks = 0;
+						m_target = INITIAL_MIDPOINT;
+						digitalWrite(LED_BATTERY_HIGH, LOW);
+					}
+					else
 					{
 						prevTicks = m_encoder.Ticks();
 						prevTarget = m_target;
 					}
-					else
-					{
-						// Reached the servo's left limit
-						m_state = (m_state == SEEKING_LEFT ? SEEKING_MIDPOINT_2 : FINISHED);
-						prevTicks = 0;
-						targetTicks = 0;
-						m_servoLeft = prevTarget;
-						m_target = INITIAL_MIDPOINT;
-					}
 				}
 			}
 			m_servo.writeMicroseconds(m_target);
-			return 20;
+			return 30;
 		}
 	case FINISHED:
 	default:
