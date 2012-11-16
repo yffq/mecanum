@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-import os, sys, inspect
+import os
+import sys
+import inspect
+import re
 
 def getScriptDir():
 	path = os.path.split(inspect.getfile(inspect.currentframe()))[0]
@@ -7,46 +10,130 @@ def getScriptDir():
 	return cmd_folder
 
 class HeaderFile:
-	def parse(filepath):
+	def __init__(self, filepath):
+		"""
+		Parse a header file looking for parameter and message declarations
+		in the docstring of the class.
+		
+		Parsing is performed on all classes inheriting from FiniteStateMachine
+		(see FiniteStateMachine.h). The following types are considered:
+		
+		* Parameters - The fields that must be included when constructing the FSM
+		* Publish - The fields of the message published by the FSM (only 1 msg for now)
+		* Subscribe - The fields of the message handled by the FSM (only 1 msg for now)
+		
+		When the above object types appear in the docstring, a '---' must be
+		the following line. The type is terminated by the next '---' found. In
+		between these delimiters, fields are declared using their storage
+		requirements and their field name. For example,
+		
+		/*
+		 * Parameters:
+		 * ---
+		 * uint8  id
+		 * uint8  pin # IsAnalog
+		 * uint32 delay
+		 * ---
+		 */
+		
+		An optional comment specifies a constriction (literally a function name
+		from the ArduinoVerifier namespace). In this case,
+		ArduinoVerifier::IsAnalog(pin) is called when verifying parameters.
+		"""
+		
+		# Only care about .h files
+		if os.path.splitext(filepath)[1] != '.h':
+			raise
+		
 		self.filepath = filepath
-		return True
+		self.docstringFound = False
+		
+		# State variables
+		docstring = []
+		inDocstring = False
+		# Need class name and 'public FiniteStateMachine' within 3 lines after docstring
+		needClassName = 0
+		classNameCandidate = ''
+		
+		for line in open(filepath):
+			line = line.strip()
+			if line == '/**':
+				# Found docstring start
+				inDocstring = True
+			
+			elif line == '*/' and inDocstring:
+				# Found docstring end, now we need class name and
+				# "public FiniteStateMachine" in the next 3 lines
+				inDocstring = False
+				needClassName = 3
+			
+			elif inDocstring:
+				docstring.append(line)
+			
+			elif needClassName > 0:
+				# Decrement our attempts to find a class that extends FiniteStateMachine
+				needClassName = needClassName - 1
+				# Try to get class name from line
+				if classNameCandidate == '' and line.startswith('class'):
+					lineCopy = line[len('class'):].strip()
+					if len(lineCopy):
+						classNameCandidate = re.split('\s', lineCopy, 1)[0]
+						# Don't set needClassName to 0 until we know for sure if it's a FSM
+				
+				if classNameCandidate != '' and 'public FiniteStateMachine' in line:
+					# Found our FSM class name and docstring, now do something with it
+					self.handleDocstring(classNameCandidate, docstring)
+					# And now continue looking for more FSM docstrings of any subsequent classes
+					classNameCandidate = ''
+					docstring = []
+					needClassName = 0
+			
+			elif needClassName == 0 and classNameCandidate != '':
+				# Make sure to reset classNameCandidate if we run out of attempts
+				classNameCandidate = ''
+		
+		# All done. Only continue without raising if a valid FSM docstring was found
+		if not self.docstringFound:
+			raise
 	
-	def getPath():
-		return filepath
+	def handleDocstring(self, className, docstring):
+		self.docstringFound = True
+	
+	def getPath(self):
+		return self.filepath
 
 def GenParams():
 	print('-- Parsing FiniteStateMachine headers to generate ParamServer.h')
 
 	output = os.path.realpath(os.path.join(getScriptDir(), '..', 'include', 'ParamServer.h'))
 	headerdir = os.path.realpath(os.path.join(getScriptDir(), '..', 'src'))
-
+	
+	# Compare against ParamServer.h's last update time
 	outputmod = os.path.getmtime(output)
 	run = False
 	for header in os.listdir(headerdir):
 		if os.path.getmtime(os.path.join(headerdir, header)) > outputmod:
 			run = True
 			break
-	if !run:
+	if not run:
 		print('-- No files modified, exiting')
 		return
 	
 	# Create a list of parsed header files
-	headerfiles = []
+	headerFilesList = []
 	for header in os.listdir(headerdir):
 		# Create a new object and attempt to parse the file
-		headerfile = HeaderFile()
-		if headerfile.parse(os.path.join(headerdir, header)):
+		try:
+			headerfile = HeaderFile(os.path.join(headerdir, header))
 			# If parsing succeeds, add the file object to the list
-			headerfiles.append(headerfile)
-
+			print('Found docstring in %s' % header)
+			headerFilesList.append(headerfile)
+		except:
+			print('No docstring found in %s' % header)
 	
-	os.listdir(path)
-
-	file = open('test.h', 'w')
-	file.write('class test2\n{\n};')
-	file.close()
+	# TODO: invoke templater with the parsed header objects	
+	
 	print('-- Successfully generated ParamServer.h')
-
 
 if __name__ == '__main__':
 	GenParams()
