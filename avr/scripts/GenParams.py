@@ -194,9 +194,9 @@ class HeaderFile:
 			fsm["parameter"] = parameters.getParams()
 		if publish and len(publish.getParams()):
 			fsm["message"] = [{"which": "Publish", "parameter": publish.getParams()}]
-		if subscribe and len(subscribe.getParams()):
-			if "message" not in fsm:
-				fsm["message"] = []
+		else:
+			fsm["message"] = []
+		if subscribe:
 			fsm["message"].append({"which": "Subscribe", "parameter": subscribe.getParams()})
 		
 		self.fsms.append(fsm)

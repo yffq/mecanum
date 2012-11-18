@@ -14,36 +14,26 @@ class Property:
 		'''
 		Render a template using data from object. Object structure looks like:
 		{
-			"tagname": [
+			"prop1": value1,
+			"prop2": value2,
+			"subtag1name": [
 				{
-					"prop1": value1,
-					"prop2": value2,
-					"subtag1name": [
-						{
-							"prop1": value3
-							"prop2": value4,
-							... (more subtag properties)
-						},
-						... (more subtag1 objects)
-					],
-					... (more tag properties and subtag objects)
+					"prop1": value3
+					"prop2": value4,
+					... (more subtag properties)
 				},
-				... (more tag objects)
-			]
+				... (more subtag1 objects)
+			],
+			... (more tag properties and subtag objects)
 		}
 		'''
-		print('Rendering Property ' + self.tagName + '.' + self.propertyName)
-		#pprint.PrettyPrinter(indent=1).pprint(tagObject)
 		if self.propertyName in tagObject:
-			print('Return value is ' + tagObject[self.propertyName])
+			print(self.tagName + '.' + self.propertyName + ': Rendering Property normally')
 			return tagObject[self.propertyName]
-		elif parentTree is not None:
-			for tag in parentTree:
-				if self.propertyName in tag:
-					print('Return value is ' + tag[self.propertyName])
-					return tag[self.propertyName]
-		print('Property name not found, raising exception')
-		raise Exception() # property name not found in object or any of object's parents
+		else:
+			print(self.tagName + '.' + self.propertyName + ': property name not found in:')
+			pprint.PrettyPrinter(indent=1).pprint(tagObject)
+		raise Exception()
 
 
 class Comma:
@@ -54,40 +44,29 @@ class Comma:
 		return self.tagName
 	
 	def render(self, tagObject, parentTree):
-		'''
-		Render a template using data from object. Object structure looks like:
-		{
-			"TAGNAME": [
-				{
-					"PROP1": value1,
-					"PROP2": value2,
-					"SUBTAG1NAME": [
-						{
-							"PROP1": value3
-							"PROP2": value4,
-							... (more subtag properties)
-						},
-						... (more subtag1 objects)
-					],
-					... (more tag properties and subtag objects)
-				},
-				... (more tag objects)
-			]
-		}
-		'''
-		print('Rendering Comma')
+		print('Rendering Comma: ' + self.tagName)
 		# Get the tag object that this comma tag refers to
 		# We only consider parentTree and ignore tagObject, because the comma
 		# inclusion decision only concerns the parent tag
-		if parentTree is not None:
-			for tag in parentTree:
-				if self.tagName in tag:
-					# Found our tag. Match tagObject until we hit the end
-					i = 0
-					for i in range(len(tag[self.tagName])):
-						if tagObject == tag[self.tagName][i]:
-							print('Returning [' + (',' if i != len(tag[self.tagName]) else '') + ']')
-							return ',' if i != len(tag[self.tagName]) else ''
+		
+		#print('tagObject is:')
+		#pprint.PrettyPrinter(indent=1).pprint(tagObject)
+		
+		if parentTree is not None and len(parentTree) > 0:
+			print(self.tagName + ': parentTree is not None nor []')
+			#pprint.PrettyPrinter(indent=1).pprint(parentTree)
+			topTag = parentTree.pop()
+			if self.tagName in tag:
+				# Found our tag. Match tagObject until we hit the end
+				i = 0
+				for i in range(len(tag[self.tagName])):
+					if tagObject == tag[self.tagName][i]:
+						print(self.tagName + ': Returning [' + (',' if i != len(tag[self.tagName]) else '') + ']')
+						return ',' if i != len(tag[self.tagName]) else ''
+			else:
+				print(self.tagName + ': tagName not in tag')
+		else:
+			print('parentTree is None or []')
 		# A match must be found, if not something went wrong
 		print('Something went wrong, raising exception')
 		raise Exception()
@@ -123,20 +102,15 @@ class Tag:
 	'''
 	def __init__(self, text, name=None):
 		# Our parsing result is a heterogeneous list including strings and tag
-		# objects. Use 'ROOT' as a psuedo name if not specified; render()
-		# expects this.
+		# objects. Use 'root' as a pseudo name if not specified.
 		self.tagName = name.lower() if name is not None else 'root'
 		self.elements = []
 		
 		# Consume text as we parse out tags
 		while len(text):
-			if text[:2] == '%>':
-				print('TEXT STARTS WITH %>')
-			
 			# Ignore all characters up to the first <%
 			splitText = text.split('<%', 1)
 			self.elements.append(splitText[0])
-			print(self.tagName + ': Found text length %d' % len(splitText[0]))
 			if len(splitText) == 1:
 				break # No more text to parse
 			
@@ -149,14 +123,13 @@ class Tag:
 				continue
 			
 			tagName = result.group()
-			print(self.tagName + ': Found tag named ' + tagName + ', let\'s see what it is...')
 			
 			# The tag name is pushed onto the stack, so truncate text here
 			# text now begins immediately after the tag name
 			text = text[len(tagName):]
 			
-			# If a newline immediately follows the tag name, skip it
-			if text[0] == '\n':
+			# If a whitespace immediately follows the tag name, skip it
+			if text[0] == '\n' or text[0] == ' ' or text[0] == '\t':
 				text = text[1:]
 			
 			# Handle the comments tag <%-- --%>
@@ -164,7 +137,6 @@ class Tag:
 				splitText = text.split('--%>', 1)
 				if len(splitText) > 1:
 					text = splitText[1]
-					print(self.tagName + ': Found a comment, ignoring %d characters' % len(splitText[0]))
 					# Ignore a newline directly after the end tag
 					if text[0] == '\n':
 						text = text[1:]
@@ -178,7 +150,7 @@ class Tag:
 				# Look for the end tag
 				splitText = text.split('%>', 1)
 				if len(splitText) > 1:
-					# Assume the tag containing the comma is its parent
+					# The comma belongs to its containing tag
 					self.elements.append(Comma(self.tagName))
 					print(self.tagName + ': Found a comma')
 					text = splitText[1]
@@ -193,7 +165,6 @@ class Tag:
 				if len(splitText) > 1:
 					parts = tagName.split('.', 1)
 					self.elements.append(Property(parts[0], parts[1]))
-					print(self.tagName + ': Found a Property: ' + parts[0] + '.' + parts[1])
 					text = splitText[1]
 				else:
 					# %> not found
@@ -230,7 +201,6 @@ class Tag:
 			# If stack was depleted, we found a sub-tag
 			if len(stack) == 0:
 				self.elements.append(Tag(text[:i], tagName))
-				print(self.tagName + ': Found a subtag ' + tagName + ', length: %d' % i)
 				
 				# Now skip the trailing %>
 				i += 2
@@ -238,13 +208,12 @@ class Tag:
 				# Fast forward i characters for the next iteration
 				text = text[i:]
 				
-				# Ignore a newline directly after the end tag
-				if text[0] == '\n':
+				# Ignore a whitespace directly after the end tag
+				if text[0] == '\n' or text[0] == ' ' or text[0] == '\t':
 					text = text[1:]
 			else:
 				# No tag found, append the raw text and finish up
 				self.elements.append(text)
-				print(self.tagName + ': No more tags, adding %d characters of text' % len(text))
 				break # outer while loop
 	
 	def getTagName(self):
@@ -284,43 +253,46 @@ class Tag:
 		'''
 		print('Rendering tag ' + self.tagName)
 		
+		parentTree = parentTree[:] if parentTree else []
+		
 		output = ''
-		# If an element in the tag fails, skip the whole tag
+		# If an element in the tag fails, skip the whole tag (but note, not its parent)
 		try:
 			for element in self.elements:
-				if not isinstance(element, str):
+				if isinstance(element, Tag):
 					tagName = element.getTagName()
-					print('Processing element ' + tagName)
-					
-					# If true, the property or comma tag refers to a parent object,
-					# so no need to dig deeper
-					if not isinstance(element, Tag) and tagName not in tagObject:
-						print('Property or comma belongs to parent object')
-						output += element.render(tagObject, parentTree)
-						continue
-					
-					# Append the object to the parent tree. Include subtags, so
-					# that the comma tag can check if it's the last instance.
-					# Even though we only need object's properties and subtags,
-					# this will copy the whole tree. Kind of inefficient, but
-					# at least we get the information we need.
-					parentTree = parentTree[:] if parentTree else []
-					parentTree.append(tagObject)
-					
-					# Same test, and now we know the tagName is in tagObject
-					if not isinstance(element, Tag):
-						output += element.render(tagObject[tagName], parentTree)
+					print(self.tagName + ': visiting Tag subtag ' + tagName)
+					if tagName in tagObject:
+						parentTree.append(tagObject)
+						# Render tagItems, one after the other
+						for subTagObject in tagObject[tagName]:
+							output += element.render(subTagObject, parentTree)
 					else:
-						# Render Tag objects in serial
-						for tag in tagObject[tagName]:
-							output += element.render(tag, parentTree)
-				else:
-					print('Adding string of length %d to output' % len(element))
-					if len(element) <= 78:
-						print('[' + element + ']')
+						# If the object wasn't supplied, skip it and move on
+						print('JK!')
+						output += ''
+				elif isinstance(element, Property):
+					print(self.tagName + ': visiting Property subtag ' + element.getTagName())
+					# Properties always belong to tags (sometimes super-tags), so
+					# only render proper tags. Otherwise, render a big error message.
+					
+					tagName = element.getTagName()
+					if tagName == self.tagName:
+						output += element.render(tagObject, parentTree)
+					else:
+						while tagName != tagObject.getName() and len(parentTree) > 0:
+							tagObject = parentTree.pop()
+						if tagName == tagObject.getName():
+							output += element.render(tagObject, parentTree)
+						else:
+							output += '<%TOO CLOSE FOR MISSILES, SWITCHING TO GUNS%>'
+				elif isinstance(element, Comma):
+					print(self.tagName + ': visiting Comma subtag ' + element.getTagName())
+					output += element.render(tagObject, parentTree)
+				else: # isinstance(element, str)
 					output += element
 		except:
-			print("Exception occurred, returning ''")
+			print(self.tagName + ": Exception occurred, returning ''")
 			output = ''
 		# All done
 		return output
