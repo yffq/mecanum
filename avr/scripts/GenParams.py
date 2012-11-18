@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 
-import paramserverTemplate
+from paramserverTemplate import Tag
 
 import os
 import sys
 import inspect
 import re
+
+import pprint
 
 def getScriptDir():
 	path = os.path.split(inspect.getfile(inspect.currentframe()))[0]
@@ -15,7 +17,7 @@ def getScriptDir():
 
 class Parameters:
 	def __init__(self):
-		self.params = []
+		self.parameters = []
 	
 	def addLine(self, line):
 		words = re.split('\W+', line)
@@ -28,41 +30,16 @@ class Parameters:
 		
 		# Store the parameter name first, then the type, then the condition
 		if len(words) == 2:
-			self.params.append((words[1], words[0]))
+			paramsObject = {"name": words[1], "type": words[0]}
+			self.parameters.append(paramsObject)
 		elif len(words) >= 3:
-			self.params.append((words[1], words[0], words[2]))
+			paramsObject = {"name": words[1], "type": words[0], "test": words[2]}
+			self.parameters.append(paramsObject)
 		else:
-			pass # Ignore inadequate strings
+			pass # Ignore strings that are too short
 	
 	def getParams(self):
-		return self.params
-	
-	def __str__(self):
-		return str(self.params)
-
-
-class Message:
-	def __init__(self):
-		self.params = []
-	
-	def addLine(self, line):
-		words = re.split('\W+', line)
-		
-		# Strip beginning ''
-		if words[0] == '':
-			words = words[1:]
-		
-		# Store the parameter name first, then the type
-		if len(words) >= 2:
-			self.params.append((words[1], words[0]))
-		else:
-			pass # Ignore inadequate strings
-	
-	def getParams(self):
-		return self.params
-	
-	def __str__(self):
-		return str(self.params)
+		return self.parameters
 
 
 class HeaderFile:
@@ -86,7 +63,6 @@ class HeaderFile:
 		/*
 		 * Parameters:
 		 * ---
-		 * uint8  id
 		 * uint8  pin # IsAnalog
 		 * uint32 delay
 		 * ---
@@ -96,13 +72,12 @@ class HeaderFile:
 		from the ArduinoVerifier namespace). In this case,
 		ArduinoVerifier::IsAnalog(pin) is called when verifying parameters.
 		"""
-		
 		# Only care about .h files
 		if os.path.splitext(filepath)[1] != '.h':
-			raise
+			raise Exception()
 		
 		self.filepath = filepath
-		self.fsm = {}
+		self.fsms = []
 		
 		# State variables
 		docstring = []
@@ -149,13 +124,13 @@ class HeaderFile:
 				classNameCandidate = ''
 		
 		# All done. Only continue without raising if a valid FSM docstring was found
-		if not self.fsm:
-			raise
+		if not self.fsms:
+			raise Exception()
 	
 	def handleDocstring(self, className, docstring):
-		parameters = None # Empty Parameters()
-		publish = None    # Empty Message()
-		subscribe = None  # Empty Message()
+		parameters = None
+		publish = None
+		subscribe = None
 		
 		for i in range(len(docstring) - 3): # Allow 3 lines for ---, a line, and ---
 			if 'parameters' in docstring[i].lower() and '---' in docstring[i + 1]:
@@ -165,26 +140,72 @@ class HeaderFile:
 						break
 					parameters.addLine(line)
 			if 'publish' in docstring[i].lower() and '---' in docstring[i + 1]:
-				publish = Message()
+				publish = Parameters()
 				for line in docstring[i + 2 : ]:
 					if '---' in line:
 						break
 					publish.addLine(line)
 			if 'subscribe' in docstring[i].lower() and '---' in docstring[i + 1]:
-				subscribe = Message()
+				subscribe = Parameters()
 				for line in docstring[i + 2 : ]:
 					if '---' in line:
 						break
 					subscribe.addLine(line)
 		
-		if parameters:
-			self.fsm[className] = (parameters, publish, subscribe)
+		# FSM structure looks like
+		# {
+		#   "fsm": [
+		#     {
+		#       "name": classname,
+		#       "id": FSM_ID,
+		#       "parameter": [
+		#         {
+		#           "name": "pin",
+		#           "type": "uint8_t",
+		#           "test": "IsDigital"
+		#         }
+		#       ],
+		#       "message": [
+		#         {
+		#           "which": "Publish",
+		#           "parameter": [
+		#             {
+		#               "name": "pin",
+		#               "type": "uint8_t"
+		#             }
+		#           ]
+		#         },
+		#         {
+		#           "which": "Subscribe",
+		#           "parameter": [
+		#             {
+		#               "name": "pin",
+		#               "type": "uint8_t"
+		#             }
+		#           ]
+		#         }
+		#       ]
+		#     }
+		#   ]
+		# }
+		fsm = {"name": className, "id": "FSM_***"} # TODO: FSM ID
+		
+		if parameters and len(parameters.getParams()):
+			fsm["parameter"] = parameters.getParams()
+		if publish and len(publish.getParams()):
+			fsm["message"] = [{"which": "Publish", "parameter": publish.getParams()}]
+		if subscribe and len(subscribe.getParams()):
+			if "message" not in fsm:
+				fsm["message"] = []
+			fsm["message"].append({"which": "Subscribe", "parameter": subscribe.getParams()})
+		
+		self.fsms.append(fsm)
 	
-	def getPath(self):
-		return self.filepath
+	#def getPath(self):
+	#	return self.filepath
 	
 	def getFSMs(self):
-		return self.fsm
+		return self.fsms
 
 
 def GenParams():
@@ -204,27 +225,27 @@ def GenParams():
 		print('-- No files modified, exiting')
 		return
 	
-	# Create a dictionary of FSMs discovered in parsed header files
-	fsmDict = {}
+	# Create a dictionary of FSMs discovered in parsed header files. Use ROOT
+	# as the wrapping root node (that's what our template expects)
+	fsmDict = {"fsm": []}
 	for header in os.listdir(headerdir):
 		# Create a new object and attempt to parse the file
 		try:
 			headerfile = HeaderFile(os.path.join(headerdir, header))
 			# If parsing succeeds, add the file object to the list
 			print('Found docstring in %s' % header)
-			fsmDict.update(headerfile.getFSMs())
+			fsmDict["fsm"].extend(headerfile.getFSMs())
 		except:
 			print('No docstring found in %s' % header)
 	
-	# Header files parsed. Resulting structure looks like this:
-	# fsmDict = {
-	#   "Blink": (
-	#     Parameters.getParams() = ("pin", "uint8", "IsDigital"), # Parameters
-	#     Message.getParams() = ("pin", "uint8"),                 # Publish
-	#     Message.getParams() = ("pin", uint8")                   # Subscribe
-	#   ),
-	#   "AnalogPublisher": (...)
-	# }
+	#pprint.PrettyPrinter(indent=1).pprint(fsmDict)
+	
+	template = Tag(open(os.path.join(getScriptDir(), 'ParamServer.tmpl.h')).read())
+	#renderedText = template.render({"root": [fsmDict]})
+	renderedText = template.render(fsmDict)
+	#print(renderedText)
+	open(os.path.join(getScriptDir(), 'ParamServer.h'), 'w').write(renderedText)
+	
 	
 	print('-- Successfully generated ParamServer.h')
 
