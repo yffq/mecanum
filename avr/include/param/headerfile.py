@@ -1,17 +1,5 @@
-#!/usr/bin/env python
-
-from paramserverTemplate import Tag
-
-import os
-import sys
-import inspect
 import re
 
-
-def getScriptDir():
-	path = os.path.split(inspect.getfile(inspect.currentframe()))[0]
-	cmd_folder = os.path.realpath(os.path.abspath(path))
-	return cmd_folder
 
 def translateType(shorthand):
 	if shorthand in ['int8', 'uint8', 'int16', 'uint16', 'int32', 'uint32']:
@@ -77,10 +65,6 @@ class HeaderFile:
 		from the ArduinoVerifier namespace). In this case,
 		ArduinoVerifier::IsAnalog(pin) is called when verifying parameters.
 		"""
-		# Only care about .h files
-		if os.path.splitext(filepath)[1] != '.h':
-			raise Exception()
-		
 		self.filepath = filepath
 		self.fsms = []
 		
@@ -195,7 +179,7 @@ class HeaderFile:
 		# }
 		fsm = {"name": className, "id": "FSM_***"} # TODO: FSM ID
 		
-		if parameters and len(parameters.getParams()):
+		if parameters and len(parameters.getParams()) > 0:
 			fsm["parameter"] = parameters.getParams()
 		if publish and len(publish.getParams()):
 			fsm["message"] = [{"which": "Publish", "parameter": publish.getParams()}]
@@ -206,48 +190,6 @@ class HeaderFile:
 		
 		self.fsms.append(fsm)
 	
-	#def getPath(self):
-	#	return self.filepath
-	
 	def getFSMs(self):
 		return self.fsms
 
-
-def GenParams():
-	print('-- Parsing FiniteStateMachine headers to generate ParamServer.h')
-
-	output = os.path.realpath(os.path.join(getScriptDir(), '..', 'include', 'ParamServer.h'))
-	headerdir = os.path.realpath(os.path.join(getScriptDir(), '..', 'src'))
-	
-	# Compare against ParamServer.h's last update time
-	outputmod = os.path.getmtime(output)
-	run = False
-	for header in os.listdir(headerdir):
-		if os.path.getmtime(os.path.join(headerdir, header)) > outputmod:
-			run = True
-			break
-	if not run:
-		print('-- No files modified, exiting')
-		return
-	
-	# Create a dictionary of FSMs discovered in parsed header files. Use ROOT
-	# as the wrapping root node (that's what our template expects)
-	fsmDict = {"fsm": []}
-	for header in os.listdir(headerdir):
-		# Create a new object and attempt to parse the file
-		try:
-			headerfile = HeaderFile(os.path.join(headerdir, header))
-			# If parsing succeeds, add the file object to the list
-			fsmDict["fsm"].extend(headerfile.getFSMs())
-		except:
-			pass # No docstring found
-	
-	readText = open(os.path.join(getScriptDir(), 'ParamServer.tmpl.h')).read()
-	template = Tag(readText)
-	renderedText = template.render(fsmDict)
-	open(os.path.join(getScriptDir(), 'ParamServer.h'), 'w').write(renderedText)
-	
-	print('-- Successfully generated ParamServer.h')
-
-if __name__ == '__main__':
-	GenParams()

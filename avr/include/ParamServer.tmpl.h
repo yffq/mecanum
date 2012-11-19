@@ -30,20 +30,20 @@ When a tag name is solo (no "." in the name), the surrounded text is repeated
 once for each instance of that object. For example, the code in the FSM tag is
 instantiated for every FSM discovered in the AVR header files. This rule
 applies to subtags as well; these tags are expected to be objects belonging
-to the parent object.
+to the parent object. In this way, a FSM's publish and subscribe messages are
+rendered below the parent FSM.
 
 When a tag containing a "." is encountered, it is replaced with the attribute
 belong to the object refered to in the first part of the tag. Concerning
-capitalization, if the subtag is all caps the replacement string is uppercased.
-Otherwise, the case of the first letter of the replacement string is made to
-match the case of the first letter of the subtag, with the rest of the string
+capitalization, the attributes value's first letter is made to have the same
+case as the attributes's name. The rest of the string
 remaining unchanged.
 
 The tag <%,%> has special meaning. The templater looks ahead, and the comma is
 only rendered if the encompasing tag is repeated at least once more.
 
-The "id" and "length" parameters are implicit and do not need to be included in
-the header files.
+In this template, the "id" and "length" parameters are implicit and do not need
+to be included in the header files.
 --%>
 
 <%FSM

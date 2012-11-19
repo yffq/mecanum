@@ -1,7 +1,6 @@
 import re
 
-
-class HistoryObject:
+class History:
 	def __init__(self, tagName, tagObject, isLast):
 		self.tagName = tagName
 		self.tagObject = tagObject
@@ -224,7 +223,7 @@ class Tag:
 		'''
 		return self.tagName
 	
-	def render(self, tagObject, tagHistory=None):
+	def unify(self, tagObject, tagHistory=None):
 		'''
 		Render a template using data from object. Object structure looks like:
 		{
@@ -245,12 +244,6 @@ class Tag:
 		    ... (more tag objects)
 		  ]
 		}
-		
-		The top-level tag name is root (
-		
-		parentTree is a list if accumulated parent objects, in order of reverse
-		depth, with only property (non-list) elements included. This is
-		included so subtags can use attributes of their parent tag.
 		'''
 		# Create a local copy so we can append to it
 		tagHistory = tagHistory[:] if tagHistory else []
@@ -271,8 +264,8 @@ class Tag:
 							# the tagName list.
 							i += 1
 							isLast = i == len(tagObject[tagName])
-							tagHistory.append(HistoryObject(tagName, subTagObject, isLast))
-							output += element.render(subTagObject, tagHistory)
+							tagHistory.append(History(tagName, subTagObject, isLast))
+							output += element.unify(subTagObject, tagHistory)
 							tagHistory.pop()
 					else:
 						# If the object wasn't supplied, skip it and move on
@@ -286,5 +279,4 @@ class Tag:
 			output = ''
 		# All done
 		return output
-
 
