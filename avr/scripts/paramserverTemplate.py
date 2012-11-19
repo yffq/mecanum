@@ -1,20 +1,20 @@
 import re
 
-import pprint
-
 
 class HistoryObject:
 	def __init__(self, tagName, tagObject, isLast):
 		self.tagName = tagName
 		self.tagObject = tagObject
 		self.isLast = isLast
-	
-	def asList(self):
-		return {"tagName": self.tagName, "tagObject": self.tagObject, "isLast": self.isLast}
 
 
 class Property:
 	def __init__(self, tagName, propertyName):
+		'''
+		The first letter of the returned value propertyName is made to match
+		the case of its propertyName.
+		'''
+		self.isCapitalized = propertyName[0].isupper()
 		self.tagName = tagName.lower()
 		self.propertyName = propertyName.lower()
 	
@@ -40,7 +40,6 @@ class Property:
 		'''
 		# Base case: run out of history items, bail out of the parent tag
 		if len(tagHistory) == 0:
-			print(self.tagName + '.' + self.propertyName + ': history is empty')
 			raise Exception()
 		
 		# Create a local copy so we can pop its cherry
@@ -49,18 +48,13 @@ class Property:
 		# Confirm that this property was meant for the top tag
 		if self.tagName == tagHistory[len(tagHistory) - 1].tagName:
 			if self.propertyName in tagObject:
-				print(self.tagName + '.' + self.propertyName + ': property found: ' + tagObject[self.propertyName])
-				return tagObject[self.propertyName]
+				propertyValue = tagObject[self.propertyName]
+				propertyValue = (propertyValue[0].upper() if self.isCapitalized else propertyValue[0].lower()) + propertyValue[1:]
+				return propertyValue
 			else:
-				print(self.tagName + '.' + self.propertyName + ': property not found out in tag')
 				raise Exception()
 		else:
-			print(self.tagName + '.' + self.propertyName + ': property name not found in ' + tagHistory[len(tagHistory) - 1].tagName)
-			historyItem = tagHistory.pop()
-			print('Popping previous history object: ' + historyItem.tagName)
-			pprint.PrettyPrinter(indent=1).pprint(historyItem.asList())
-			print('Here1')
-			#return self.render(historyItem.tagObject, tagHistory)
+			tagHistory.pop()
 			return self.render(tagHistory[len(tagHistory) - 1].tagObject, tagHistory)
 
 
@@ -72,8 +66,6 @@ class Comma:
 		return self.tagName
 	
 	def render(self, tagObject, tagHistory):
-		print('Rendering Comma: ' + self.tagName)
-		
 		# Only render the comma if the tagName matches the top history's tagName
 		if len(tagHistory) > 0 and self.tagName == tagHistory[len(tagHistory) - 1].tagName:
 			return ',' if not tagHistory[len(tagHistory) - 1].isLast else ''
@@ -162,7 +154,6 @@ class Tag:
 				if len(splitText) > 1:
 					# The comma belongs to its containing tag
 					self.elements.append(Comma(self.tagName))
-					print(self.tagName + ': Found a comma')
 					text = splitText[1]
 				else:
 					# %> not found
@@ -261,8 +252,6 @@ class Tag:
 		depth, with only property (non-list) elements included. This is
 		included so subtags can use attributes of their parent tag.
 		'''
-		print('Rendering tag ' + self.tagName)
-		
 		# Create a local copy so we can append to it
 		tagHistory = tagHistory[:] if tagHistory else []
 		
@@ -272,7 +261,6 @@ class Tag:
 			for element in self.elements:
 				if isinstance(element, Tag):
 					tagName = element.getTagName()
-					print(self.tagName + ': visiting Tag (subtag) ' + tagName)
 					if tagName in tagObject:
 						# Render tagItems, one after the other
 						i = 0
@@ -288,17 +276,13 @@ class Tag:
 							tagHistory.pop()
 					else:
 						# If the object wasn't supplied, skip it and move on
-						print('JK!')
 						output += ''
 				elif not isinstance(element, str):
-					tagName = element.getTagName()
-					print(self.tagName + ': visiting Parameter ' + tagName)
 					output += element.render(tagObject, tagHistory)
 				else:
 					# Element is a plain old string
 					output += element
 		except:
-			print(self.tagName + ": Exception occurred, returning ''")
 			output = ''
 		# All done
 		return output

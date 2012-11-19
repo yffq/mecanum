@@ -7,12 +7,17 @@ import sys
 import inspect
 import re
 
-import pprint
 
 def getScriptDir():
 	path = os.path.split(inspect.getfile(inspect.currentframe()))[0]
 	cmd_folder = os.path.realpath(os.path.abspath(path))
 	return cmd_folder
+
+def translateType(shorthand):
+	if shorthand in ['int8', 'uint8', 'int16', 'uint16', 'int32', 'uint32']:
+		return shorthand + '_t'
+	else:
+		return shorthand
 
 
 class Parameters:
@@ -30,10 +35,10 @@ class Parameters:
 		
 		# Store the parameter name first, then the type, then the condition
 		if len(words) == 2:
-			paramsObject = {"name": words[1], "type": words[0]}
+			paramsObject = {"name": words[1], "type": translateType(words[0])}
 			self.parameters.append(paramsObject)
 		elif len(words) >= 3:
-			paramsObject = {"name": words[1], "type": words[0], "test": words[2]}
+			paramsObject = {"name": words[1], "type": translateType(words[0]), "test": words[2]}
 			self.parameters.append(paramsObject)
 		else:
 			pass # Ignore strings that are too short
@@ -237,14 +242,10 @@ def GenParams():
 		except:
 			pass # No docstring found
 	
-	#pprint.PrettyPrinter(indent=1).pprint(fsmDict)
-	
-	template = Tag(open(os.path.join(getScriptDir(), 'ParamServer.tmpl.h')).read())
-	#renderedText = template.render({"root": [fsmDict]})
+	readText = open(os.path.join(getScriptDir(), 'ParamServer.tmpl.h')).read()
+	template = Tag(readText)
 	renderedText = template.render(fsmDict)
-	#print(renderedText)
 	open(os.path.join(getScriptDir(), 'ParamServer.h'), 'w').write(renderedText)
-	
 	
 	print('-- Successfully generated ParamServer.h')
 
