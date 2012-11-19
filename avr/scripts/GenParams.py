@@ -233,10 +233,9 @@ def GenParams():
 		try:
 			headerfile = HeaderFile(os.path.join(headerdir, header))
 			# If parsing succeeds, add the file object to the list
-			print('Found docstring in %s' % header)
 			fsmDict["fsm"].extend(headerfile.getFSMs())
 		except:
-			print('No docstring found in %s' % header)
+			pass # No docstring found
 	
 	#pprint.PrettyPrinter(indent=1).pprint(fsmDict)
 	

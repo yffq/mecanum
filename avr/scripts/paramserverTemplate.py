@@ -2,6 +2,17 @@ import re
 
 import pprint
 
+
+class HistoryObject:
+	def __init__(self, tagName, tagObject, isLast):
+		self.tagName = tagName
+		self.tagObject = tagObject
+		self.isLast = isLast
+	
+	def asList(self):
+		return {"tagName": self.tagName, "tagObject": self.tagObject, "isLast": self.isLast}
+
+
 class Property:
 	def __init__(self, tagName, propertyName):
 		self.tagName = tagName.lower()
@@ -10,7 +21,7 @@ class Property:
 	def getTagName(self):
 		return self.tagName
 	
-	def render(self, tagObject, parentTree):
+	def render(self, tagObject, tagHistory):
 		'''
 		Render a template using data from object. Object structure looks like:
 		{
@@ -27,13 +38,30 @@ class Property:
 			... (more tag properties and subtag objects)
 		}
 		'''
-		if self.propertyName in tagObject:
-			print(self.tagName + '.' + self.propertyName + ': Rendering Property normally')
-			return tagObject[self.propertyName]
+		# Base case: run out of history items, bail out of the parent tag
+		if len(tagHistory) == 0:
+			print(self.tagName + '.' + self.propertyName + ': history is empty')
+			raise Exception()
+		
+		# Create a local copy so we can pop its cherry
+		tagHistory = tagHistory[:]
+		
+		# Confirm that this property was meant for the top tag
+		if self.tagName == tagHistory[len(tagHistory) - 1].tagName:
+			if self.propertyName in tagObject:
+				print(self.tagName + '.' + self.propertyName + ': property found: ' + tagObject[self.propertyName])
+				return tagObject[self.propertyName]
+			else:
+				print(self.tagName + '.' + self.propertyName + ': property not found out in tag')
+				raise Exception()
 		else:
-			print(self.tagName + '.' + self.propertyName + ': property name not found in:')
-			pprint.PrettyPrinter(indent=1).pprint(tagObject)
-		raise Exception()
+			print(self.tagName + '.' + self.propertyName + ': property name not found in ' + tagHistory[len(tagHistory) - 1].tagName)
+			historyItem = tagHistory.pop()
+			print('Popping previous history object: ' + historyItem.tagName)
+			pprint.PrettyPrinter(indent=1).pprint(historyItem.asList())
+			print('Here1')
+			#return self.render(historyItem.tagObject, tagHistory)
+			return self.render(tagHistory[len(tagHistory) - 1].tagObject, tagHistory)
 
 
 class Comma:
@@ -43,32 +71,14 @@ class Comma:
 	def getTagName(self):
 		return self.tagName
 	
-	def render(self, tagObject, parentTree):
+	def render(self, tagObject, tagHistory):
 		print('Rendering Comma: ' + self.tagName)
-		# Get the tag object that this comma tag refers to
-		# We only consider parentTree and ignore tagObject, because the comma
-		# inclusion decision only concerns the parent tag
 		
-		#print('tagObject is:')
-		#pprint.PrettyPrinter(indent=1).pprint(tagObject)
+		# Only render the comma if the tagName matches the top history's tagName
+		if len(tagHistory) > 0 and self.tagName == tagHistory[len(tagHistory) - 1].tagName:
+			return ',' if not tagHistory[len(tagHistory) - 1].isLast else ''
 		
-		if parentTree is not None and len(parentTree) > 0:
-			print(self.tagName + ': parentTree is not None nor []')
-			#pprint.PrettyPrinter(indent=1).pprint(parentTree)
-			topTag = parentTree.pop()
-			if self.tagName in tag:
-				# Found our tag. Match tagObject until we hit the end
-				i = 0
-				for i in range(len(tag[self.tagName])):
-					if tagObject == tag[self.tagName][i]:
-						print(self.tagName + ': Returning [' + (',' if i != len(tag[self.tagName]) else '') + ']')
-						return ',' if i != len(tag[self.tagName]) else ''
-			else:
-				print(self.tagName + ': tagName not in tag')
-		else:
-			print('parentTree is None or []')
-		# A match must be found, if not something went wrong
-		print('Something went wrong, raising exception')
+		# Nothing string should happen, but if something did, invalidate the tag
 		raise Exception()
 
 
@@ -223,7 +233,7 @@ class Tag:
 		'''
 		return self.tagName
 	
-	def render(self, tagObject, parentTree=None):
+	def render(self, tagObject, tagHistory=None):
 		'''
 		Render a template using data from object. Object structure looks like:
 		{
@@ -253,7 +263,8 @@ class Tag:
 		'''
 		print('Rendering tag ' + self.tagName)
 		
-		parentTree = parentTree[:] if parentTree else []
+		# Create a local copy so we can append to it
+		tagHistory = tagHistory[:] if tagHistory else []
 		
 		output = ''
 		# If an element in the tag fails, skip the whole tag (but note, not its parent)
@@ -261,35 +272,30 @@ class Tag:
 			for element in self.elements:
 				if isinstance(element, Tag):
 					tagName = element.getTagName()
-					print(self.tagName + ': visiting Tag subtag ' + tagName)
+					print(self.tagName + ': visiting Tag (subtag) ' + tagName)
 					if tagName in tagObject:
-						parentTree.append(tagObject)
 						# Render tagItems, one after the other
+						i = 0
 						for subTagObject in tagObject[tagName]:
-							output += element.render(subTagObject, parentTree)
+							# The sub tag knows its own tagName, but sub sub
+							# tags rely on this information. This collapses
+							# {tagName: [{}]} to {tagName: {}} for each item in
+							# the tagName list.
+							i += 1
+							isLast = i == len(tagObject[tagName])
+							tagHistory.append(HistoryObject(tagName, subTagObject, isLast))
+							output += element.render(subTagObject, tagHistory)
+							tagHistory.pop()
 					else:
 						# If the object wasn't supplied, skip it and move on
 						print('JK!')
 						output += ''
-				elif isinstance(element, Property):
-					print(self.tagName + ': visiting Property subtag ' + element.getTagName())
-					# Properties always belong to tags (sometimes super-tags), so
-					# only render proper tags. Otherwise, render a big error message.
-					
+				elif not isinstance(element, str):
 					tagName = element.getTagName()
-					if tagName == self.tagName:
-						output += element.render(tagObject, parentTree)
-					else:
-						while tagName != tagObject.getName() and len(parentTree) > 0:
-							tagObject = parentTree.pop()
-						if tagName == tagObject.getName():
-							output += element.render(tagObject, parentTree)
-						else:
-							output += '<%TOO CLOSE FOR MISSILES, SWITCHING TO GUNS%>'
-				elif isinstance(element, Comma):
-					print(self.tagName + ': visiting Comma subtag ' + element.getTagName())
-					output += element.render(tagObject, parentTree)
-				else: # isinstance(element, str)
+					print(self.tagName + ': visiting Parameter ' + tagName)
+					output += element.render(tagObject, tagHistory)
+				else:
+					# Element is a plain old string
 					output += element
 		except:
 			print(self.tagName + ": Exception occurred, returning ''")

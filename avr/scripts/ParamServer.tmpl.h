@@ -90,7 +90,7 @@ protected:
 class <%FSM.Name%><%MESSAGE.Which%>Msg
 {
 public:
-	<%FSM.Name%><%MESSAGE.Which%>Msg(<%PARAMETER <%PARAMETER.type%> <%PARAMETER.name%> <%,%> %>)
+	<%FSM.Name%><%MESSAGE.Which%>Msg(<%PARAMETER <%PARAMETER.type%> <%PARAMETER.name%><%,%> %>)
 	{
 		m_msg.length = sizeof(Message);
 		m_msg.id = <%FSM.ID%>;
