@@ -9,6 +9,9 @@ def translateType(shorthand):
 	else:
 		return shorthand
 
+def translateClass(name):
+	return 'FSM_' + name.upper()
+
 
 class Parameters:
 	def __init__(self):
@@ -38,7 +41,7 @@ class Parameters:
 
 
 class HeaderFile:
-	def __init__(self, filepath, idpath):
+	def __init__(self, filepath):
 		"""
 		Parse a header file looking for parameter and message declarations
 		in the docstring of the class.
@@ -69,7 +72,6 @@ class HeaderFile:
 		"""
 		self.filepath = filepath
 		self.fsms = []
-		self.fsmResolver = FSMResolver(idpath)
 		
 		# State variables
 		docstring = []
@@ -179,7 +181,7 @@ class HeaderFile:
 		#     }
 		#   ]
 		# }
-		fsm = {'name': className, 'id': self.fsmResolver.resolve(className)}
+		fsm = {'name': className, 'id': translateClass(className)}
 		
 		# Parameter 'id' is implicit for all FSMs
 		parameters.addLine('uint8 id')
