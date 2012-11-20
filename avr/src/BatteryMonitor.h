@@ -33,7 +33,6 @@
  *
  * Parameters:
  * ---
- * uint8 id
  * ---
  */
 class BatteryMonitor : public FiniteStateMachine, ParamServer::BatteryMonitor

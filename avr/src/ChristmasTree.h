@@ -32,7 +32,6 @@
  *
  * Parameters:
  * ---
- * uint8  ID
  * ---
  */
 class ChristmasTree : public FiniteStateMachine, public ParamServer::ChristmasTree

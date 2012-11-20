@@ -1,3 +1,5 @@
+from fsmid import FSMResolver
+
 import re
 
 
@@ -36,7 +38,7 @@ class Parameters:
 
 
 class HeaderFile:
-	def __init__(self, filepath):
+	def __init__(self, filepath, idpath):
 		"""
 		Parse a header file looking for parameter and message declarations
 		in the docstring of the class.
@@ -67,6 +69,7 @@ class HeaderFile:
 		"""
 		self.filepath = filepath
 		self.fsms = []
+		self.fsmResolver = FSMResolver(idpath)
 		
 		# State variables
 		docstring = []
@@ -117,13 +120,12 @@ class HeaderFile:
 			raise Exception()
 	
 	def handleDocstring(self, className, docstring):
-		parameters = None
+		parameters = Parameters()
 		publish = None
 		subscribe = None
 		
 		for i in range(len(docstring) - 3): # Allow 3 lines for ---, a line, and ---
 			if 'parameters' in docstring[i].lower() and '---' in docstring[i + 1]:
-				parameters = Parameters()
 				for line in docstring[i + 2 : ]:
 					if '---' in line:
 						break
@@ -177,15 +179,17 @@ class HeaderFile:
 		#     }
 		#   ]
 		# }
-		fsm = {"name": className, "id": "FSM_***"} # TODO: FSM ID
+		fsm = {'name': className, 'id': self.fsmResolver.resolve(className)}
 		
-		if parameters and len(parameters.getParams()) > 0:
-			fsm["parameter"] = parameters.getParams()
+		# Parameter 'id' is implicit for all FSMs
+		parameters.addLine('uint8 id')
+		fsm["parameter"] = parameters.getParams()
+		
+		# Process the messages
+		fsm["message"] = []
 		if publish and len(publish.getParams()):
-			fsm["message"] = [{"which": "Publish", "parameter": publish.getParams()}]
-		else:
-			fsm["message"] = []
-		if subscribe:
+			fsm["message"].append({"which": "Publish", "parameter": publish.getParams()})
+		if subscribe and len(subscribe.getParams()):
 			fsm["message"].append({"which": "Subscribe", "parameter": subscribe.getParams()})
 		
 		self.fsms.append(fsm)

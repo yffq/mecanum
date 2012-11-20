@@ -31,13 +31,10 @@
  *
  * Parameters:
  * ---
- * uint8  id
  * ---
  *
  * Publish:
  * ---
- * uint16 length
- * uint8  id
  * uint16 motor1cs
  * uint16 motor2cs
  * uint16 motor3cs
@@ -46,8 +43,6 @@
  *
  * Subscribe:
  * ---
- * uint16 length
- * uint8  id
  * int16  motor1
  * int16  motor2
  * int16  motor3

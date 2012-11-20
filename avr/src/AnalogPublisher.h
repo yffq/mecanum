@@ -32,23 +32,18 @@
  *
  * Parameters:
  * ---
- * uint8  id
  * uint8  pin # IsAnalog
  * uint32 delay
  * ---
  *
  * Publish:
  * ---
- * uint16 length
- * uint8  id
  * uint8  pin
  * uint16 value
  * ---
  *
  * Subscribe:
  * ---
- * uint16 length
- * uint8  id
  * uint8  pin
  * ---
  */

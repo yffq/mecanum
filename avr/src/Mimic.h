@@ -31,7 +31,6 @@
  *
  * Parameters:
  * ---
- * uint8  id
  * uint8  source # IsDigital
  * uint8  dest # IsDigital
  * uint32 delay

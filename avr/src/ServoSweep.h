@@ -33,7 +33,6 @@
  *
  * Parameters:
  * ---
- * uint8  id
  * uint8  pin # IsDigital
  * utin32 period
  * uint32 delay

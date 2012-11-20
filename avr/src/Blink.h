@@ -31,7 +31,6 @@
  *
  * Parameters:
  * ---
- * uint8  id
  * uint8  pin (IsDigital)
  * uint32 delay
  * ---

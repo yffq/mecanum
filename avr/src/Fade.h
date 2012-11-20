@@ -31,7 +31,6 @@
  *
  * Parameters:
  * ---
- * uint8  id
  * uint8  pin # IsPWM
  * uint8  curve  # IsBinary
  * utin32 period

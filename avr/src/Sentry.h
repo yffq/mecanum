@@ -49,7 +49,6 @@ private:
  *
  * Parameters:
  * ---
- * uint8  ID
  * ---
  */
 class Sentry : public FiniteStateMachine, public ParamServer::Sentry

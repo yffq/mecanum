@@ -31,7 +31,6 @@
  *
  * Parameters:
  * ---
- * uint8  id
  * uint8  pin # IsDigital
  * uint32 delay
  * ---
@@ -39,8 +38,6 @@
  * Message state: 0 for off, 1 for on, 2 for toggle
  * Subscribe:
  * ---
- * uint16 length
- * uint8  id
  * uint8  pin
  * uint8  command
  * ---

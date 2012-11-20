@@ -17,7 +17,7 @@ from param import headerfile, template
 TEMPLATE_FILE = os.path.realpath(os.path.join(getScriptDir(), 'ParamServer.tmpl.h'))
 OUTPUT_FILE = os.path.realpath(os.path.join(getScriptDir(), 'ParamServer.h'))
 HEADER_DIR = os.path.realpath(os.path.join(getScriptDir(), '..', 'src'))
-
+FSM_ID_PATH = os.path.realpath(os.path.join(getScriptDir(), 'ArduinoAddressBook.h'))
 
 class FSMMap:
 	def __init__(self):
@@ -62,7 +62,7 @@ def GenHeader():
 		# Create a new object and attempt to parse the file
 		try:
 			# Perform the parsing
-			headerFileObject = headerfile.HeaderFile(os.path.join(HEADER_DIR, header))
+			headerFileObject = headerfile.HeaderFile(os.path.join(HEADER_DIR, header), FSM_ID_PATH)
 			# If parsing succeeds, add the file object to the list
 			fsmMap.add(headerFileObject.getFSMs())
 		except:

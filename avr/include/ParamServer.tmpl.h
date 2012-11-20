@@ -68,7 +68,7 @@ public:
 			memcpy(&params, bytes, sizeof(Parameters));
 			bool valid = (params.id == <%FSM.ID%>);
 <%PARAMETER
-			valid &= (ArduinoVerifier::<%PARAMETER.test%>(params.<%PARAMETER.name%>));
+			valid &= (ArduinoVerifier::<%PARAMETER.Test%>(params.<%PARAMETER.name%>));
 %>
 			return valid;
 		}
