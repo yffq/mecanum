@@ -160,7 +160,7 @@ class HeaderFile:
 		#       ],
 		#       "message": [
 		#         {
-		#           "which": "Publish",
+		#           "which": "Publisher",
 		#           "parameter": [
 		#             {
 		#               "name": "pin",
@@ -169,7 +169,7 @@ class HeaderFile:
 		#           ]
 		#         },
 		#         {
-		#           "which": "Subscribe",
+		#           "which": "Subscriber",
 		#           "parameter": [
 		#             {
 		#               "name": "pin",
@@ -190,9 +190,9 @@ class HeaderFile:
 		# Process the messages
 		fsm["message"] = []
 		if publish and len(publish.getParams()):
-			fsm["message"].append({"which": "Publish", "parameter": publish.getParams()})
+			fsm["message"].append({"which": "Publisher", "parameter": publish.getParams()})
 		if subscribe and len(subscribe.getParams()):
-			fsm["message"].append({"which": "Subscribe", "parameter": subscribe.getParams()})
+			fsm["message"].append({"which": "Subscriber", "parameter": subscribe.getParams()})
 		
 		self.fsms.append(fsm)
 	

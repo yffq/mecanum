@@ -33,7 +33,7 @@
  * ---
  * uint8  pin # IsPWM
  * uint8  curve  # IsBinary
- * utin32 period
+ * uint32 period
  * uint32 delay
  * ---
  */
