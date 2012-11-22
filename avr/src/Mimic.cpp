@@ -26,7 +26,7 @@
 #include <Arduino.h>
 
 Mimic::Mimic(uint8_t source, uint8_t dest, unsigned long delay) :
-	FiniteStateMachine(FSM_MIMIC, reinterpret_cast<uint8_t*>(&m_params), sizeof(m_params))
+	FiniteStateMachine(FSM_MIMIC, GetBuffer())
 {
 	SetSource(source);
 	SetDest(dest);
@@ -38,9 +38,9 @@ Mimic::Mimic(uint8_t source, uint8_t dest, unsigned long delay) :
 
 Mimic *Mimic::NewFromArray(const TinyBuffer &params)
 {
-	if (Validate(params.Buffer(), params.Length()))
+	if (Validate(params))
 	{
-		ParamServer::Mimic mimic(params.Buffer());
+		ParamServer::Mimic mimic(params);
 		return new Mimic(mimic.GetSource(), mimic.GetDest(), mimic.GetDelay());
 	}
 	return NULL;

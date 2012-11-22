@@ -47,7 +47,7 @@
  * uint8  pin
  * ---
  */
-class AnalogPublisher : public FiniteStateMachine, public ParamServer::AnalogPublisher
+class AnalogPublisher : public FiniteStateMachine
 {
 public:
 	AnalogPublisher(uint8_t pin, uint32_t delay);
@@ -64,4 +64,7 @@ public:
 	 * emit the analog value to the serial port on command.
 	 */
 	virtual bool Message(const TinyBuffer &msg);
+
+private:
+	ParamServer::AnalogPublisher m_params;
 };

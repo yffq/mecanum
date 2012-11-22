@@ -34,7 +34,7 @@
 class FiniteStateMachine
 {
 public:
-	FiniteStateMachine(uint8_t id, uint8_t *params, uint16_t len) : parameters(TinyBuffer(params, len))
+	FiniteStateMachine(uint8_t id, const TinyBuffer &params) : parameters(params)
 	{
 		parameters[0] = id;
 	}

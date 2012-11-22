@@ -49,7 +49,7 @@ const unsigned char luminace[256] PROGMEM =
 };
 
 Fade::Fade(uint8_t pin, uint32_t period, uint32_t delay, uint8_t curve /* = LINEAR */) :
-	FiniteStateMachine(FSM_FADE, reinterpret_cast<uint8_t*>(&m_params), sizeof(m_params)),
+	FiniteStateMachine(FSM_FADE, GetBuffer()),
 	m_dir(UP), m_brightness(0), m_enabled(true)
 {
 	SetPin(pin);
@@ -65,9 +65,9 @@ Fade::Fade(uint8_t pin, uint32_t period, uint32_t delay, uint8_t curve /* = LINE
 
 Fade *Fade::NewFromArray(const TinyBuffer &params)
 {
-	if (Validate(params.Buffer(), params.Length()))
+	if (Validate(params))
 	{
-		ParamServer::Fade fade(params.Buffer());
+		ParamServer::Fade fade(params);
 		return new Fade(fade.GetPin(), fade.GetPeriod(), fade.GetDelay(), fade.GetCurve());
 	}
 	return NULL;

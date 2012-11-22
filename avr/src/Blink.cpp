@@ -27,11 +27,11 @@
 #include <Arduino.h>
 
 Blink::Blink(uint8_t pin, uint32_t delay) :
-	FiniteStateMachine(FSM_BLINK, reinterpret_cast<uint8_t*>(&m_params), sizeof(m_params)),
+	FiniteStateMachine(FSM_BLINK, m_params.GetBuffer()),
 	m_enabled(false)
 {
-	SetPin(pin);
-	SetDelay(delay);
+	m_params.SetPin(pin);
+	m_params.SetDelay(delay);
 
 	// Initialize the blinker
 	pinMode(pin, OUTPUT);
@@ -40,9 +40,9 @@ Blink::Blink(uint8_t pin, uint32_t delay) :
 
 Blink *Blink::NewFromArray(const TinyBuffer &params)
 {
-	if (Validate(params.Buffer(), params.Length()))
+	if (ParamServer::Blink::Validate(params))
 	{
-		ParamServer::Blink blink(params.Buffer());
+		ParamServer::Blink blink(params);
 		return new Blink(blink.GetPin(), blink.GetDelay());
 	}
 	return NULL;
@@ -50,20 +50,20 @@ Blink *Blink::NewFromArray(const TinyBuffer &params)
 
 Blink::~Blink()
 {
-	digitalWrite(GetPin(), LOW);
+	digitalWrite(m_params.GetPin(), LOW);
 }
 
 uint32_t Blink::Step()
 {
 	if (m_enabled)
 	{
-		digitalWrite(GetPin(), LOW);
+		digitalWrite(m_params.GetPin(), LOW);
 		m_enabled = false;
 	}
 	else
 	{
-		digitalWrite(GetPin(), HIGH);
+		digitalWrite(m_params.GetPin(), HIGH);
 		m_enabled = true;
 	}
-	return GetDelay();
+	return m_params.GetDelay();
 }

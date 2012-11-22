@@ -30,7 +30,7 @@
 #define FOREVER (ULONG_MAX / 2)
 
 MotorController::MotorController() :
-	FiniteStateMachine(FSM_MOTORCONTROLLER, reinterpret_cast<uint8_t*>(&m_params), sizeof(m_params)),
+	FiniteStateMachine(FSM_MOTORCONTROLLER, GetBuffer()),
 	m_bMessaged(false)
 {
 	pinMode(MOTOR1_PWM, OUTPUT);
@@ -60,7 +60,7 @@ MotorController::MotorController() :
 
 MotorController *MotorController::NewFromArray(const TinyBuffer &params)
 {
-	return Validate(params.Buffer(), params.Length()) ? new MotorController() : (MotorController*)0;
+	return Validate(params) ? new MotorController() : (MotorController*)0;
 }
 
 uint32_t MotorController::Step()
@@ -93,7 +93,7 @@ bool MotorController::Message(const TinyBuffer &msg)
 		enable = 1 - enable;
 
 
-		ParamServer::MotorControllerSubscriberMsg message(msg.Buffer());
+		ParamServer::MotorControllerSubscriberMsg message(msg);
 		uint8_t a, b, pwm;
 
 		a = message.GetMotor1() >= 0 ? 1 : 0;
@@ -124,9 +124,12 @@ bool MotorController::Message(const TinyBuffer &msg)
 		digitalWrite(MOTOR4_B, b);
 		analogWrite(MOTOR4_PWM, pwm);
 
-		ParamServer::MotorControllerPublisherMsg msg(analogRead(MOTOR1_CS),
-				analogRead(MOTOR2_CS), analogRead(MOTOR3_CS), analogRead(MOTOR4_CS));
-		Serial.write(msg.GetBuffer(), msg.GetLength());
+		ParamServer::MotorControllerPublisherMsg msg;
+		msg.SetMotor1cs(analogRead(MOTOR1_CS));
+		msg.SetMotor2cs(analogRead(MOTOR2_CS));
+		msg.SetMotor3cs(analogRead(MOTOR3_CS));
+		msg.SetMotor4cs(analogRead(MOTOR4_CS));
+		Serial.write(msg.GetBytes(), msg.GetLength());
 
 		// Return true to let MecanumMaster update the timeout
 		m_bMessaged = true;

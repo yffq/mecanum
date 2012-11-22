@@ -52,7 +52,7 @@ def GenHeader():
 				run = True
 				break
 		if not run:
-			print('-- No files modified, exiting')
+			print('-- No files modified (up to date), exiting')
 			return
 	
 	# Create a dictionary of FSMs discovered in parsed header files. Use ROOT
@@ -72,7 +72,7 @@ def GenHeader():
 			pass # No docstring found
 	
 	if not fsmMap.hasFSM():
-		print('-- No headers parsed, exiting')
+		print('-- No headers parsed (invalid headers), exiting')
 		return
 	
 	# Import the template text

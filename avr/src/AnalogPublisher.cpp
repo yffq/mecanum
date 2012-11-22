@@ -27,17 +27,17 @@
 
 
 AnalogPublisher::AnalogPublisher(uint8_t pin, uint32_t delay) :
-	FiniteStateMachine(FSM_ANALOGPUBLISHER, reinterpret_cast<uint8_t*>(&m_params), sizeof(m_params))
+	FiniteStateMachine(FSM_ANALOGPUBLISHER, m_params.GetBuffer())
 {
-	SetPin(pin);
-	SetDelay(delay);
+	m_params.SetPin(pin);
+	m_params.SetDelay(delay);
 }
 
 AnalogPublisher *AnalogPublisher::NewFromArray(const TinyBuffer &params)
 {
-	if (Validate(params.Buffer(), params.Length()))
+	if (ParamServer::AnalogPublisher::Validate(params))
 	{
-		ParamServer::AnalogPublisher ap(params.Buffer());
+		ParamServer::AnalogPublisher ap(params);
 		return new AnalogPublisher(ap.GetPin(), ap.GetDelay());
 	}
 	return NULL;
@@ -45,17 +45,19 @@ AnalogPublisher *AnalogPublisher::NewFromArray(const TinyBuffer &params)
 
 uint32_t AnalogPublisher::Step()
 {
-	ParamServer::AnalogPublisherPublisherMsg msg(GetPin(), analogRead(GetPin()));
-	Serial.write(msg.GetBuffer(), msg.GetLength());
-	return GetDelay();
+	ParamServer::AnalogPublisherPublisherMsg msg;
+	msg.SetPin(m_params.GetPin());
+	msg.SetValue(analogRead(m_params.GetPin()));
+	Serial.write(msg.GetBytes(), msg.GetLength());
+	return m_params.GetDelay();
 }
 
 bool AnalogPublisher::Message(const TinyBuffer &msg)
 {
-	if (msg.Length() == ParamServer::AnalogPublisherSubscriberMsg::GetLength())
+	if (msg.Length() == m_params.GetSize())
 	{
-		ParamServer::AnalogPublisherSubscriberMsg message(msg.Buffer());
-		return message.GetPin() == GetPin();
+		ParamServer::AnalogPublisherSubscriberMsg message(msg);
+		return message.GetPin() == m_params.GetPin();
 	}
 	return false;
 }

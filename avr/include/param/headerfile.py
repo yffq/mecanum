@@ -1,5 +1,3 @@
-from fsmid import FSMResolver
-
 import re
 
 
@@ -183,8 +181,6 @@ class HeaderFile:
 		# }
 		fsm = {'name': className, 'id': translateClass(className)}
 		
-		# Parameter 'id' is implicit for all FSMs
-		parameters.addLine('uint8 id')
 		fsm["parameter"] = parameters.getParams()
 		
 		# Process the messages

@@ -26,7 +26,7 @@
 #include <Arduino.h>
 
 BatteryMonitor::BatteryMonitor() :
-	FiniteStateMachine(FSM_BATTERYMONITOR, reinterpret_cast<uint8_t*>(&m_params), sizeof(m_params)),
+	FiniteStateMachine(FSM_BATTERYMONITOR, m_params.GetBuffer()),
 	m_maxLevel(4), m_currentLevel(0)
 {
 	m_led[0] = LED_BATTERY_EMPTY;
@@ -43,7 +43,7 @@ BatteryMonitor::BatteryMonitor() :
 
 BatteryMonitor *BatteryMonitor::NewFromArray(const TinyBuffer &params)
 {
-	return Validate(params.Buffer(), params.Length()) ? new BatteryMonitor() : NULL;
+	return ParamServer::BatteryMonitor::Validate(params) ? new BatteryMonitor() : NULL;
 }
 
 BatteryMonitor::~BatteryMonitor()

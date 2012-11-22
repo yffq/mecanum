@@ -1,9 +1,8 @@
-#ifndef PARAMSERVER_H
-#define PARAMSERVER_H
+# pragma once
 
-#if !defined(__ARM__) || !defined(__AVR__)
-#pragma error("Must compile for ARM or AVR")
-#endif
+//#if !defined(__ARM__) || !defined(__AVR__)
+//#pragma error("Must compile for ARM or AVR")
+//#endif
 
 #include "ArduinoAddressBook.h"
 #include <string.h> // for memcpy()
@@ -61,7 +60,9 @@ class <%FSM.Name%>
 public:
 	<%FSM.Name%>() { m_params.id = <%FSM.ID%>; }
 	<%FSM.Name%>(const uint8_t *bytes) { memcpy(&m_params, bytes, sizeof(Parameters)); }
-#if defined(__ARM__)
+#if defined(__AVR__)
+	<%FSM.Name%>(const TinyBuffer &buffer) { memcpy(&m_params, buffer.Buffer(), sizeof(Parameters));}
+#elif defined(__ARM__)
 	<%FSM.Name%>(const std::string &bytes) { memcpy(&m_params, bytes.c_str(), sizeof(Parameters));}
 #endif
 
@@ -73,9 +74,9 @@ public:
 	const uint8_t *GetBytes() const { return reinterpret_cast<const uint8_t*>(&m_params); }
 	static uint16_t GetSize() { return sizeof(Parameters); }
 #if defined(__AVR__)
-	const TinyBuffer GetBuffer() { return TinyBuffer(reinterpret_cast<uint8_t*>(&m_params), sizeof(m_params)); }
+	const TinyBuffer GetBuffer() const { return TinyBuffer(const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(&m_params)), sizeof(Parameters)); }
 #elif defined(__ARM__)
-	const std::string GetString() { return std::string(reinterpret_cast<const char*>(&m_params), sizeof(Parameters)); }
+	const std::string GetString() const { return std::string(reinterpret_cast<const char*>(&m_params), sizeof(Parameters)); }
 #endif
 
 <%PARAMETER
@@ -130,22 +131,31 @@ private:
 class <%FSM.Name%><%MESSAGE.Which%>Msg
 {
 public:
-	<%FSM.Name%><%MESSAGE.Which%>Msg(<%PARAMETER <%PARAMETER.type%> <%PARAMETER.name%><%,%> %>)
-	{
-		m_msg.length = sizeof(Message);
-		m_msg.id = <%FSM.ID%>;
-<%PARAMETER
-		m_msg.<%PARAMETER.name%> = <%PARAMETER.name%>;
-%>
-	}
+	<%FSM.Name%><%MESSAGE.Which%>Msg() { m_msg.length = sizeof(Message); m_msg.id = <%FSM.ID%>; }
 	<%FSM.Name%><%MESSAGE.Which%>Msg(const uint8_t *bytes) { memcpy(&m_msg, bytes, sizeof(Message)); }
+#if defined(__AVR__)
+	<%FSM.Name%><%MESSAGE.Which%>Msg(const TinyBuffer &buffer) { memcpy(&m_msg, buffer.Buffer(), sizeof(Message));}
+#elif defined(__ARM__)
+	<%FSM.Name%><%MESSAGE.Which%>Msg(const std::string &bytes) { memcpy(&m_msg, bytes.c_str(), sizeof(Message));}
+#endif
 
 	static uint16_t GetLength() { return sizeof(Message); }
-	uint8_t GetId() const { return m_msg.id; }
+	uint8_t GetId() const { return <%FSM.ID%>; }
 <%PARAMETER
 	<%PARAMETER.type%> Get<%PARAMETER.Name%>() const { return m_msg.<%PARAMETER.name%>; }
 %>
-	const uint8_t *GetBuffer() const { return reinterpret_cast<const uint8_t*>(&m_msg); }
+
+	const uint8_t *GetBytes() const { return reinterpret_cast<const uint8_t*>(&m_msg); }
+	static uint16_t GetSize() { return sizeof(Message); }
+#if defined(__AVR__)
+	const TinyBuffer GetBuffer() const { return TinyBuffer(const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(&m_msg)), sizeof(Message)); }
+#elif defined(__ARM__)
+	const std::string GetString() const { return std::string(reinterpret_cast<const char*>(&m_msg), sizeof(Message)); }
+#endif
+
+<%PARAMETER
+	void Set<%PARAMETER.Name%>(<%PARAMETER.type%> <%PARAMETER.name%>) { m_msg.<%PARAMETER.name%> = <%PARAMETER.name%>; }
+%>
 
 private:
 	struct Message
@@ -159,11 +169,9 @@ private:
 
 	Message m_msg;
 };
-%>
 
+%>
 
 %>
 
 } // namespace ParamServer
-
-#endif // PARAMSERVER_H

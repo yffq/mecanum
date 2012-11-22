@@ -63,4 +63,7 @@ private:
 
 	// Starting from the Arduino, going clockwise
 	Fade *fader[5];
+
+private:
+	ParamServer::ChristmasTree m_params;
 };

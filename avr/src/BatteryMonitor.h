@@ -35,7 +35,7 @@
  * ---
  * ---
  */
-class BatteryMonitor : public FiniteStateMachine, ParamServer::BatteryMonitor
+class BatteryMonitor : public FiniteStateMachine
 {
 public:
 	/**
@@ -46,7 +46,7 @@ public:
 	static BatteryMonitor *NewFromArray(const TinyBuffer &params);
 
 	/*
-	 * When this FSM is destructed the battery LEDs are left in an off state.
+	 * When this FSM is deconstructed the battery LEDs are left in an off state.
 	 */
 	virtual ~BatteryMonitor();
 
@@ -63,4 +63,7 @@ private:
 	int m_maxLevel;
 	// Number of LEDs actually lit (between 0 and 4)
 	int m_currentLevel;
+
+private:
+	ParamServer::BatteryMonitor m_params;
 };

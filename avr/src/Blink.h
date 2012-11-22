@@ -35,7 +35,7 @@
  * uint32 delay
  * ---
  */
-class Blink : public FiniteStateMachine, public ParamServer::Blink
+class Blink : public FiniteStateMachine
 {
 public:
 	/**
@@ -58,4 +58,7 @@ public:
 
 private:
 	bool m_enabled;
+
+private:
+	ParamServer::Blink m_params;
 };

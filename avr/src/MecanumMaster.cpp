@@ -55,8 +55,8 @@ void MecanumMaster::Init()
 	Serial.setTimeout(250); // ms
 
 	// Load initial FSMs
-	//fsmv.PushBack(new ChristmasTree());
-	fsmv.PushBack(new Fade(LED_RED, 1500, 50));
+	fsmv.PushBack(new ChristmasTree());
+	//fsmv.PushBack(new Fade(LED_RED, 1500, 50));
 	//fsmv.PushBack(new AnalogPublisher(BATTERY_VOLTAGE, FOREVER));
 	//fsmv.PushBack(new BatteryMonitor());
 	//fsmv.PushBack(new Toggle(LED_BATTERY_EMPTY));
@@ -89,10 +89,12 @@ void MecanumMaster::Init()
 
 void MecanumMaster::Spin()
 {
+	/*
 	// TODO: Need to invalidate encoder when sentry gets deleted
 	Sentry *sentry = new Sentry();
 	m_encoder = sentry->GetEncoder();
 	fsmv.PushBack(sentry);
+	*/
 	for (;;)
 	{
 		// TODO: This needs to read length, and then only read if (length-2) is available
