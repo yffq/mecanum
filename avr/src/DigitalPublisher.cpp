@@ -25,9 +25,10 @@
 
 #include <Arduino.h>
 
-DigitalPublisher::DigitalPublisher(uint8_t pin, uint32_t delay) :
-	FiniteStateMachine(FSM_DIGITALPUBLISHER, m_params.GetBuffer())
+DigitalPublisher::DigitalPublisher(uint8_t pin, uint32_t delay)
 {
+	Init(FSM_DIGITALPUBLISHER, m_params.GetBuffer());
+
 	m_params.SetPin(pin);
 	m_params.SetDelay(delay);
 

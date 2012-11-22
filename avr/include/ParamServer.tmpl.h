@@ -1,15 +1,15 @@
 # pragma once
 
-//#if !defined(__ARM__) || !defined(__AVR__)
-//#pragma error("Must compile for ARM or AVR")
-//#endif
+#if !defined(__AVR__) && !defined(__arm__)
+#error "Must compile for ARM or AVR"
+#endif
 
 #include "ArduinoAddressBook.h"
 #include <string.h> // for memcpy()
 
 #if defined(__AVR__)
 #include "TinyBuffer.h"
-#elif defined(__ARM__)
+#else
 #include <string>
 #endif
 
@@ -62,7 +62,7 @@ public:
 	<%FSM.Name%>(const uint8_t *bytes) { memcpy(&m_params, bytes, sizeof(Parameters)); }
 #if defined(__AVR__)
 	<%FSM.Name%>(const TinyBuffer &buffer) { memcpy(&m_params, buffer.Buffer(), sizeof(Parameters));}
-#elif defined(__ARM__)
+#else
 	<%FSM.Name%>(const std::string &bytes) { memcpy(&m_params, bytes.c_str(), sizeof(Parameters));}
 #endif
 
@@ -75,7 +75,7 @@ public:
 	static uint16_t GetSize() { return sizeof(Parameters); }
 #if defined(__AVR__)
 	const TinyBuffer GetBuffer() const { return TinyBuffer(const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(&m_params)), sizeof(Parameters)); }
-#elif defined(__ARM__)
+#else
 	const std::string GetString() const { return std::string(reinterpret_cast<const char*>(&m_params), sizeof(Parameters)); }
 #endif
 
@@ -98,7 +98,7 @@ public:
 		}
 		return false;
 	}
-#elif defined(__ARM__)
+#else
 	static bool Validate(const std::string &strBytes)
 	{
 		if (strBytes.length() == sizeof(Parameters))
@@ -135,7 +135,7 @@ public:
 	<%FSM.Name%><%MESSAGE.Which%>Msg(const uint8_t *bytes) { memcpy(&m_msg, bytes, sizeof(Message)); }
 #if defined(__AVR__)
 	<%FSM.Name%><%MESSAGE.Which%>Msg(const TinyBuffer &buffer) { memcpy(&m_msg, buffer.Buffer(), sizeof(Message));}
-#elif defined(__ARM__)
+#else
 	<%FSM.Name%><%MESSAGE.Which%>Msg(const std::string &bytes) { memcpy(&m_msg, bytes.c_str(), sizeof(Message));}
 #endif
 
@@ -148,7 +148,7 @@ public:
 	const uint8_t *GetBytes() const { return reinterpret_cast<const uint8_t*>(&m_msg); }
 #if defined(__AVR__)
 	const TinyBuffer GetBuffer() const { return TinyBuffer(const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(&m_msg)), sizeof(Message)); }
-#elif defined(__ARM__)
+#else
 	const std::string GetString() const { return std::string(reinterpret_cast<const char*>(&m_msg), sizeof(Message)); }
 #endif
 

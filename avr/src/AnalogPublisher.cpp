@@ -26,9 +26,9 @@
 #include <Arduino.h>
 
 
-AnalogPublisher::AnalogPublisher(uint8_t pin, uint32_t delay) :
-	FiniteStateMachine(FSM_ANALOGPUBLISHER, m_params.GetBuffer())
+AnalogPublisher::AnalogPublisher(uint8_t pin, uint32_t delay)
 {
+	Init(FSM_ANALOGPUBLISHER, m_params.GetBuffer());
 	m_params.SetPin(pin);
 	m_params.SetDelay(delay);
 }

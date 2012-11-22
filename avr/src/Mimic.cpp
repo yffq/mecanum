@@ -25,9 +25,10 @@
 
 #include <Arduino.h>
 
-Mimic::Mimic(uint8_t source, uint8_t dest, unsigned long delay) :
-	FiniteStateMachine(FSM_MIMIC, m_params.GetBuffer())
+Mimic::Mimic(uint8_t source, uint8_t dest, unsigned long delay)
 {
+	Init(FSM_MIMIC, m_params.GetBuffer());
+
 	m_params.SetSource(source);
 	m_params.SetDest(dest);
 	m_params.SetDelay(delay);

@@ -49,9 +49,10 @@ const unsigned char luminace[256] PROGMEM =
 };
 
 Fade::Fade(uint8_t pin, uint32_t period, uint32_t delay, uint8_t curve /* = LINEAR */) :
-	FiniteStateMachine(FSM_FADE, m_params.GetBuffer()),
-	m_dir(UP), m_brightness(0), m_enabled(true)
+		m_dir(UP), m_brightness(0), m_enabled(true)
 {
+	Init(FSM_FADE, m_params.GetBuffer());
+
 	m_params.SetPin(pin);
 	m_params.SetPeriod(period);
 	m_params.SetDelay(delay);

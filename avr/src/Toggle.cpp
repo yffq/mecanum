@@ -29,9 +29,10 @@
 
 #define FOREVER (ULONG_MAX / 2) // ~25 days, need some space to add current time
 
-Toggle::Toggle(uint8_t pin) :
-	FiniteStateMachine(FSM_TOGGLE, m_params.GetBuffer()), m_enabled(false)
+Toggle::Toggle(uint8_t pin) : m_enabled(false)
 {
+	Init(FSM_TOGGLE, m_params.GetBuffer());
+
 	m_params.SetPin(pin);
 
 	pinMode(pin, OUTPUT);

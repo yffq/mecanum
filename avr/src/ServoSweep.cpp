@@ -26,10 +26,10 @@
 #include <Arduino.h>
 #include <avr/pgmspace.h>
 
-ServoSweep::ServoSweep(uint8_t pin, uint32_t delay) :
-	FiniteStateMachine(FSM_SERVOSWEEP, m_params.GetBuffer()),
-	m_dir(UP)
+ServoSweep::ServoSweep(uint8_t pin, uint32_t delay) : m_dir(UP)
 {
+	Init(FSM_SERVOSWEEP, m_params.GetBuffer());
+
 	m_params.SetPin(pin);
 	m_params.SetDelay(delay);
 

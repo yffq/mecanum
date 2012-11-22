@@ -26,10 +26,10 @@
 
 #include <Arduino.h>
 
-Blink::Blink(uint8_t pin, uint32_t delay) :
-	FiniteStateMachine(FSM_BLINK, m_params.GetBuffer()),
-	m_enabled(false)
+Blink::Blink(uint8_t pin, uint32_t delay) : m_enabled(false)
 {
+	Init(FSM_BLINK, m_params.GetBuffer());
+
 	m_params.SetPin(pin);
 	m_params.SetDelay(delay);
 

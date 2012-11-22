@@ -34,13 +34,31 @@
 class FiniteStateMachine
 {
 public:
-	FiniteStateMachine(uint8_t id, const TinyBuffer &params) : parameters(params)
-	{
-		parameters[0] = id;
-	}
+	/**
+	 * A FiniteStateMachine remains invalid until Init() is called. Some
+	 * history: Classes derived from this class used multiple inheritance to
+	 * inherit a POD param struct generated from the params in the SM's header
+	 * file. A pointer to this POD struct was then passed to the constructor,
+	 * which worked because the constructor allocated (read: not initiated) the
+	 * derived class before calling this constructor. However, multiple
+	 * inheritance was ditched and the POD struct was swapped with a class
+	 * (also generated from the header) containing the params struct. The
+	 * params class was allocated, but not initialized, and its members were
+	 * not given addresses yet, leading to undefined behavior when passed to
+	 * this constructor.
+	 *
+	 * Hence, Init().
+	 */
+	FiniteStateMachine() { }
 
 	/**
-	 * The destructor is declared virtual so that subclasses can optionally
+	 * The ID is stored as the first byte so that FiniteStateMachines can be
+	 * compared using array operators.
+	 */
+	void Init(uint8_t id, const TinyBuffer &params) { parameters = params; parameters[0] = id; }
+
+	/**
+	 * The deconstructor is declared virtual so that subclasses can optionally
 	 * override it to clean up their resources or fulfill postconditions.
 	 */
 	virtual ~FiniteStateMachine() { }

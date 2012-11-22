@@ -362,11 +362,12 @@ void AVRController::DestroyFiniteStateMachine(const std::string &fsm)
 	}
 		__attribute__((packed)) prefix =
 	{
-		(uint16_t)sizeof(prefix) + fsm.length(),
+		(uint16_t)sizeof(prefix),
 		FSM_MASTER,
 		MSG_MASTER_DESTROY_FSM
 	};
 
+	prefix.length += fsm.length();
 	string strPrefix(reinterpret_cast<char*>(&prefix), sizeof(prefix));
 	Send(strPrefix + fsm);
 }
@@ -381,11 +382,12 @@ void AVRController::CreateFiniteStateMachine(const std::string &fsm)
 	}
 		__attribute__((packed)) prefix =
 	{
-		(uint16_t)sizeof(prefix) + fsm.length(),
+		(uint16_t)sizeof(prefix),
 		FSM_MASTER,
 		MSG_MASTER_CREATE_FSM
 	};
 
+	prefix.length += fsm.length();
 	string strPrefix(reinterpret_cast<char*>(&prefix), sizeof(prefix));
 	Send(strPrefix + fsm);
 }

@@ -120,24 +120,26 @@ void MecanumMaster::SerialCallback()
 	// First word is the size of the entire message
 	Serial.readBytes(reinterpret_cast<char*>(buffer_bytes), 2);
 	uint16_t msgSize = *reinterpret_cast<uint16_t*>(buffer_bytes);
+	// Don't wrap around
+	uint16_t remainingSize = (msgSize >= 2 ? msgSize - 2 : 0);
 
-	// If msgSize is too large, we have no choice but to drop data
-	if (msgSize > BUFFERLENGTH + 2)
-		msgSize = BUFFERLENGTH + 2;
+	// If remainingSize is too large, we have no choice but to drop data
+	if (remainingSize > BUFFERLENGTH - 2)
+		remainingSize = BUFFERLENGTH - 2;
 
-	// Block until advertised number of bytes is available (timeout set above)
+	// Block until advertised number of bytes is available (timeout set in Init())
 	// Message payload must be at least 1 byte (msgSize >= 1 word + 1 byte)
 	size_t readSize = 0;
-	if (msgSize >= 3)
-		readSize = Serial.readBytes(reinterpret_cast<char*>(buffer_bytes) + 2, msgSize - 2);
+	if (remainingSize > 0)
+		readSize = Serial.readBytes(reinterpret_cast<char*>(buffer_bytes) + 2, remainingSize);
 
 	// Single byte (readSize == 1) is OK
-	if (msgSize >= 3 && readSize + 2 == msgSize)
+	if (remainingSize > 0 && readSize == remainingSize)
 	{
 		TinyBuffer msg(buffer_bytes, msgSize);
 
-		// First byte after the msg size is the ID of the FSM to message
-		uint8_t fsmId = msg[2];
+		// First byte after the size word is the ID of the FSM to message
+		uint8_t fsmId = buffer_bytes[2];
 		if (fsmId == FSM_MASTER)
 		{
 			msg >> 3; // Skip the size and ID bytes
@@ -227,7 +229,7 @@ void MecanumMaster::Message(TinyBuffer &msg)
 		// Kill a FSM. msg is the fingerprint of the FSM to delete
 		if (msg.Length())
 		{
-			fsmv.QuickErase(msg);
+			fsmv.Erase(msg);
 			if (msg[0] == FSM_SENTRY)
 				m_encoder = NULL;
 		}

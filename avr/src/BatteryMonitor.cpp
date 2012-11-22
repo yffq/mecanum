@@ -25,10 +25,10 @@
 
 #include <Arduino.h>
 
-BatteryMonitor::BatteryMonitor() :
-	FiniteStateMachine(FSM_BATTERYMONITOR, m_params.GetBuffer()),
-	m_maxLevel(4), m_currentLevel(0)
+BatteryMonitor::BatteryMonitor() : m_maxLevel(4), m_currentLevel(0)
 {
+	Init(FSM_BATTERYMONITOR, m_params.GetBuffer());
+
 	m_led[0] = LED_BATTERY_EMPTY;
 	m_led[1] = LED_BATTERY_LOW;
 	m_led[2] = LED_BATTERY_MEDIUM;

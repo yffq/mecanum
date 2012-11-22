@@ -29,10 +29,10 @@
 #define TIMEOUT 1000 // ms
 #define FOREVER (ULONG_MAX / 2)
 
-MotorController::MotorController() :
-	FiniteStateMachine(FSM_MOTORCONTROLLER, m_params.GetBuffer()),
-	m_bMessaged(false)
+MotorController::MotorController() : m_bMessaged(false)
 {
+	Init(FSM_MOTORCONTROLLER, m_params.GetBuffer());
+
 	pinMode(MOTOR1_PWM, OUTPUT);
 	pinMode(MOTOR1_A, OUTPUT);
 	pinMode(MOTOR1_B, OUTPUT);

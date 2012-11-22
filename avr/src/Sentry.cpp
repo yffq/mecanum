@@ -59,10 +59,10 @@ void Encoder::Update()
 	}
 }
 
-Sentry::Sentry() :
-		FiniteStateMachine(FSM_SENTRY, m_params.GetBuffer()),
-		m_encoder(ENCODER_PIN), m_state(SEEKING_MIDPOINT_1), m_servoMidpoint(INITIAL_MIDPOINT)
+Sentry::Sentry() : m_encoder(ENCODER_PIN), m_state(SEEKING_MIDPOINT_1), m_servoMidpoint(INITIAL_MIDPOINT)
 {
+	Init(FSM_SENTRY, m_params.GetBuffer());
+
 	m_encoder.Start();
 	m_servo.attach(SERVO_PIN);
 }
