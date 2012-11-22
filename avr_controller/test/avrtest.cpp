@@ -21,6 +21,7 @@
  */
 
 #include "AVRController.h"
+#include "ArduinoAddressBook.h"
 #include "BeagleBoardAddressBook.h"
 #include "ParamServer.h"
 #include "I2CBus.h"
@@ -41,7 +42,7 @@ using namespace std;
 bool bTestButtons = true;
 bool bTestAVR = true;
 bool bTestIMU = true;
-
+/*
 void TestButton(const char *color, unsigned int expansionPin)
 {
 	GPIO gpio(expansionPin);
@@ -275,7 +276,7 @@ TEST(IMUTest, imu)
 		EXPECT_NE(frame.temp, 0);
 	}
 }
-/*
+
 TEST(MotorController, setSpeed)
 {
 	if (!arduino.IsOpen())
@@ -290,18 +291,48 @@ TEST(MotorController, setSpeed)
 	usleep(10 * 1000);
 }
 */
+
+TEST(Sentry, seek)
+{
+	if (!arduino.IsOpen())
+		ASSERT_TRUE(arduino.Open(ARDUINO_PORT));
+	ASSERT_TRUE(arduino.IsOpen());
+
+	// Create a sentry FSM
+	ParamServer::Sentry sentry;
+	arduino.CreateFiniteStateMachine(sentry.GetString());
+
+	// Wait for it to collect data
+	string strResponseLeft;
+	EXPECT_TRUE(arduino.Receive(FSM_SENTRY, strResponseLeft, 3000)); // 3 seconds
+	EXPECT_EQ(strResponseLeft.length(), ParamServer::SentryPublisherMsg::GetLength());
+	SentryPublisherMsg sentryResL(strResponseLeft);
+	EXPECT_GT(sentryResL.GetTicks(), 0);
+	EXPECT_GT(sentryResL.GetMicroseconds(), 0);
+	cout << "SEEK LEFT - ticks: " << sentryResL.GetTicks() << ", microseconds: " << sentryResL.GetMicroseconds() << endl;
+
+	string strResponseRight;
+	EXPECT_TRUE(arduino.Receive(FSM_SENTRY, strResponseRight, 3000)); // 3 seconds
+	EXPECT_EQ(strResponseRight.length(), ParamServer::SentryPublisherMsg::GetLength());
+	SentryPublisherMsg sentryResR(strResponseRight);
+	EXPECT_GT(sentryResR.GetTicks(), 0);
+	EXPECT_GT(sentryResR.GetMicroseconds(), 0);
+	cout << "SEEK RIGHT - ticks: " << sentryResR.GetTicks() << ", microseconds: " << sentryResR.GetMicroseconds() << endl;
+
+}
+
 int main(int argc, char **argv)
 {
 	cout << "Test hardware buttons? (y/n)" << endl;
-	bTestButtons = (cin.get() == 'y');
+	//bTestButtons = (cin.get() == 'y');
 	cin.ignore(1000, '\n');
 
 	cout << "Test AVR? (y/n)" << endl;
-	bTestAVR = (cin.get() == 'y');
+	//bTestAVR = (cin.get() == 'y');
 	cin.ignore(1000, '\n');
 
 	cout << "Test IMU? (y/n)" << endl;
-	bTestIMU = (cin.get() == 'y');
+	//bTestIMU = (cin.get() == 'y');
 	cin.ignore(1000, '\n');
 
 	testing::InitGoogleTest(&argc, argv);

@@ -63,10 +63,12 @@ void MecanumMaster::Init()
 	//fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE6, LED_BATTERY_HIGH, 50));
 	//fsmv.PushBack(new Blink(LED_BATTERY_HIGH, 250));
 
+	/*
 	// TODO: Need to invalidate encoder when sentry gets deleted
 	Sentry *sentry = new Sentry();
 	m_encoder = sentry->GetEncoder();
 	fsmv.PushBack(sentry);
+	*/
 
 	/*
 	// Everything on full brightness
