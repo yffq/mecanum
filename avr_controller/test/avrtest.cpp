@@ -113,6 +113,7 @@ TEST(AVRTest, fsm)
 
 		vector<string> fsmv;
 		EXPECT_TRUE(arduino.ListFiniteStateMachines(fsmv));
+		// Assume at least 1 FSM is loaded on startup
 		EXPECT_GT(fsmv.size(), 0);
 
 		for (vector<string>::const_iterator it = fsmv.begin(); it != fsmv.end(); it++)
@@ -121,9 +122,8 @@ TEST(AVRTest, fsm)
 		EXPECT_TRUE(arduino.ListFiniteStateMachines(fsmv));
 		EXPECT_EQ(fsmv.size(), 0);
 
-		string xmastree;
-		xmastree.push_back((uint8_t)FSM_CHRISTMASTREE);
-		arduino.CreateFiniteStateMachine(xmastree);
+		ParamServer::ChristmasTree xmastree;
+		arduino.CreateFiniteStateMachine(xmastree.GetString());
 
 		EXPECT_TRUE(arduino.ListFiniteStateMachines(fsmv));
 		EXPECT_EQ(fsmv.size(), 1);
@@ -146,10 +146,9 @@ void TestBridge(unsigned int beaglePin, unsigned int arduinoPin)
 	size_t initialLength = fsmv.size();
 
 	// Create a toggle FSM. On creation it will pull the pin low
-	string toggle;
-	toggle.push_back((char)FSM_TOGGLE);
-	toggle.push_back((char)arduinoPin);
-	arduino.CreateFiniteStateMachine(toggle);
+	ParamServer::Toggle toggle;
+	toggle.SetPin((unsigned char)arduinoPin);
+	arduino.CreateFiniteStateMachine(toggle.GetString());
 	EXPECT_TRUE(arduino.ListFiniteStateMachines(fsmv));
 	ASSERT_EQ(fsmv.size(), initialLength + 1); // Don't continue if the FSM hasn't been installed
 
@@ -157,45 +156,45 @@ void TestBridge(unsigned int beaglePin, unsigned int arduinoPin)
 	EXPECT_EQ(gpio.GetValue(), 0);
 
 	// Turn the pin on
-	ParamServer::ToggleSubscriberMsg toggleMsg(arduinoPin, 1);
-	string strMsg(reinterpret_cast<const char*>(toggleMsg.GetBuffer()), toggleMsg.GetLength());
-	arduino.Send(strMsg);
+	ParamServer::ToggleSubscriberMsg toggleMsg;
+	toggleMsg.SetPin(arduinoPin);
+	toggleMsg.SetCommand(1);
+	arduino.Send(toggleMsg.GetString());
 	usleep(1000);
 	EXPECT_EQ(gpio.GetValue(), 1);
 
 	// Remove the FSM, pin is pulled low as a post-condition
-	arduino.DestroyFiniteStateMachine(toggle);
+	arduino.DestroyFiniteStateMachine(toggle.GetString());
 	EXPECT_TRUE(arduino.ListFiniteStateMachines(fsmv));
 	ASSERT_EQ(fsmv.size(), initialLength);
 	usleep(1000);
 	EXPECT_EQ(gpio.GetValue(), 0);
 
 	// Test subscribing to the BeagleBoard's GPIO pins
-	string digitalPub;
-	uint32_t delay = 100000; // ms (run on command only)
-	digitalPub.push_back((char)FSM_DIGITALPUBLISHER);
-	digitalPub.push_back((char)arduinoPin);
-	digitalPub.append(reinterpret_cast<char*>(&delay), sizeof(delay));
-	arduino.CreateFiniteStateMachine(digitalPub);
+	ParamServer::DigitalPublisher digitalPub;
+	digitalPub.SetPin((unsigned char)arduinoPin);
+	digitalPub.SetDelay(100000);
+	arduino.CreateFiniteStateMachine(digitalPub.GetString());
 	EXPECT_TRUE(arduino.ListFiniteStateMachines(fsmv));
 	ASSERT_EQ(fsmv.size(), initialLength + 1);
 
 	// Test the pin
 	EXPECT_NO_THROW(gpio.SetDirection(GPIO::OUT, 1));
-	ParamServer::DigitalPublisherSubscriberMsg msg(arduinoPin);
-	string strMsg2(reinterpret_cast<const char*>(msg.GetBuffer()), msg.GetLength());
+	ParamServer::DigitalPublisherSubscriberMsg dpMsg;
+	dpMsg.SetPin(arduinoPin);
 	string strResponse;
-	EXPECT_TRUE(arduino.Query(strMsg2, strResponse, 1000)); // 1s
+	EXPECT_TRUE(arduino.Query(dpMsg.GetString(), strResponse, 1000)); // 1s
 	ASSERT_TRUE(strResponse.length() == ParamServer::DigitalPublisherPublisherMsg::GetLength());
-	ParamServer::DigitalPublisherPublisherMsg res(reinterpret_cast<const uint8_t*>(strResponse.c_str()));
-	EXPECT_TRUE(res.GetValue() == 1);
+	ParamServer::DigitalPublisherPublisherMsg dbResponse(strResponse);
+	EXPECT_TRUE(dbResponse.GetValue() == 1);
 
 	// Flip the pin and test again
+	strResponse.clear();
 	EXPECT_NO_THROW(gpio.SetValue(0));
-	ASSERT_TRUE(arduino.Query(strMsg2, strResponse, 1000)); // 1s
+	ASSERT_TRUE(arduino.Query(dpMsg.GetString(), strResponse, 1000)); // 1s
 	ASSERT_TRUE(strResponse.length() == ParamServer::DigitalPublisherPublisherMsg::GetLength());
-	ParamServer::DigitalPublisherPublisherMsg res2(reinterpret_cast<const uint8_t*>(strResponse.c_str()));
-	EXPECT_TRUE(res2.GetValue() == 0);
+	ParamServer::DigitalPublisherPublisherMsg dbResponse2(strResponse);
+	EXPECT_TRUE(dbResponse2.GetValue() == 0);
 }
 
 TEST(AVRTest, bridge1)
@@ -276,7 +275,7 @@ TEST(IMUTest, imu)
 		EXPECT_NE(frame.temp, 0);
 	}
 }
-
+/*
 TEST(MotorController, setSpeed)
 {
 	if (!arduino.IsOpen())
@@ -290,7 +289,7 @@ TEST(MotorController, setSpeed)
 	motors.SetSpeed(-20, -20, -20, -20);
 	usleep(10 * 1000);
 }
-
+*/
 int main(int argc, char **argv)
 {
 	cout << "Test hardware buttons? (y/n)" << endl;

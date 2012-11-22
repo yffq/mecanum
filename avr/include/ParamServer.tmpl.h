@@ -146,7 +146,6 @@ public:
 %>
 
 	const uint8_t *GetBytes() const { return reinterpret_cast<const uint8_t*>(&m_msg); }
-	static uint16_t GetSize() { return sizeof(Message); }
 #if defined(__AVR__)
 	const TinyBuffer GetBuffer() const { return TinyBuffer(const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(&m_msg)), sizeof(Message)); }
 #elif defined(__ARM__)

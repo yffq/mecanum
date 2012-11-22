@@ -26,11 +26,11 @@
 #include <Arduino.h>
 
 Mimic::Mimic(uint8_t source, uint8_t dest, unsigned long delay) :
-	FiniteStateMachine(FSM_MIMIC, GetBuffer())
+	FiniteStateMachine(FSM_MIMIC, m_params.GetBuffer())
 {
-	SetSource(source);
-	SetDest(dest);
-	SetDelay(delay);
+	m_params.SetSource(source);
+	m_params.SetDest(dest);
+	m_params.SetDelay(delay);
 
 	pinMode(source, INPUT);
 	pinMode(dest, OUTPUT);
@@ -38,7 +38,7 @@ Mimic::Mimic(uint8_t source, uint8_t dest, unsigned long delay) :
 
 Mimic *Mimic::NewFromArray(const TinyBuffer &params)
 {
-	if (Validate(params))
+	if (ParamServer::Mimic::Validate(params))
 	{
 		ParamServer::Mimic mimic(params);
 		return new Mimic(mimic.GetSource(), mimic.GetDest(), mimic.GetDelay());
@@ -48,6 +48,6 @@ Mimic *Mimic::NewFromArray(const TinyBuffer &params)
 
 uint32_t Mimic::Step()
 {
-	digitalWrite(GetDest(), digitalRead(GetSource()));
-	return GetDelay();
+	digitalWrite(m_params.GetDest(), digitalRead(m_params.GetSource()));
+	return m_params.GetDelay();
 }

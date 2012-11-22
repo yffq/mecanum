@@ -38,7 +38,7 @@ bool MotorController::Connect(AVRController *avr)
 		cout << "AVR is not open" << endl;
 		return false;
 	}
-
+	/**
 	// Create the FSM if it doesn't exist
 	string strFsm;
 	strFsm.push_back((char)FSM_MOTORCONTROLLER);
@@ -69,8 +69,11 @@ bool MotorController::Connect(AVRController *avr)
 
 	m_avr = avr;
 	return true;
+	/**/
+	return false;
 }
 
+/**
 void MotorController::SetSpeed(int16_t motor1, int16_t motor2, int16_t motor3, int16_t motor4)
 {
 	// Create the message
@@ -78,7 +81,7 @@ void MotorController::SetSpeed(int16_t motor1, int16_t motor2, int16_t motor3, i
 	string strMsg(reinterpret_cast<const char*>(command.GetBuffer()), command.GetLength());
 	m_avr->Send(strMsg);
 
-	/*
+	/**
 	string strResponse;
 	m_avr->Query(strMsg, strResponse, 10); // 10ms timeout
 
@@ -87,5 +90,7 @@ void MotorController::SetSpeed(int16_t motor1, int16_t motor2, int16_t motor3, i
 	uint16_t motor2cs = values.GetMotor2cs();
 	uint16_t motor3cs = values.GetMotor3cs();
 	uint16_t motor4cs = values.GetMotor4cs();
-	*/
+	/**
 }
+/**/
+

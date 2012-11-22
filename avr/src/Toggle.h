@@ -42,7 +42,7 @@
  * uint8  command
  * ---
  */
-class Toggle : public FiniteStateMachine, public ParamServer::Toggle
+class Toggle : public FiniteStateMachine
 {
 public:
 	/**
@@ -53,7 +53,7 @@ public:
 	static Toggle *NewFromArray(const TinyBuffer &params);
 
 	/*
-	 * When this FSM is destructed, the pin is pulled low as a post-condition.
+	 * When this FSM is deconstructed, the pin is pulled low as a post-condition.
 	 */
 	virtual ~Toggle();
 
@@ -68,4 +68,7 @@ public:
 
 private:
 	bool m_enabled;
+
+private:
+	ParamServer::Toggle m_params;
 };

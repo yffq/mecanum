@@ -60,7 +60,7 @@ void Encoder::Update()
 }
 
 Sentry::Sentry() :
-		FiniteStateMachine(FSM_SENTRY, GetBuffer()),
+		FiniteStateMachine(FSM_SENTRY, m_params.GetBuffer()),
 		m_encoder(ENCODER_PIN), m_state(SEEKING_MIDPOINT_1), m_servoMidpoint(INITIAL_MIDPOINT)
 {
 	m_encoder.Start();
@@ -69,7 +69,7 @@ Sentry::Sentry() :
 
 Sentry *Sentry::NewFromArray(const TinyBuffer &params)
 {
-	return Validate(params) ? new Sentry() : (Sentry*)0;
+	return ParamServer::Sentry::Validate(params) ? new Sentry() : (Sentry*)0;
 }
 
 uint32_t Sentry::Step()
@@ -154,9 +154,6 @@ uint32_t Sentry::Step()
 	}
 	return 24L * 60L * 60L * 1000L;
 }
-
-
-
 
 
 

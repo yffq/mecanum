@@ -54,7 +54,7 @@ uint32_t AnalogPublisher::Step()
 
 bool AnalogPublisher::Message(const TinyBuffer &msg)
 {
-	if (msg.Length() == m_params.GetSize())
+	if (msg.Length() == ParamServer::AnalogPublisherSubscriberMsg::GetLength())
 	{
 		ParamServer::AnalogPublisherSubscriberMsg message(msg);
 		return message.GetPin() == m_params.GetPin();

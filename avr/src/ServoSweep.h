@@ -38,7 +38,7 @@
  * uint32 delay
  * ---
  */
-class ServoSweep : public FiniteStateMachine, public ParamServer::ServoSweep
+class ServoSweep : public FiniteStateMachine
 {
 public:
 	enum Direction
@@ -66,4 +66,7 @@ private:
 	Servo m_servo;
 
 	Direction m_dir;
+
+private:
+	ParamServer::ServoSweep m_params;
 };

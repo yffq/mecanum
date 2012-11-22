@@ -27,18 +27,18 @@
 #include <avr/pgmspace.h>
 
 ServoSweep::ServoSweep(uint8_t pin, uint32_t delay) :
-	FiniteStateMachine(FSM_SERVOSWEEP, GetBuffer()),
+	FiniteStateMachine(FSM_SERVOSWEEP, m_params.GetBuffer()),
 	m_dir(UP)
 {
-	SetPin(pin);
-	SetDelay(delay);
+	m_params.SetPin(pin);
+	m_params.SetDelay(delay);
 
 	m_servo.attach(pin, 1000, 2000);
 }
 
 ServoSweep *ServoSweep::NewFromArray(const TinyBuffer &params)
 {
-	if (Validate(params))
+	if (ParamServer::ServoSweep::Validate(params))
 	{
 		ParamServer::ServoSweep servoSweep(params);
 		return new ServoSweep(servoSweep.GetPin(), servoSweep.GetDelay());
@@ -64,5 +64,5 @@ uint32_t ServoSweep::Step()
 		m_dir = UP;
 		m_servo.write(0);
 	}
-	return GetDelay();
+	return m_params.GetDelay();
 }

@@ -49,7 +49,7 @@
  * int16  motor4
  * ---
  */
-class MotorController : public FiniteStateMachine, public ParamServer::MotorController
+class MotorController : public FiniteStateMachine
 {
 public:
 	MotorController();
@@ -69,4 +69,7 @@ public:
 
 private:
 	bool m_bMessaged;
+
+private:
+	ParamServer::MotorController m_params;
 };

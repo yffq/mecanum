@@ -30,9 +30,9 @@
 #define FOREVER (ULONG_MAX / 2) // ~25 days, need some space to add current time
 
 Toggle::Toggle(uint8_t pin) :
-	FiniteStateMachine(FSM_TOGGLE, GetBuffer()), m_enabled(false)
+	FiniteStateMachine(FSM_TOGGLE, m_params.GetBuffer()), m_enabled(false)
 {
-	SetPin(pin);
+	m_params.SetPin(pin);
 
 	pinMode(pin, OUTPUT);
 	digitalWrite(pin, LOW);
@@ -40,7 +40,7 @@ Toggle::Toggle(uint8_t pin) :
 
 Toggle *Toggle::NewFromArray(const TinyBuffer &params)
 {
-	if (Validate(params))
+	if (ParamServer::Toggle::Validate(params))
 	{
 		ParamServer::Toggle toggle(params);
 		return new Toggle(toggle.GetPin());
@@ -50,12 +50,12 @@ Toggle *Toggle::NewFromArray(const TinyBuffer &params)
 
 Toggle::~Toggle()
 {
-	digitalWrite(GetPin(), LOW);
+	digitalWrite(m_params.GetPin(), LOW);
 }
 
 uint32_t Toggle::Step()
 {
-	digitalWrite(GetPin(), m_enabled ? HIGH : LOW);
+	digitalWrite(m_params.GetPin(), m_enabled ? HIGH : LOW);
 	return FOREVER;
 }
 
@@ -64,7 +64,7 @@ bool Toggle::Message(const TinyBuffer &msg)
 	if (msg.Length() == ParamServer::ToggleSubscriberMsg::GetLength())
 	{
 		ParamServer::ToggleSubscriberMsg message(msg);
-		if (message.GetPin() == GetPin())
+		if (message.GetPin() == m_params.GetPin())
 		{
 			switch (message.GetCommand())
 			{

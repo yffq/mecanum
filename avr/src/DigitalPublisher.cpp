@@ -28,17 +28,17 @@
 DigitalPublisher::DigitalPublisher(uint8_t pin, uint32_t delay) :
 	FiniteStateMachine(FSM_DIGITALPUBLISHER, m_params.GetBuffer())
 {
-	SetPin(pin);
-	SetDelay(delay);
+	m_params.SetPin(pin);
+	m_params.SetDelay(delay);
 
 	pinMode(pin, INPUT);
 }
 
 DigitalPublisher *DigitalPublisher::NewFromArray(const TinyBuffer &params)
 {
-	if (Validate(params))
+	if (ParamServer::DigitalPublisher::Validate(params))
 	{
-		ParamServer::DigitalPublisher doublePenetration(params);
+		ParamServer::DigitalPublisher doublePenetration(params); // isn't that what dp stands for?
 		return new DigitalPublisher(doublePenetration.GetPin(), doublePenetration.GetDelay());
 	}
 	return NULL;
@@ -47,10 +47,10 @@ DigitalPublisher *DigitalPublisher::NewFromArray(const TinyBuffer &params)
 uint32_t DigitalPublisher::Step()
 {
 	ParamServer::DigitalPublisherPublisherMsg msg;
-	msg.SetPin(GetPin());
-	msg.SetValue(digitalRead(GetPin()));
+	msg.SetPin(m_params.GetPin());
+	msg.SetValue(digitalRead(m_params.GetPin()));
 	Serial.write(msg.GetBytes(), msg.GetLength());
-	return GetDelay();
+	return m_params.GetDelay();
 }
 
 bool DigitalPublisher::Message(const TinyBuffer &msg)
@@ -58,7 +58,7 @@ bool DigitalPublisher::Message(const TinyBuffer &msg)
 	if (msg.Length() == ParamServer::DigitalPublisherSubscriberMsg::GetLength())
 	{
 		ParamServer::DigitalPublisherSubscriberMsg message(msg);
-		return message.GetPin() == GetPin();
+		return message.GetPin() == m_params.GetPin();
 	}
 	return false;
 }

@@ -30,7 +30,7 @@
 #define FOREVER (ULONG_MAX / 2)
 
 MotorController::MotorController() :
-	FiniteStateMachine(FSM_MOTORCONTROLLER, GetBuffer()),
+	FiniteStateMachine(FSM_MOTORCONTROLLER, m_params.GetBuffer()),
 	m_bMessaged(false)
 {
 	pinMode(MOTOR1_PWM, OUTPUT);
@@ -60,7 +60,7 @@ MotorController::MotorController() :
 
 MotorController *MotorController::NewFromArray(const TinyBuffer &params)
 {
-	return Validate(params) ? new MotorController() : (MotorController*)0;
+	return ParamServer::MotorController::Validate(params) ? new MotorController() : (MotorController*)0;
 }
 
 uint32_t MotorController::Step()

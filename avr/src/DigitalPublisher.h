@@ -47,7 +47,7 @@
  * uint8  pin
  * ---
  */
-class DigitalPublisher : public FiniteStateMachine, ParamServer::DigitalPublisher
+class DigitalPublisher : public FiniteStateMachine
 {
 public:
 	DigitalPublisher(uint8_t pin, uint32_t delay /* ms */);
@@ -64,4 +64,7 @@ public:
 	 * emit the digital value to the serial port on command.
 	 */
 	virtual bool Message(const TinyBuffer &msg);
+
+private:
+	ParamServer::DigitalPublisher m_params;
 };

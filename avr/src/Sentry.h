@@ -51,7 +51,7 @@ private:
  * ---
  * ---
  */
-class Sentry : public FiniteStateMachine, public ParamServer::Sentry
+class Sentry : public FiniteStateMachine
 {
 public:
 	Sentry();
@@ -82,4 +82,7 @@ private:
 	int m_servoLeft;     // microseconds (pulse length)
 	int m_servoRight;    // microseconds (pulse length)
 	int m_servoMidpoint; // microseconds (pulse length)
+
+private:
+	ParamServer::Sentry m_params;
 };

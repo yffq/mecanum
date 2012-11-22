@@ -34,7 +34,7 @@
  * ---
  * ---
  */
-class ChristmasTree : public FiniteStateMachine, public ParamServer::ChristmasTree
+class ChristmasTree : public FiniteStateMachine
 {
 public:
 	ChristmasTree();

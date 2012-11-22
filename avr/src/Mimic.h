@@ -36,7 +36,7 @@
  * uint32 delay
  * ---
  */
-class Mimic : public FiniteStateMachine, public ParamServer::Mimic
+class Mimic : public FiniteStateMachine
 {
 public:
 	Mimic(uint8_t source, uint8_t dest, unsigned long delay /* ms */);
@@ -50,4 +50,7 @@ public:
 	virtual ~Mimic() { }
 
 	virtual uint32_t Step();
+
+private:
+	ParamServer::Mimic m_params;
 };

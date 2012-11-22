@@ -37,7 +37,7 @@
  * uint32 delay
  * ---
  */
-class Fade : public FiniteStateMachine, public ParamServer::Fade
+class Fade : public FiniteStateMachine
 {
 public:
 	enum Direction
@@ -134,4 +134,7 @@ private:
 	int m_brightness;
 	int m_brightnessStep;
 	bool m_enabled;
+
+private:
+	ParamServer::Fade m_params;
 };
