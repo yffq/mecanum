@@ -58,7 +58,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/src")
 link_directories(${CMAKE_CURRENT_SOURCE_DIR}/libraries)
 
 # Generate ParamServer.h
-#execute_process(COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/GenParams.py)
+execute_process(COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/include/makeParamHeader.py)
 
 set(mecanum_srcs src/main.cpp
                  src/AnalogPublisher.cpp
@@ -86,7 +86,7 @@ generate_arduino_firmware(mecanum
 
 # Generate ParamServer.h
 # On Linux, this only runs after the target is built
-#add_custom_command(TARGET mecanum PRE_BUILD COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/scripts/GenParams.py)
+#add_custom_command(TARGET mecanum PRE_BUILD COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/include/makeParamHeader.py)
 
 #generate_arduino_firmware(debug
 #    SRCS ${debug_srcs}
