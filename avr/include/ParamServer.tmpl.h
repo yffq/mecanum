@@ -1,8 +1,18 @@
 #ifndef PARAMSERVER_H
 #define PARAMSERVER_H
 
+#if !defined(__ARM__) || !defined(__AVR__)
+#pragma error("Must compile for ARM or AVR")
+#endif
+
 #include "ArduinoAddressBook.h"
 #include <string.h> // for memcpy()
+
+#if defined(__AVR__)
+#include "TinyBuffer.h"
+#elif defined(__ARM__)
+#include <string>
+#endif
 
 namespace ArduinoVerifier
 {
@@ -30,14 +40,13 @@ When a tag name is solo (no "." in the name), the surrounded text is repeated
 once for each instance of that object. For example, the code in the FSM tag is
 instantiated for every FSM discovered in the AVR header files. This rule
 applies to subtags as well; these tags are expected to be objects belonging
-to the parent object. In this way, a FSM's publish and subscribe messages are
-rendered below the parent FSM.
+to the parent object. A FSM's publisher and subscriber messages are rendered
+below the parent FSM.
 
 When a tag containing a "." is encountered, it is replaced with the attribute
 belong to the object refered to in the first part of the tag. Concerning
 capitalization, the attributes value's first letter is made to have the same
-case as the attributes's name. The rest of the string
-remaining unchanged.
+case as the attributes's name. The rest of the string remains unchanged.
 
 The tag <%,%> has special meaning. The templater looks ahead, and the comma is
 only rendered if the encompasing tag is repeated at least once more.
@@ -52,20 +61,34 @@ class <%FSM.Name%>
 public:
 	<%FSM.Name%>() { m_params.id = <%FSM.ID%>; }
 	<%FSM.Name%>(const uint8_t *bytes) { memcpy(&m_params, bytes, sizeof(Parameters)); }
+#if defined(__ARM__)
+	<%FSM.Name%>(const std::string &bytes) { memcpy(&m_params, bytes.c_str(), sizeof(Parameters));}
+#endif
 
+	uint8_t GetId() const { return <%FSM.ID%>; }
 <%PARAMETER
 	<%PARAMETER.type%> Get<%PARAMETER.Name%>() const { return m_params.<%PARAMETER.name%>; }
 %>
+
+	const uint8_t *GetBytes() const { return reinterpret_cast<const uint8_t*>(&m_params); }
+	static uint16_t GetSize() { return sizeof(Parameters); }
+#if defined(__AVR__)
+	const TinyBuffer GetBuffer() { return TinyBuffer(reinterpret_cast<uint8_t*>(&m_params), sizeof(m_params)); }
+#elif defined(__ARM__)
+	const std::string GetString() { return std::string(reinterpret_cast<const char*>(&m_params), sizeof(Parameters)); }
+#endif
+
 <%PARAMETER
 	void Set<%PARAMETER.Name%>(<%PARAMETER.type%> <%PARAMETER.name%>) { m_params.<%PARAMETER.name%> = <%PARAMETER.name%>; }
 %>
 
-	static bool Validate(const uint8_t *bytes, uint16_t length)
+#if defined(__AVR__)
+	static bool Validate(const TinyBuffer &buffer)
 	{
-		if (length == sizeof(Parameters))
+		if (buffer.Length() == sizeof(Parameters))
 		{
 			Parameters params;
-			memcpy(&params, bytes, sizeof(Parameters));
+			memcpy(&params, buffer.Buffer(), sizeof(Parameters));
 			bool valid = (params.id == <%FSM.ID%>);
 <%PARAMETER
 			valid &= (ArduinoVerifier::<%PARAMETER.Test%>(params.<%PARAMETER.name%>));
@@ -74,15 +97,32 @@ public:
 		}
 		return false;
 	}
+#elif defined(__ARM__)
+	static bool Validate(const std::string &strBytes)
+	{
+		if (strBytes.length() == sizeof(Parameters))
+		{
+			Parameters params;
+			memcpy(&params, reinterpret_cast<const uint8_t*>(strBytes.c_str()), sizeof(Parameters));
+			bool valid = (params.id == <%FSM.ID%>);
+<%PARAMETER
+			valid &= (ArduinoVerifier::<%PARAMETER.Test%>(params.<%PARAMETER.name%>));
+%>
+			return valid;
+		}
+		return false;
+	}
+#endif
 
+private:
 	struct Parameters
 	{
+		uint8_t id;
 <%PARAMETER
 		<%PARAMETER.type%> <%PARAMETER.name%>;
 %>
 	} __attribute__((packed));
 
-protected:
 	Parameters m_params;
 };
 

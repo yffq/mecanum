@@ -38,8 +38,11 @@ def GenHeader():
 	
 	# Compare against ParamServer.h's last update time
 	if os.path.exists(OUTPUT_FILE):
-		outputmod = os.path.getmtime(OUTPUT_FILE)
 		run = False
+		outputmod = os.path.getmtime(OUTPUT_FILE)
+		# First, check against the template file itself
+		if os.path.getmtime(TEMPLATE_FILE) > outputmod:
+			run = True
 		for header in os.listdir(HEADER_DIR):
 			# Only care about header files
 			if os.path.splitext(os.path.join(HEADER_DIR, header))[1] != '.h':
