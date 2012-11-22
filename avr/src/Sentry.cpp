@@ -21,6 +21,7 @@
  */
 
 #include "Sentry.h"
+#include "ArduinoAddressBook.h"
 
 #include <Arduino.h>
 
@@ -36,10 +37,9 @@
 
 void Encoder::Start()
 {
-	m_ticks = 0;
 	pinMode(m_pin, INPUT);
-	pinMode(LED_BATTERY_HIGH, OUTPUT);
 	pinMode(LED_BATTERY_EMPTY, OUTPUT);
+	m_ticks = 0;
 	m_state = digitalRead(m_pin);
 }
 
@@ -59,7 +59,7 @@ void Encoder::Update()
 	}
 }
 
-Sentry::Sentry() : m_encoder(ENCODER_PIN), m_state(SEEKING_MIDPOINT_1), m_servoMidpoint(INITIAL_MIDPOINT)
+Sentry::Sentry() : m_encoder(ENCODER_PIN), m_state(SEEKING_MIDPOINT)//, m_servoMidpoint(INITIAL_MIDPOINT)
 {
 	Init(FSM_SENTRY, m_params.GetBuffer());
 
@@ -74,79 +74,50 @@ Sentry *Sentry::NewFromArray(const TinyBuffer &params)
 
 uint32_t Sentry::Step()
 {
+	static int s_targetMicros = INITIAL_MIDPOINT;
+
 	switch (m_state)
 	{
-	case SEEKING_MIDPOINT_1:
-	case SEEKING_MIDPOINT_2:
+	case SEEKING_MIDPOINT:
 		{
-			m_target = INITIAL_MIDPOINT;
-			m_servo.writeMicroseconds(m_target);
-			m_state = (m_state == SEEKING_MIDPOINT_1 ? SEEKING_LEFT : SEEKING_RIGHT);
+			m_servo.writeMicroseconds(s_targetMicros);
+			m_state = SEEKING_LEFT;
 			// Allow 1 second to center the servo
 			return 1000;
 		}
 	case SEEKING_LEFT:
 	case SEEKING_RIGHT:
 		{
-			static int targetTicks = 0;
+			static int s_targetTicks = 0;
 
-			if (m_target == INITIAL_MIDPOINT)
+			if (s_targetMicros == INITIAL_MIDPOINT)
 			{
 				m_encoder.Reset();
-				targetTicks++;
-				if (m_state == SEEKING_LEFT)
-					m_target = INITIAL_MIDPOINT - targetTicks * NOMINAL_uS_PER_TICK;
-				else
-					m_target = INITIAL_MIDPOINT + targetTicks * NOMINAL_uS_PER_TICK;
 			}
-			else
+			else if (s_targetMicros < 1000 || s_targetMicros > 2000)
 			{
-				targetTicks++;
-				if (!m_encoder.Ticks())
-				{
-					if (m_state == SEEKING_LEFT)
-						m_target = INITIAL_MIDPOINT - targetTicks * NOMINAL_uS_PER_TICK;
-					else
-						m_target = INITIAL_MIDPOINT + targetTicks * NOMINAL_uS_PER_TICK;
-				}
-				else
-				{
-					if (m_state == SEEKING_LEFT)
-						// Adjust conversion factor by (targetTicks - 1) / m_encoder.Ticks()
-						m_target = INITIAL_MIDPOINT - targetTicks * NOMINAL_uS_PER_TICK * (targetTicks - 1) / m_encoder.Ticks();
-					else
-						m_target = INITIAL_MIDPOINT + targetTicks * NOMINAL_uS_PER_TICK * (targetTicks - 1) / m_encoder.Ticks();
-				}
+				// Publish the number of ticks it took to get here
+				ParamServer::SentryPublisherMsg msg;
+				msg.SetTicks(m_encoder.Ticks());
+				msg.SetMicroseconds(s_targetTicks * NOMINAL_uS_PER_TICK);
+				Serial.write(msg.GetBytes(), msg.GetLength());
 
-				if (m_target < 1000 || m_target > 2000)
-				{
-					digitalWrite(LED_BATTERY_HIGH, HIGH);
-					// Outside the servo safe zone, proceed with caution
-					static int prevTicks = 0;
-					static int prevTarget = 0;
-
-					if (m_encoder.Ticks() == prevTicks)
-					{
-						// Reached the servo's left limit
-						m_state = (m_state == SEEKING_LEFT ? SEEKING_MIDPOINT_2 : FINISHED);
-						if (m_state == SEEKING_LEFT)
-							m_servoLeft = prevTarget;
-						else
-							m_servoRight = prevTarget;
-						prevTicks = 0;
-						targetTicks = 0;
-						m_target = INITIAL_MIDPOINT;
-						digitalWrite(LED_BATTERY_HIGH, LOW);
-					}
-					else
-					{
-						prevTicks = m_encoder.Ticks();
-						prevTarget = m_target;
-					}
-				}
+				s_targetTicks = 0;
+				s_targetMicros = INITIAL_MIDPOINT;
+				m_servo.writeMicroseconds(s_targetMicros);
+				m_state = (m_state == SEEKING_LEFT ? SEEKING_RIGHT : FINISHED);
+				return 1000; // 1 second
 			}
-			m_servo.writeMicroseconds(m_target);
-			return 30;
+
+			if (m_state == SEEKING_LEFT)
+				s_targetTicks--;
+			else
+				s_targetTicks++;
+
+			s_targetMicros = INITIAL_MIDPOINT + s_targetTicks * NOMINAL_uS_PER_TICK;
+
+			m_servo.writeMicroseconds(s_targetMicros);
+			return 50;
 		}
 	case FINISHED:
 	default:

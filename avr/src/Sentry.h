@@ -47,8 +47,10 @@ private:
 /**
  * Control the five colored LED arrays.
  *
- * Parameters:
+ * Publish:
  * ---
+ * uint8 ticks
+ * int16 microseconds
  * ---
  */
 class Sentry : public FiniteStateMachine
@@ -70,18 +72,17 @@ private:
 
 	enum State
 	{
-		SEEKING_MIDPOINT_1,
+		SEEKING_MIDPOINT,
 		SEEKING_LEFT,
-		SEEKING_MIDPOINT_2,
 		SEEKING_RIGHT,
 		FINISHED
 	};
 	State m_state;
 
 	int m_target;        // microseconds (pulse length)
-	int m_servoLeft;     // microseconds (pulse length)
-	int m_servoRight;    // microseconds (pulse length)
-	int m_servoMidpoint; // microseconds (pulse length)
+	//int m_servoLeft;     // microseconds (pulse length)
+	//int m_servoRight;    // microseconds (pulse length)
+	//int m_servoMidpoint; // microseconds (pulse length)
 
 private:
 	ParamServer::Sentry m_params;

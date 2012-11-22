@@ -62,6 +62,12 @@ void MecanumMaster::Init()
 	//fsmv.PushBack(new Toggle(LED_BATTERY_EMPTY));
 	//fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE6, LED_BATTERY_HIGH, 50));
 	//fsmv.PushBack(new Blink(LED_BATTERY_HIGH, 250));
+
+	// TODO: Need to invalidate encoder when sentry gets deleted
+	Sentry *sentry = new Sentry();
+	m_encoder = sentry->GetEncoder();
+	fsmv.PushBack(sentry);
+
 	/*
 	// Everything on full brightness
 	uint8_t leds[] = {
@@ -89,12 +95,6 @@ void MecanumMaster::Init()
 
 void MecanumMaster::Spin()
 {
-	/*
-	// TODO: Need to invalidate encoder when sentry gets deleted
-	Sentry *sentry = new Sentry();
-	m_encoder = sentry->GetEncoder();
-	fsmv.PushBack(sentry);
-	*/
 	for (;;)
 	{
 		// TODO: This needs to read length, and then only read if (length-2) is available
@@ -229,9 +229,9 @@ void MecanumMaster::Message(TinyBuffer &msg)
 		// Kill a FSM. msg is the fingerprint of the FSM to delete
 		if (msg.Length())
 		{
-			fsmv.Erase(msg);
 			if (msg[0] == FSM_SENTRY)
 				m_encoder = NULL;
+			fsmv.Erase(msg);
 		}
 		break;
 	}
@@ -251,7 +251,7 @@ void MecanumMaster::Message(TinyBuffer &msg)
 			TinyBuffer fsm(fsmv[i]->Describe());
 			if (sendBuffer.Length() + 2 + fsm.Length() <= BUFFERLENGTH)
 			{
-				// Dump the fsm at the end of the buffer
+				// Dump the FSM at the end of the buffer
 				fsm.DumpBuffer(buffer_bytes + sendBuffer.Length());
 				sendBuffer << fsm.Length() + 2; // +2 because size is prepended
 			}
