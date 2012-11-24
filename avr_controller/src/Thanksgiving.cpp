@@ -52,6 +52,10 @@ void Thanksgiving::Main()
 	// Wait 2 seconds
 	usleep(2000000L);
 
+	GPIO arduino1(ARDUINO_BRIDGE1);
+	arduino1.Open();
+	arduino1.SetDirection(GPIO::OUT, 0);
+
 	// Rev up the threads
 	m_bRunning = true;
 
@@ -96,36 +100,38 @@ void Thanksgiving::GreenThreadRun()
 
 	while (m_bRunning)
 	{
-		if (gpio.Poll(BUTTON_TIMEOUT, duration, true, post_value))
+		try
 		{
-			// No timeout
-			if (post_value == 0)
+			if (gpio.Poll(BUTTON_TIMEOUT, duration, true, post_value))
 			{
-				// Pressed
-				if (state == DISABLED)
+				// No timeout
+				if (post_value == 0)
 				{
-					// Enable
-					cout << "Creating Battery FSM" << endl;
-					arduino.CreateFSM(fsm);
-					state = ENABLED;
+					// Pressed
+					if (state == DISABLED)
+					{
+						arduino.CreateFSM(fsm);
+						state = ENABLED;
+					}
+					else
+					{
+						arduino.DestroyFSM(fsm);
+						state = DISABLED;
+					}
 				}
 				else
 				{
-					// Disable
-					cout << "Destroying Battery FSM" << endl;
-					arduino.DestroyFSM(fsm);
-					state = DISABLED;
-					m_bRunning = false;
+					// Depressed
 				}
 			}
 			else
 			{
-				// Depressed
+				// Timeout
 			}
 		}
-		else
+		catch (const GPIO::Exception &e)
 		{
-			// Timeout
+			m_bRunning = false;
 		}
 	}
 	arduino.DestroyFSM(fsm);
@@ -154,37 +160,36 @@ void Thanksgiving::RedThreadRun()
 
 	while (m_bRunning)
 	{
-		if (gpio.Poll(BUTTON_TIMEOUT, duration, true, post_value))
+		try
 		{
-			// No timeout
-			if (post_value == 0)
+			if (gpio.Poll(BUTTON_TIMEOUT, duration, true, post_value))
 			{
-				// Pressed
-				cout << "Creating Fade FSM" << endl;
-				arduino.CreateFSM(strFade);
+				// No timeout
+				if (post_value == 0)
+					arduino.CreateFSM(strFade);
+				else
+					arduino.DestroyFSM(strFade);
 			}
 			else
 			{
-				// Depressed
-				cout << "Destroying Fade FSM" << endl;
-				arduino.DestroyFSM(strFade);
+				// Timed out
+				if (gpio.GetValue() == 0)
+				{
+					// Timed out on press waiting for depress
+					m_bRunning = false;
+					arduino.DestroyFSM(strFade);
+					int result = system(SHUTDOWN_COMMAND);
+					(void)result;
+				}
+				else
+				{
+					// Timed out on depress waiting for press
+				}
 			}
 		}
-		else
+		catch (const GPIO::Exception &e)
 		{
-			// Timed out
-			if (gpio.GetValue() == 0)
-			{
-				// Timed out on press waiting for depress
-				m_bRunning = false;
-				arduino.DestroyFSM(strFade);
-				int result = system(SHUTDOWN_COMMAND);
-				(void)result;
-			}
-			else
-			{
-				// Timed out on depress waiting for press
-			}
+			m_bRunning = false;
 		}
 	}
 	arduino.DestroyFSM(strFade);

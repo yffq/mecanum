@@ -60,7 +60,7 @@ void MecanumMaster::Init()
 	//fsmv.PushBack(new AnalogPublisher(BATTERY_VOLTAGE, FOREVER));
 	//fsmv.PushBack(new BatteryMonitor());
 	//fsmv.PushBack(new Toggle(LED_BATTERY_EMPTY));
-	//fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE6, LED_BATTERY_HIGH, 50));
+	fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE1, LED_BATTERY_HIGH, 50));
 	//fsmv.PushBack(new Blink(LED_BATTERY_HIGH, 250));
 
 	/*
@@ -189,6 +189,14 @@ void MecanumMaster::Message(TinyBuffer &msg)
 				fsmv.PushBack(AnalogPublisher::NewFromArray(msg));
 				break;
 			case FSM_BATTERYMONITOR:
+				for (unsigned char i = 0; i < fsmv.Size(); ++i)
+				{
+					if (fsmv[i]->GetID() == FSM_MIMIC)
+					{
+						fsmv.Erase(i);
+						break;
+					}
+				}
 				fsmv.PushBack(BatteryMonitor::NewFromArray(msg));
 				break;
 			case FSM_BLINK:
