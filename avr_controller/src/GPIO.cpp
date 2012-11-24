@@ -35,7 +35,7 @@
 #include <unistd.h>   // for I/O functions
 
 #define SYSFS_GPIO_DIR "/sys/class/gpio"
-#define EXPORT_COMMAND "`rospack find avr_controller`/bin/gpio_export %d"
+#define EXPORT_COMMAND "./gpio_export %d" // in current bin directory
 
 #ifndef INVALID_SOCKET
 	#define INVALID_SOCKET -1

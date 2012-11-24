@@ -30,7 +30,7 @@
 
 #include <iostream>
 
-#define SHUTDOWN_COMMAND "`rospack find avr_controller`/bin/system_shutdown"
+#define SHUTDOWN_COMMAND "./system_shutdown" // in current bin directory
 #define ARDUINO_PORT "/dev/ttyACM0"
 #define BUTTON_TIMEOUT 5000000UL  // 5.0s
 //#define POWER_TIMEOUT 5000000UL  // 5.0s
@@ -46,6 +46,9 @@ int main(int argc, char **argv)
 }
 void Thanksgiving::Main()
 {
+	// Wait 30 seconds
+	usleep(60000000L);
+
 	// Connect to the Arduino
 	arduino.Open(ARDUINO_PORT);
 
@@ -89,6 +92,8 @@ void Thanksgiving::GreenThreadRun()
 
 	ParamServer::BatteryMonitor bm;
 	string fsm = bm.GetString();
+	arduino.DestroyFSM(fsm); // Make sure FSM isn't running before we start
+
 	enum STATE
 	{
 		ENABLED = 0,
