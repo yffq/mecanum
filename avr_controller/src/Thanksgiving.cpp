@@ -30,6 +30,7 @@
 
 #include <iostream>
 
+#define SHUTDOWN_COMMAND "`rospack find avr_controller`/bin/system_shutdown"
 #define ARDUINO_PORT "/dev/ttyACM0"
 #define BUTTON_TIMEOUT 5000000UL  // 5.0s
 //#define POWER_TIMEOUT 5000000UL  // 5.0s
@@ -177,14 +178,12 @@ void Thanksgiving::RedThreadRun()
 				// Timed out on press waiting for depress
 				m_bRunning = false;
 				arduino.DestroyFSM(strFade);
-				int result = system("poweroff");
+				int result = system(SHUTDOWN_COMMAND);
 				(void)result;
-				// or system("init 0");
 			}
 			else
 			{
 				// Timed out on depress waiting for press
-				cout << "Timed out waiting for RED press" << endl;
 			}
 		}
 	}

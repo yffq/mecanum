@@ -61,6 +61,11 @@ rosbuild_add_compile_flags(avrtest ${BEAGLEBOARD_XM_FLAGS})
 
 # Create the GPIO helper program
 rosbuild_add_executable(gpio_export src/GPIOExport.cpp)
-execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/gpio_export_rights.sh)
+#execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/gpio_export_rights.sh)
+add_custom_command(TARGET gpio_export POST_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/gpio_export_rights.sh)
 
+# Create the helper shutdown program
+rosbuild_add_executable(system_shutdown src/SystemShutdown.cpp)
+#execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/gpio_export_rights.sh)
+add_custom_command(TARGET system_shutdown POST_BUILD COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/system_shutdown_rights.sh)
 
