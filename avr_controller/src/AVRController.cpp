@@ -305,7 +305,7 @@ void AVRController::ReadCallback(const boost::system::error_code &error, size_t 
 	}
 }
 
-bool AVRController::ListFiniteStateMachines(std::vector<std::string> &fsmv)
+bool AVRController::ListFSMs(std::vector<std::string> &fsmv)
 {
 	fsmv.clear();
 
@@ -352,7 +352,7 @@ bool AVRController::ListFiniteStateMachines(std::vector<std::string> &fsmv)
 	return false;
 }
 
-void AVRController::DestroyFiniteStateMachine(const std::string &fsm)
+void AVRController::DestroyFSM(const std::string &fsm)
 {
 	struct
 	{
@@ -372,7 +372,7 @@ void AVRController::DestroyFiniteStateMachine(const std::string &fsm)
 	Send(strPrefix + fsm);
 }
 
-void AVRController::CreateFiniteStateMachine(const std::string &fsm)
+void AVRController::CreateFSM(const std::string &fsm)
 {
 	struct
 	{
@@ -390,6 +390,14 @@ void AVRController::CreateFiniteStateMachine(const std::string &fsm)
 	prefix.length += fsm.length();
 	string strPrefix(reinterpret_cast<char*>(&prefix), sizeof(prefix));
 	Send(strPrefix + fsm);
+}
+
+void AVRController::ClearFSMs()
+{
+	vector<string> fsmv;
+	ListFSMs(fsmv);
+	for (vector<string>::const_iterator it = fsmv.begin(); it != fsmv.end(); it++)
+		DestroyFSM(*it);
 }
 
 bool AVRController::SetDTR(bool level)

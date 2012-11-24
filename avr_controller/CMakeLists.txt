@@ -37,6 +37,16 @@ set(BEAGLEBOARD_XM_FLAGS "-march=armv7-a -mtune=cortex-a8 -mfpu=neon -ftree-vect
 #target_link_libraries(avr_node ${PROJECT_NAME})
 #rosbuild_add_compile_flags(avr_node ${BEAGLEBOARD_XM_FLAGS})
 
+# Build Thanksgiving
+set(THANKSGIVING_SRCS src/Thanksgiving.cpp
+                      src/AVRController.cpp
+                      src/GPIO.cpp
+)
+rosbuild_add_executable(thanksgiving ${THANKSGIVING_SRCS})
+rosbuild_add_boost_directories()
+rosbuild_link_boost(thanksgiving system thread)
+rosbuild_add_compile_flags(thanksgiving ${BEAGLEBOARD_XM_FLAGS})
+
 # Build the test
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread") # fix for Ubuntu 11.10+
 rosbuild_add_gtest(avrtest test/avrtest.cpp
@@ -52,4 +62,5 @@ rosbuild_add_compile_flags(avrtest ${BEAGLEBOARD_XM_FLAGS})
 # Create the GPIO helper program
 rosbuild_add_executable(gpio_export src/GPIOExport.cpp)
 execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/gpio_export_rights.sh)
+
 

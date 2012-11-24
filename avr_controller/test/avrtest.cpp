@@ -42,7 +42,7 @@ using namespace std;
 bool bTestButtons = true;
 bool bTestAVR = true;
 bool bTestIMU = true;
-/*
+/**/
 void TestButton(const char *color, unsigned int expansionPin)
 {
 	GPIO gpio(expansionPin);
@@ -113,20 +113,20 @@ TEST(AVRTest, fsm)
 		ASSERT_TRUE(arduino.IsOpen());
 
 		vector<string> fsmv;
-		EXPECT_TRUE(arduino.ListFiniteStateMachines(fsmv));
+		EXPECT_TRUE(arduino.ListFSMs(fsmv));
 		// Assume at least 1 FSM is loaded on startup
 		EXPECT_GT(fsmv.size(), 0);
 
 		for (vector<string>::const_iterator it = fsmv.begin(); it != fsmv.end(); it++)
-			arduino.DestroyFiniteStateMachine(*it);
+			arduino.DestroyFSM(*it);
 
-		EXPECT_TRUE(arduino.ListFiniteStateMachines(fsmv));
+		EXPECT_TRUE(arduino.ListFSMs(fsmv));
 		EXPECT_EQ(fsmv.size(), 0);
 
 		ParamServer::ChristmasTree xmastree;
-		arduino.CreateFiniteStateMachine(xmastree.GetString());
+		arduino.CreateFSM(xmastree.GetString());
 
-		EXPECT_TRUE(arduino.ListFiniteStateMachines(fsmv));
+		EXPECT_TRUE(arduino.ListFSMs(fsmv));
 		EXPECT_EQ(fsmv.size(), 1);
 	}
 }
@@ -143,14 +143,14 @@ void TestBridge(unsigned int beaglePin, unsigned int arduinoPin)
 
 	// Record the initial number of FSMs
 	vector<string> fsmv;
-	EXPECT_TRUE(arduino.ListFiniteStateMachines(fsmv));
+	EXPECT_TRUE(arduino.ListFSMs(fsmv));
 	size_t initialLength = fsmv.size();
 
 	// Create a toggle FSM. On creation it will pull the pin low
 	ParamServer::Toggle toggle;
 	toggle.SetPin((unsigned char)arduinoPin);
-	arduino.CreateFiniteStateMachine(toggle.GetString());
-	EXPECT_TRUE(arduino.ListFiniteStateMachines(fsmv));
+	arduino.CreateFSM(toggle.GetString());
+	EXPECT_TRUE(arduino.ListFSMs(fsmv));
 	ASSERT_EQ(fsmv.size(), initialLength + 1); // Don't continue if the FSM hasn't been installed
 
 	usleep(1000);
@@ -165,8 +165,8 @@ void TestBridge(unsigned int beaglePin, unsigned int arduinoPin)
 	EXPECT_EQ(gpio.GetValue(), 1);
 
 	// Remove the FSM, pin is pulled low as a post-condition
-	arduino.DestroyFiniteStateMachine(toggle.GetString());
-	EXPECT_TRUE(arduino.ListFiniteStateMachines(fsmv));
+	arduino.DestroyFSM(toggle.GetString());
+	EXPECT_TRUE(arduino.ListFSMs(fsmv));
 	ASSERT_EQ(fsmv.size(), initialLength);
 	usleep(1000);
 	EXPECT_EQ(gpio.GetValue(), 0);
@@ -175,8 +175,8 @@ void TestBridge(unsigned int beaglePin, unsigned int arduinoPin)
 	ParamServer::DigitalPublisher digitalPub;
 	digitalPub.SetPin((unsigned char)arduinoPin);
 	digitalPub.SetDelay(100000);
-	arduino.CreateFiniteStateMachine(digitalPub.GetString());
-	EXPECT_TRUE(arduino.ListFiniteStateMachines(fsmv));
+	arduino.CreateFSM(digitalPub.GetString());
+	EXPECT_TRUE(arduino.ListFSMs(fsmv));
 	ASSERT_EQ(fsmv.size(), initialLength + 1);
 
 	// Test the pin
@@ -290,8 +290,8 @@ TEST(MotorController, setSpeed)
 	motors.SetSpeed(-20, -20, -20, -20);
 	usleep(10 * 1000);
 }
-*/
 
+/*
 TEST(Sentry, seek)
 {
 	if (!arduino.IsOpen())
@@ -300,7 +300,7 @@ TEST(Sentry, seek)
 
 	// Create a sentry FSM
 	ParamServer::Sentry sentry;
-	arduino.CreateFiniteStateMachine(sentry.GetString());
+	arduino.CreateFSM(sentry.GetString());
 
 	// Wait for it to collect data
 	string strResponseLeft;
@@ -320,19 +320,25 @@ TEST(Sentry, seek)
 	cout << "SEEK RIGHT - ticks: " << sentryResR.GetTicks() << ", microseconds: " << sentryResR.GetMicroseconds() << endl;
 
 }
+=======
+/**/
+
 
 int main(int argc, char **argv)
 {
 	cout << "Test hardware buttons? (y/n)" << endl;
 	//bTestButtons = (cin.get() == 'y');
+	bTestButtons = false;
 	cin.ignore(1000, '\n');
 
 	cout << "Test AVR? (y/n)" << endl;
 	//bTestAVR = (cin.get() == 'y');
+	bTestAVR = false;
 	cin.ignore(1000, '\n');
 
 	cout << "Test IMU? (y/n)" << endl;
 	//bTestIMU = (cin.get() == 'y');
+	bTestIMU = false;
 	cin.ignore(1000, '\n');
 
 	testing::InitGoogleTest(&argc, argv);

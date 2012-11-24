@@ -85,7 +85,7 @@ public:
 	void QuickErase(const FiniteStateMachine &fsm) { QuickErase(GetIndex(fsm)); }
 
 	/**
-	 * Clear the array. Each FSM is deleted and their destructor is called.
+	 * Clear the array. Each FSM is deleted and their deconstructor is called.
 	 */
 	void Clear() { while (m_size) PopBack(); }
 
