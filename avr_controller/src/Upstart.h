@@ -24,10 +24,10 @@
 #include "AVRController.h"
 #include <boost/thread.hpp>
 
-class Thanksgiving
+class Upstart
 {
 public:
-	Thanksgiving() : m_bRunning(false) { }
+	Upstart() : m_bRunning(false) { }
 	void Main();
 
 	void GreenThreadRun();

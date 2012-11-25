@@ -37,15 +37,15 @@ set(BEAGLEBOARD_XM_FLAGS "-march=armv7-a -mtune=cortex-a8 -mfpu=neon -ftree-vect
 #target_link_libraries(avr_node ${PROJECT_NAME})
 #rosbuild_add_compile_flags(avr_node ${BEAGLEBOARD_XM_FLAGS})
 
-# Build Thanksgiving
-set(THANKSGIVING_SRCS src/Thanksgiving.cpp
-                      src/AVRController.cpp
-                      src/GPIO.cpp
+# Build Upstart test
+set(UPSTART_SRCS src/Upstart.cpp
+                 src/AVRController.cpp
+                 src/GPIO.cpp
 )
-rosbuild_add_executable(thanksgiving ${THANKSGIVING_SRCS})
+rosbuild_add_executable(upstart ${UPSTART_SRCS})
 rosbuild_add_boost_directories()
-rosbuild_link_boost(thanksgiving system thread)
-rosbuild_add_compile_flags(thanksgiving ${BEAGLEBOARD_XM_FLAGS})
+rosbuild_link_boost(upstart system thread)
+rosbuild_add_compile_flags(upstart ${BEAGLEBOARD_XM_FLAGS})
 
 # Build the test
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread") # fix for Ubuntu 11.10+

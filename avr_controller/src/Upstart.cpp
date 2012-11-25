@@ -20,7 +20,7 @@
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  */
 
-#include "Thanksgiving.h"
+#include "Upstart.h"
 #include "GPIO.h"
 #include "BeagleBoardAddressBook.h"
 #include "ParamServer.h"
@@ -41,20 +41,20 @@ using namespace std;
 
 int main(int argc, char **argv)
 {
-	Thanksgiving turkey;
-	turkey.Main();
+	Upstart justdoit;
+	justdoit.Main();
 }
-void Thanksgiving::Main()
+void Upstart::Main()
 {
-	// Wait 20 seconds
-	usleep(20000000L);
+	// Wait 10 seconds
+	usleep(10000000L);
 
 	GPIO arduino1(ARDUINO_BRIDGE1);
 	arduino1.Open();
 	arduino1.SetDirection(GPIO::OUT, 0);
 
-	// Wait 40 seconds
-	usleep(40000000L);
+	// Wait 20 seconds
+	usleep(20000000L);
 
 	// Connect to the Arduino
 	arduino.Open(ARDUINO_PORT);
@@ -69,19 +69,19 @@ void Thanksgiving::Main()
 	// Rev up the threads
 	m_bRunning = true;
 
-	boost::thread tempGreen(boost::bind(&Thanksgiving::GreenThreadRun, this));
+	boost::thread tempGreen(boost::bind(&Upstart::GreenThreadRun, this));
 	m_greenThread.swap(tempGreen);
 
-	//boost::thread tempYellow(boost::bind(&Thanksgiving::YellowThreadRun, this));
+	//boost::thread tempYellow(boost::bind(&Upstart::YellowThreadRun, this));
 	//m_yellowThread.swap(tempYellow);
 
-	boost::thread tempRed(boost::bind(&Thanksgiving::RedThreadRun, this));
+	boost::thread tempRed(boost::bind(&Upstart::RedThreadRun, this));
 	m_redThread.swap(tempRed);
 
-	//boost::thread tempThumbwheel(boost::bind(&Thanksgiving::ThumbwheelThreadRun, this));
+	//boost::thread tempThumbwheel(boost::bind(&Upstart::ThumbwheelThreadRun, this));
 	//m_thumbwheelThread.swap(tempThumbwheel);
 
-	//boost::thread tempIMU(boost::bind(&Thanksgiving::IMUThreadRun, this));
+	//boost::thread tempIMU(boost::bind(&Upstart::IMUThreadRun, this));
 	//m_IMUThread.swap(tempIMU);
 
 	// Run until all threads have completed
@@ -93,7 +93,7 @@ void Thanksgiving::Main()
 	arduino3.SetDirection(GPIO::OUT, 0);
 }
 
-void Thanksgiving::GreenThreadRun()
+void Upstart::GreenThreadRun()
 {
 	GPIO gpio(BUTTON_GREEN);
 	gpio.Open();
@@ -162,7 +162,7 @@ void Thanksgiving::GreenThreadRun()
 	arduino4.SetValue(1);
 }
 
-void Thanksgiving::RedThreadRun()
+void Upstart::RedThreadRun()
 {
 	GPIO gpio(BUTTON_RED);
 	gpio.Open();
