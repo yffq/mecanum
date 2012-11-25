@@ -46,8 +46,15 @@ int main(int argc, char **argv)
 }
 void Thanksgiving::Main()
 {
-	// Wait 30 seconds
-	usleep(60000000L);
+	// Wait 20 seconds
+	usleep(20000000L);
+
+	GPIO arduino1(ARDUINO_BRIDGE1);
+	arduino1.Open();
+	arduino1.SetDirection(GPIO::OUT, 0);
+
+	// Wait 40 seconds
+	usleep(40000000L);
 
 	// Connect to the Arduino
 	arduino.Open(ARDUINO_PORT);
@@ -55,9 +62,9 @@ void Thanksgiving::Main()
 	// Wait 2 seconds
 	usleep(2000000L);
 
-	GPIO arduino1(ARDUINO_BRIDGE1);
-	arduino1.Open();
-	arduino1.SetDirection(GPIO::OUT, 0);
+	GPIO arduino2(ARDUINO_BRIDGE2);
+	arduino2.Open();
+	arduino2.SetDirection(GPIO::OUT, 0);
 
 	// Rev up the threads
 	m_bRunning = true;
@@ -80,6 +87,10 @@ void Thanksgiving::Main()
 	// Run until all threads have completed
 	m_greenThread.join();
 	m_redThread.join();
+
+	GPIO arduino3(ARDUINO_BRIDGE3);
+	arduino3.Open();
+	arduino3.SetDirection(GPIO::OUT, 0);
 }
 
 void Thanksgiving::GreenThreadRun()
@@ -90,9 +101,15 @@ void Thanksgiving::GreenThreadRun()
 	gpio.SetDirection(GPIO::IN);
 	gpio.SetEdge(GPIO::BOTH);
 
+	/*
 	ParamServer::BatteryMonitor bm;
 	string fsm = bm.GetString();
 	arduino.DestroyFSM(fsm); // Make sure FSM isn't running before we start
+	*/
+
+	GPIO arduino4(ARDUINO_BRIDGE4);
+	arduino4.Open();
+	arduino4.SetDirection(GPIO::OUT, 0);
 
 	enum STATE
 	{
@@ -115,12 +132,14 @@ void Thanksgiving::GreenThreadRun()
 					// Pressed
 					if (state == DISABLED)
 					{
-						arduino.CreateFSM(fsm);
+						//arduino.CreateFSM(fsm);
+						arduino4.SetValue(1);
 						state = ENABLED;
 					}
 					else
 					{
-						arduino.DestroyFSM(fsm);
+						//arduino.DestroyFSM(fsm);
+						arduino4.SetValue(0);
 						state = DISABLED;
 					}
 				}
@@ -139,7 +158,8 @@ void Thanksgiving::GreenThreadRun()
 			m_bRunning = false;
 		}
 	}
-	arduino.DestroyFSM(fsm);
+	//arduino.DestroyFSM(fsm);
+	arduino4.SetValue(1);
 }
 
 void Thanksgiving::RedThreadRun()

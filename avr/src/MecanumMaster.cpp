@@ -61,6 +61,9 @@ void MecanumMaster::Init()
 	//fsmv.PushBack(new BatteryMonitor());
 	//fsmv.PushBack(new Toggle(LED_BATTERY_EMPTY));
 	fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE1, LED_BATTERY_HIGH, 50));
+	fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE2, LED_BATTERY_MEDIUM, 50));
+	fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE3, LED_BATTERY_LOW, 50));
+	fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE4, LED_BATTERY_EMPTY, 50));
 	//fsmv.PushBack(new Blink(LED_BATTERY_HIGH, 250));
 
 	/*
