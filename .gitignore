@@ -17,6 +17,13 @@ cmake_install.cmake
 Debug
 Release
 .settings
+CMakeCache.txt
+CMakeFiles
+/avr/Makefile
+_gtest_from_src
+
+## Python-generated header ##
+avr/include/ParamServer.h
 
 ## Generic ignorables ##
 .DS_Store
