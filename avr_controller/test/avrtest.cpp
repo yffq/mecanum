@@ -36,7 +36,6 @@
 
 using namespace std;
 
-#define ARDUINO_PORT "/dev/ttyACM0"
 #define BUTTON_TIMEOUT 10000000L  // 10.0s
 
 bool bTestButtons = true;

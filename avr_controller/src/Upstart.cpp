@@ -31,7 +31,6 @@
 #include <iostream>
 
 #define SHUTDOWN_COMMAND "./system_shutdown" // in current bin directory
-#define ARDUINO_PORT "/dev/ttyACM0"
 #define BUTTON_TIMEOUT 5000000UL  // 5.0s
 //#define POWER_TIMEOUT 5000000UL  // 5.0s
 

@@ -95,7 +95,7 @@
 		<interface pin="40" name="TEMPERATURE" not-connected="true"/>
 		
 		<!--
-		Base connections are looking from above with the aduino on the buttom
+		Base connections are looking from above with the aduino on the bottom
 		left and the beagle board on the bottom right.
 		
 		Left:

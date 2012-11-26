@@ -21,70 +21,16 @@
  */
 #pragma once
 
-#include "FiniteStateMachine.h"
-#include "ParamServer.h"
+#include "AVRController.h"
+#include <boost/thread.hpp>
 
-#include <Servo.h>
-
-class Encoder
+class SentryMonitor
 {
 public:
-	Encoder(uint8_t pin) : m_pin(pin), m_ticks(0), m_state(0) { }
-
-	void Start();
-	void Update();
-
-	int Ticks() const { return m_ticks; }
-	void Reset();
+	SentryMonitor() { }
+	void Main();
 
 private:
-	uint8_t m_pin;
-	int     m_ticks;
-	uint8_t m_state;
+	AVRController m_arduino;
 };
 
-
-/**
- * Control the five colored LED arrays.
- *
- * Publish:
- * ---
- * uint8 ticks
- * int16 microseconds
- * ---
- */
-class Sentry : public FiniteStateMachine
-{
-public:
-	Sentry();
-
-	static Sentry *NewFromArray(const TinyBuffer &params);
-
-	virtual ~Sentry();
-
-	virtual uint32_t Step();
-
-	Encoder *GetEncoder() { return &m_encoder; }
-
-private:
-	Encoder m_encoder;
-	Servo   m_servo;
-
-	enum State
-	{
-		SEEKING_MIDPOINT,
-		SEEKING_LEFT,
-		SEEKING_RIGHT,
-		FINISHED
-	};
-	State m_state;
-
-	int m_target;        // microseconds (pulse length)
-	int m_targetMicros;
-	//int m_servoLeft;     // microseconds (pulse length)
-	//int m_servoRight;    // microseconds (pulse length)
-	//int m_servoMidpoint; // microseconds (pulse length)
-
-private:
-	ParamServer::Sentry m_params;
-};

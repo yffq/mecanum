@@ -61,13 +61,13 @@ void MecanumMaster::Init()
 	//fsmv.PushBack(new BatteryMonitor());
 	//fsmv.PushBack(new Toggle(LED_BATTERY_EMPTY));
 	fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE1, LED_BATTERY_HIGH, 50));
-	fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE2, LED_BATTERY_MEDIUM, 50));
-	fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE3, LED_BATTERY_LOW, 50));
-	fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE4, LED_BATTERY_EMPTY, 50));
+	//fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE2, LED_BATTERY_MEDIUM, 50));
+	//fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE3, LED_BATTERY_LOW, 50));
+	//fsmv.PushBack(new Mimic(BEAGLEBOARD_BRIDGE4, LED_BATTERY_EMPTY, 50));
 	//fsmv.PushBack(new Blink(LED_BATTERY_HIGH, 250));
 
+	// Need to invalidate encoder when sentry gets deleted
 	/*
-	// TODO: Need to invalidate encoder when sentry gets deleted
 	Sentry *sentry = new Sentry();
 	m_encoder = sentry->GetEncoder();
 	fsmv.PushBack(sentry);
@@ -100,23 +100,55 @@ void MecanumMaster::Init()
 
 void MecanumMaster::Spin()
 {
+	unsigned long microsValue;
+	unsigned long millisValue;
+	unsigned long lastMicrosValue = 0;
+	unsigned long lastEncoderUpdate = 0;
+	bool microsWrapped = false;
+	bool encoderWrapped = false;
 	for (;;)
 	{
-		// TODO: This needs to read length, and then only read if (length-2) is available
+		// TODO: This needs to read length, and then only read if (length-2) is
+		// available to avoid blocking
 		while (Serial.available())
 			SerialCallback();
 
 		for (int i = 0; i < fsmv.Size(); ++i)
 		{
 			// Wait until the delay has elapsed
-			if (fsmDelay[i] <= millis())
+			millisValue = millis();
+			if (fsmDelay[i] <= millisValue)
 			{
-				fsmDelay[i] = fsmv[i]->Step() + millis();
+				fsmDelay[i] = fsmv[i]->Step() + millisValue;
 			}
 		}
 
+		// QRE1113 rise time is 20uS, use 500us
 		if (m_encoder)
-			m_encoder->Update();
+		{
+			// Snapshot of our micros. Assume less than 55s has passed since last loop
+			microsValue = micros();
+
+			// microsValue may have wrapped. This is true if microsValue hasn't increased
+			if (microsValue < lastMicrosValue)
+				microsWrapped = true;
+			else if (microsWrapped)
+				microsWrapped = false;
+
+			// If a wrap occurs, swap the check. If two wraps occur, avoid the swap
+			if (!(microsWrapped ^ encoderWrapped) ? (lastEncoderUpdate <= microsValue) : !(lastEncoderUpdate <= microsValue))
+			{
+				m_encoder->Update();
+				// Avoid a "lastEncoderValue" by using ULONG_MAX - 40 instead of
+				// another variable. We know the time delta here, unlike in the
+				// "microsValue < lastMicrosValue" situation above.
+				if (microsValue >= ULONG_MAX - 1000)
+					encoderWrapped = true;
+				else if (encoderWrapped)
+					encoderWrapped = false;
+				lastEncoderUpdate = microsValue + 1000;
+			}
+		}
 	}
 }
 
@@ -192,14 +224,6 @@ void MecanumMaster::Message(TinyBuffer &msg)
 				fsmv.PushBack(AnalogPublisher::NewFromArray(msg));
 				break;
 			case FSM_BATTERYMONITOR:
-				for (unsigned char i = 0; i < fsmv.Size(); ++i)
-				{
-					if (fsmv[i]->GetID() == FSM_MIMIC)
-					{
-						fsmv.Erase(i);
-						break;
-					}
-				}
 				fsmv.PushBack(BatteryMonitor::NewFromArray(msg));
 				break;
 			case FSM_BLINK:

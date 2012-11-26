@@ -25,14 +25,14 @@
 
 #include <Arduino.h>
 
-#define SERVO_PIN     35
-#define ENCODER_PIN   53
-#define PROXIMITY_PIN 8 // Analog
+#define SERVO_PIN     53
+#define ENCODER_PIN   35
+#define PROXIMITY_PIN 2 // Analog
 
 #define INITIAL_MIDPOINT     1500 // us
 #define TICKS                100
 // microseconds (pulse length) per tick, assuming 1000us = 120 degrees
-#define NOMINAL_uS_PER_TICK  30 // (1000 us / 120 degrees) * (360 degrees / TICKS)
+#define NOMINAL_uS_PER_TICK  30 // (1000 us / 24 degrees) * (360 degrees / TICKS)
 
 
 void Encoder::Start()
@@ -59,12 +59,17 @@ void Encoder::Update()
 	}
 }
 
-Sentry::Sentry() : m_encoder(ENCODER_PIN), m_state(SEEKING_MIDPOINT)//, m_servoMidpoint(INITIAL_MIDPOINT)
+Sentry::Sentry() : m_encoder(ENCODER_PIN), m_state(SEEKING_MIDPOINT), m_targetMicros(INITIAL_MIDPOINT)
 {
 	Init(FSM_SENTRY, m_params.GetBuffer());
 
 	m_encoder.Start();
 	m_servo.attach(SERVO_PIN);
+}
+
+Sentry::~Sentry()
+{
+	m_servo.detach();
 }
 
 Sentry *Sentry::NewFromArray(const TinyBuffer &params)
@@ -74,13 +79,11 @@ Sentry *Sentry::NewFromArray(const TinyBuffer &params)
 
 uint32_t Sentry::Step()
 {
-	static int s_targetMicros = INITIAL_MIDPOINT;
-
 	switch (m_state)
 	{
 	case SEEKING_MIDPOINT:
 		{
-			m_servo.writeMicroseconds(s_targetMicros);
+			m_servo.writeMicroseconds(m_targetMicros);
 			m_state = SEEKING_LEFT;
 			// Allow 1 second to center the servo
 			return 1000;
@@ -88,36 +91,32 @@ uint32_t Sentry::Step()
 	case SEEKING_LEFT:
 	case SEEKING_RIGHT:
 		{
-			static int s_targetTicks = 0;
-
-			if (s_targetMicros == INITIAL_MIDPOINT)
-			{
+			// Assume we already arrived at the midpoint
+			if (m_targetMicros == INITIAL_MIDPOINT)
 				m_encoder.Reset();
-			}
-			else if (s_targetMicros < 1000 || s_targetMicros > 2000)
+
+			if (m_targetMicros - NOMINAL_uS_PER_TICK < 800 || m_targetMicros + NOMINAL_uS_PER_TICK > 2200)
 			{
 				// Publish the number of ticks it took to get here
 				ParamServer::SentryPublisherMsg msg;
 				msg.SetTicks(m_encoder.Ticks());
-				msg.SetMicroseconds(s_targetTicks * NOMINAL_uS_PER_TICK);
+				// Center around INITIAL_MIDPOINT
+				msg.SetMicroseconds(m_targetMicros - INITIAL_MIDPOINT);
 				Serial.write(msg.GetBytes(), msg.GetLength());
 
-				s_targetTicks = 0;
-				s_targetMicros = INITIAL_MIDPOINT;
-				m_servo.writeMicroseconds(s_targetMicros);
+				m_targetMicros = INITIAL_MIDPOINT;
+				m_servo.writeMicroseconds(m_targetMicros);
 				m_state = (m_state == SEEKING_LEFT ? SEEKING_RIGHT : FINISHED);
 				return 1000; // 1 second
 			}
 
 			if (m_state == SEEKING_LEFT)
-				s_targetTicks--;
+				m_targetMicros -= NOMINAL_uS_PER_TICK;
 			else
-				s_targetTicks++;
+				m_targetMicros += NOMINAL_uS_PER_TICK;
 
-			s_targetMicros = INITIAL_MIDPOINT + s_targetTicks * NOMINAL_uS_PER_TICK;
-
-			m_servo.writeMicroseconds(s_targetMicros);
-			return 50;
+			m_servo.writeMicroseconds(m_targetMicros);
+			return 100;
 		}
 	case FINISHED:
 	default:

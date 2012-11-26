@@ -51,4 +51,7 @@
 //#define IMU_SDA          EXPANSION23
 //#define IMU_SCL          EXPANSION24
 
+// If we're going to hardcode the string, might as well hardcode it here
+#define ARDUINO_PORT "/dev/ttyACM0"
+
 #endif // BEAGLEBOARDADDRESSBOOK_H
