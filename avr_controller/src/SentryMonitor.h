@@ -30,7 +30,10 @@ public:
 	SentryMonitor() { }
 	void Main();
 
+	static const std::string CurrentDateTime();
+
 private:
+	void Process(const std::string &samples);
 	AVRController m_arduino;
 };
 

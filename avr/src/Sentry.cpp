@@ -35,18 +35,18 @@
 #define NOMINAL_uS_PER_TICK  30 // (1000 us / 24 degrees) * (360 degrees / TICKS)
 
 
-void Encoder::Start()
+Encoder::Encoder(uint8_t pin) : m_pin(pin), m_ticks(0), m_state(0), m_sampleCount(0), m_enabled(false)
 {
 	pinMode(m_pin, INPUT);
 	pinMode(LED_BATTERY_EMPTY, OUTPUT);
-	m_ticks = 0;
-	m_state = digitalRead(m_pin);
 }
 
-void Encoder::Reset()
+void Encoder::Start()
 {
 	m_ticks = 0;
 	m_state = digitalRead(m_pin);
+	m_sampleCount = 0; // Redundant
+	m_enabled = true;
 }
 
 void Encoder::Update()
@@ -57,13 +57,45 @@ void Encoder::Update()
 		m_ticks++;
 		digitalWrite(LED_BATTERY_EMPTY, m_state);
 	}
+	// Clear the byte if newly accessed
+	if (m_sampleCount % 8 == 0)
+		m_sampleMessage[m_sampleCount / 8 + 4] = 0;
+
+	m_sampleMessage[m_sampleCount / 8 + 4] |= m_state << (m_sampleCount % 8);
+
+	if (++m_sampleCount == 8 * (sizeof(m_sampleMessage) - 4))
+		Publish();
+}
+
+void Encoder::Disable()
+{
+	if (m_enabled)
+	{
+		m_enabled = false;
+		Publish();
+	}
+}
+
+void Encoder::Publish()
+{
+	// Make sure we actually have data to publish
+	if (m_sampleCount == 0)
+		return;
+
+	// Only publish what's needed (1 extra byte for every 9th bit)
+	m_sampleMessage[0] = 5 + (m_sampleCount - 1) / 8;
+	m_sampleMessage[1] = 0;
+	m_sampleMessage[2] = FSM_ENCODER;
+	m_sampleMessage[3] = m_sampleCount;
+	Serial.write(m_sampleMessage, 5 + (m_sampleCount - 1) / 8);
+
+	// Reset the samples array
+	m_sampleCount = 0;
 }
 
 Sentry::Sentry() : m_encoder(ENCODER_PIN), m_state(SEEKING_MIDPOINT), m_targetMicros(INITIAL_MIDPOINT)
 {
 	Init(FSM_SENTRY, m_params.GetBuffer());
-
-	m_encoder.Start();
 	m_servo.attach(SERVO_PIN);
 }
 
@@ -93,16 +125,19 @@ uint32_t Sentry::Step()
 		{
 			// Assume we already arrived at the midpoint
 			if (m_targetMicros == INITIAL_MIDPOINT)
-				m_encoder.Reset();
+			{
+				m_encoder.Start();
+			}
 
 			if (m_targetMicros - NOMINAL_uS_PER_TICK < 800 || m_targetMicros + NOMINAL_uS_PER_TICK > 2200)
 			{
 				// Publish the number of ticks it took to get here
 				ParamServer::SentryPublisherMsg msg;
 				msg.SetTicks(m_encoder.Ticks());
+				m_encoder.Disable();
 				// Center around INITIAL_MIDPOINT
 				msg.SetMicroseconds(m_targetMicros - INITIAL_MIDPOINT);
-				Serial.write(msg.GetBytes(), msg.GetLength());
+				//Serial.write(msg.GetBytes(), msg.GetLength());
 
 				m_targetMicros = INITIAL_MIDPOINT;
 				m_servo.writeMicroseconds(m_targetMicros);
@@ -116,7 +151,7 @@ uint32_t Sentry::Step()
 				m_targetMicros += NOMINAL_uS_PER_TICK;
 
 			m_servo.writeMicroseconds(m_targetMicros);
-			return 100;
+			return 50;
 		}
 	case FINISHED:
 	default:

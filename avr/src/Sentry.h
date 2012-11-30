@@ -26,21 +26,32 @@
 
 #include <Servo.h>
 
+/**
+ * Track a shaft encoder with an IR sensor.
+ */
 class Encoder
 {
 public:
-	Encoder(uint8_t pin) : m_pin(pin), m_ticks(0), m_state(0) { }
+	Encoder(uint8_t pin);
 
 	void Start();
 	void Update();
 
 	int Ticks() const { return m_ticks; }
-	void Reset();
+
+	void Disable();
+	bool IsEnabled() const { return m_enabled; }
 
 private:
+	void Publish();
+
 	uint8_t m_pin;
 	int     m_ticks;
 	uint8_t m_state;
+	// Use <= 128 samples, otherwise we overflow
+	uint8_t m_sampleMessage[16 + 4]; // 128 samples + 4 byte header
+	uint8_t m_sampleCount;
+	bool    m_enabled;
 };
 
 

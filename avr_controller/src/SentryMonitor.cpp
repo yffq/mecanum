@@ -29,6 +29,8 @@
 #include <unistd.h> // for usleep()
 #include <string>
 #include <iostream>
+#include <fstream>
+#include <time.h>
 
 using namespace std;
 
@@ -57,30 +59,87 @@ void SentryMonitor::Main()
 	ParamServer::Sentry sentry;
 	m_arduino.CreateFSM(sentry.GetString());
 
-	string response;
-	if (m_arduino.Receive(FSM_SENTRY, response, 5000)) // 3s
+	int timeout = 0;
+	string samples;
+	while (timeout <= 5000)
 	{
-		ParamServer::SentryPublisherMsg msg(response);
-		cout << "Left:  Ticks: " << (int)msg.GetTicks() << ", Microseconds: " << msg.GetMicroseconds() << endl;
-		cout << "Left:  uS/tick:          " << (1.0f * msg.GetMicroseconds() / msg.GetTicks() * 360 / 100) << endl;
-		// 1000 us / 24 degrees * 360 degrees / 100 ticks = 30 uS/tick
-		cout << "Left:  estimated uS/tick:   -150 uS/tick" << endl;
-		cout << "Left:  uS/degree:        " << (1.0f * msg.GetMicroseconds() / msg.GetTicks()) << endl;
-		// 1000 us / 24 degrees = 8.33 uS/degree
-		cout << "Left:  estimated uS/degree: -41.66 uS/degree" << endl;
-		cout << endl;
-
-		if (m_arduino.Receive(FSM_SENTRY, response, 5000)) // 3s
+		string response;
+		// Publish period = 1ms / 2 samples * 128 samples / message = 64ms
+		if (m_arduino.Receive(FSM_ENCODER, response, 128))
 		{
-			ParamServer::SentryPublisherMsg msg2(response);
-			cout << "Right: Ticks: " << (int)msg2.GetTicks() << ", Microseconds: " << msg2.GetMicroseconds() << endl;
-			cout << "Right: uS/tick:   " << (1.0f * msg2.GetMicroseconds() / msg2.GetTicks() * 360 / 100) << endl;
-			cout << "Right: uS/degree: " << (1.0f * msg2.GetMicroseconds() / msg2.GetTicks()) << endl;
+			// Parse the response manually
+			if (response.length() <= 4)
+			{
+				cout << "Error: Invalid message length (" << response.length() << ")" << endl;
+				break; // Invalid message
+			}
 
-			gpio.SetValue(0);
-			return;
+			const uint8_t *bytes = reinterpret_cast<const uint8_t*>(response.c_str());
+			unsigned int sampleCount = bytes[3];
+			// Make sure we don't overshoot the size of the array
+			if (sampleCount >  8 * (response.length() - 4))
+			{
+				cout << "Error: Invalid samples size (" << sampleCount << ")" << endl;
+				break;
+			}
+
+			bytes += 4; // Fast-forward to pertinent data
+
+			for (unsigned int i = 0; i < sampleCount; i++)
+			{
+				samples.push_back(bytes[i / 8] & (1 << (i % 8)) ? '1' : '0');
+				samples.push_back(' ');
+			}
+
+			timeout = 0;
+		}
+		else
+		{
+			if (samples.length())
+			{
+				// Finished gathering our set of samples
+				Process(samples);
+				samples = "";
+			}
+			timeout += 128;
+			// Report every second
+			if (timeout % 1000 < 128)
+				cout << "Timeout (" << timeout << " ms)..." << endl;
 		}
 	}
-	cout << "Error: Failed to receive response" << endl;
+	cout << "Finished receiving data" << endl;
+	m_arduino.DestroyFSM(sentry.GetString());
 	gpio.SetValue(0);
 }
+
+void SentryMonitor::Process(const string &samples)
+{
+	static char i = '0';
+
+	//get the current time from the clock -- one second resolution
+	string filename = CurrentDateTime() + "-" + i + ".txt";
+	ofstream myfile;
+	myfile.open(filename.c_str());
+	myfile << samples;
+	myfile.close();
+
+	if (i++ == '9')
+		i = '0';
+
+	cout << "Samples:" << endl;
+	cout << samples << endl << endl;
+}
+
+// Get current date/time, format is YYYY-MM-DD.HH:mm:ss
+const std::string SentryMonitor::CurrentDateTime()
+{
+	time_t     now = time(0);
+	struct tm  tstruct;
+	char       buf[80];
+	tstruct = *localtime(&now);
+	// Visit http://www.cplusplus.com/reference/clibrary/ctime/strftime/
+	// for more information about date/time format
+	strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &tstruct);
+	return buf;
+}
+

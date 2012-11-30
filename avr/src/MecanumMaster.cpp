@@ -103,9 +103,15 @@ void MecanumMaster::Spin()
 	unsigned long microsValue;
 	unsigned long millisValue;
 	unsigned long lastMicrosValue = 0;
-	unsigned long lastEncoderUpdate = 0;
+	unsigned long encoderDelay = 0;
 	bool microsWrapped = false;
 	bool encoderWrapped = false;
+	uint8_t encoderSamples[19]; // 128 samples + 2 byte length + 1 byte ID (MSG_MASTER_ENCODER_SAMPLES)
+	encoderSamples[0] = 19;
+	encoderSamples[1] = 0;
+	encoderSamples[2] = MSG_MASTER_ENCODER_SAMPLES;
+	uint8_t sampleCount = 0;
+
 	for (;;)
 	{
 		// TODO: This needs to read length, and then only read if (length-2) is
@@ -123,10 +129,8 @@ void MecanumMaster::Spin()
 			}
 		}
 
-		// QRE1113 rise time is 20uS, use 500us
-		if (m_encoder)
+		if (m_encoder && m_encoder->IsEnabled())
 		{
-			// Snapshot of our micros. Assume less than 55s has passed since last loop
 			microsValue = micros();
 
 			// microsValue may have wrapped. This is true if microsValue hasn't increased
@@ -136,18 +140,18 @@ void MecanumMaster::Spin()
 				microsWrapped = false;
 
 			// If a wrap occurs, swap the check. If two wraps occur, avoid the swap
-			if (!(microsWrapped ^ encoderWrapped) ? (lastEncoderUpdate <= microsValue) : !(lastEncoderUpdate <= microsValue))
+			if (!(microsWrapped ^ encoderWrapped) ? (encoderDelay <= microsValue) : !(encoderDelay <= microsValue))
 			{
 				m_encoder->Update();
-				// Avoid a "lastEncoderValue" by using ULONG_MAX - 40 instead of
-				// another variable. We know the time delta here, unlike in the
-				// "microsValue < lastMicrosValue" situation above.
-				if (microsValue >= ULONG_MAX - 1000)
+
+				// Consider, QRE1113 rise time is 20uS
+				if (microsValue >= ULONG_MAX - 500)
 					encoderWrapped = true;
 				else if (encoderWrapped)
 					encoderWrapped = false;
-				lastEncoderUpdate = microsValue + 1000;
+				encoderDelay = microsValue + 500;
 			}
+			lastMicrosValue = microsValue;
 		}
 	}
 }

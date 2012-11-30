@@ -13,10 +13,12 @@
 #define FSM_MOTORCONTROLLER  9
 #define FSM_SERVOSWEEP       10
 #define FSM_SENTRY           11
+#define FSM_ENCODER          12
 
-#define MSG_MASTER_CREATE_FSM  0
-#define MSG_MASTER_DESTROY_FSM 1
-#define MSG_MASTER_LIST_FSM    2
+#define MSG_MASTER_CREATE_FSM      0
+#define MSG_MASTER_DESTROY_FSM     1
+#define MSG_MASTER_LIST_FSM        2
+#define MSG_MASTER_ENCODER_SAMPLES 3
 
 // PWM LEDs
 #define LED_GREEN     4
