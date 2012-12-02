@@ -33,6 +33,6 @@ int main(int argc, char **argv)
 {
 	bool ret = true;
 	ret &= 0 == setuid(0);
-	ret &= 0 == system("poweroff");
+	ret &= 0 == system("shutdown -h now");
 	return ret ? 0 : 1;
 }
