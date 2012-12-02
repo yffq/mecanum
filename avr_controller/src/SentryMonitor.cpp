@@ -114,24 +114,32 @@ void SentryMonitor::Main()
 
 void SentryMonitor::Process(const string &samples)
 {
-	static char i = '0';
+	int i = 0;
+	char filename[32];
+	while (i < 10000)
+	{
+		snprintf(filename, sizeof(filename), "%s%04d.txt", CurrentDate().c_str(), i);
+		ifstream ifile(filename);
+		if (!ifile)
+			break; // Found our file name
+		i++;
+	}
 
 	//get the current time from the clock -- one second resolution
-	string filename = CurrentDateTime() + "-" + i + ".txt";
-	ofstream myfile;
-	myfile.open(filename.c_str());
-	myfile << samples;
-	myfile.close();
+	ofstream ofile(filename);
+	if (!ofile)
+	{
+		cout << "Error: Count not write to file: " << filename << endl;
+		return;
+	}
 
-	if (i++ == '9')
-		i = '0';
-
-	cout << "Samples:" << endl;
-	cout << samples << endl << endl;
+	ofile << samples;
+	ofile.close();
+	cout << "Wrote " << (samples.length() / 2) << " samples to " << filename << endl;
 }
 
 // Get current date/time, format is YYYY-MM-DD.HH:mm:ss
-const std::string SentryMonitor::CurrentDateTime()
+const string SentryMonitor::CurrentDate()
 {
 	time_t     now = time(0);
 	struct tm  tstruct;
@@ -139,7 +147,7 @@ const std::string SentryMonitor::CurrentDateTime()
 	tstruct = *localtime(&now);
 	// Visit http://www.cplusplus.com/reference/clibrary/ctime/strftime/
 	// for more information about date/time format
-	strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &tstruct);
+	strftime(buf, sizeof(buf), "%04Y%02m%02d", &tstruct);
 	return buf;
 }
 

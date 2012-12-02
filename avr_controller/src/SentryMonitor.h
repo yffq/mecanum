@@ -30,7 +30,7 @@ public:
 	SentryMonitor() { }
 	void Main();
 
-	static const std::string CurrentDateTime();
+	static const std::string CurrentDate();
 
 private:
 	void Process(const std::string &samples);
