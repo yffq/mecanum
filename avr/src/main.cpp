@@ -25,6 +25,8 @@
 #include <Arduino.h>
 #include <Servo.h> // temp: if this isn't here arduino-cmake can't find the Servo library
 
+#include <digitalWriteFast.h>
+
 /**
  * We need to declare master as a global variable. When it was declared locally
  * right before master.Spin() below, the Arduino would glitch out hardcore and

@@ -32,7 +32,7 @@
 class Encoder
 {
 public:
-	Encoder(uint8_t pin);
+	Encoder();
 
 	void Start();
 	void Update();

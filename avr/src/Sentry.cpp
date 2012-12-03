@@ -24,6 +24,7 @@
 #include "ArduinoAddressBook.h"
 
 #include <Arduino.h>
+#include <digitalWriteFast.h>
 
 #define SERVO_PIN     53
 #define ENCODER_PIN   35
@@ -35,33 +36,37 @@
 #define NOMINAL_uS_PER_TICK  30 // (1000 us / 24 degrees) * (360 degrees / TICKS)
 
 
-Encoder::Encoder(uint8_t pin) : m_pin(pin), m_ticks(0), m_state(0), m_sampleCount(0), m_enabled(false)
+Encoder::Encoder() : m_ticks(0), m_state(0), m_sampleCount(0), m_enabled(false)
 {
-	pinMode(m_pin, INPUT);
-	pinMode(LED_BATTERY_EMPTY, OUTPUT);
+	pinMode(ENCODER_PIN, INPUT);
+	//pinMode(LED_BATTERY_EMPTY, OUTPUT);
+
+	// Save some CPU cycles later
+	m_sampleMessage[1] = 0;
+	m_sampleMessage[2] = FSM_ENCODER;
 }
 
 void Encoder::Start()
 {
 	m_ticks = 0;
-	m_state = digitalRead(m_pin);
+	m_state = digitalReadFast(ENCODER_PIN);
 	m_sampleCount = 0; // Redundant
 	m_enabled = true;
 }
 
 void Encoder::Update()
 {
-	if (digitalRead(m_pin) != m_state)
+	if (digitalReadFast(ENCODER_PIN) != m_state)
 	{
 		m_state = 1 - m_state;
 		m_ticks++;
-		digitalWrite(LED_BATTERY_EMPTY, m_state);
+		//digitalWrite(LED_BATTERY_EMPTY, m_state);
 	}
 	// Clear the byte if newly accessed
 	if (m_sampleCount % 8 == 0)
-		m_sampleMessage[m_sampleCount / 8 + 4] = 0;
-
-	m_sampleMessage[m_sampleCount / 8 + 4] |= m_state << (m_sampleCount % 8);
+		m_sampleMessage[m_sampleCount / 8 + 4] = m_state;
+	else
+		m_sampleMessage[m_sampleCount / 8 + 4] |= m_state << (m_sampleCount % 8);
 
 	if (++m_sampleCount == 8 * (sizeof(m_sampleMessage) - 4))
 		Publish();
@@ -72,28 +77,25 @@ void Encoder::Disable()
 	if (m_enabled)
 	{
 		m_enabled = false;
-		Publish();
+		if (m_sampleCount)
+			Publish();
 	}
 }
 
 void Encoder::Publish()
 {
-	// Make sure we actually have data to publish
-	if (m_sampleCount == 0)
-		return;
-
 	// Only publish what's needed (1 extra byte for every 9th bit)
 	m_sampleMessage[0] = 5 + (m_sampleCount - 1) / 8;
-	m_sampleMessage[1] = 0;
-	m_sampleMessage[2] = FSM_ENCODER;
+	//m_sampleMessage[1] = 0;           // Set in constructor
+	//m_sampleMessage[2] = FSM_ENCODER; // Set in constructor
 	m_sampleMessage[3] = m_sampleCount;
-	Serial.write(m_sampleMessage, 5 + (m_sampleCount - 1) / 8);
+	Serial.write(m_sampleMessage, m_sampleMessage[0]);
 
 	// Reset the samples array
 	m_sampleCount = 0;
 }
 
-Sentry::Sentry() : m_encoder(ENCODER_PIN), m_state(SEEKING_MIDPOINT), m_targetMicros(INITIAL_MIDPOINT)
+Sentry::Sentry() : m_state(SEEKING_MIDPOINT), m_targetMicros(INITIAL_MIDPOINT)
 {
 	Init(FSM_SENTRY, m_params.GetBuffer());
 	m_servo.attach(SERVO_PIN);
