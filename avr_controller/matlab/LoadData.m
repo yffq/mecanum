@@ -1,8 +1,8 @@
 function LoadData()
 
-%dirname = 'R:\mecanum\avr_controller\';
-%backup = 'C:\Users\Garrett\Dropbox\Documents\Projects\Robot\Encoders\Data\';
-dirname = 'C:\Users\Garrett\Dropbox\Documents\Projects\Robot\Encoders\Data\';
+dirname = 'R:\mecanum\avr_controller\';
+backup = 'C:\Users\Garrett\Dropbox\Documents\Projects\Robot\Encoders\Data\';
+%dirname = 'C:\Users\Garrett\Dropbox\Documents\Projects\Robot\Encoders\Data\';
 dirlist = dir([dirname '*.txt']);
 
 % Loop in reverse to find the last qualifying file name
@@ -15,11 +15,9 @@ for i = length(dirlist):-1:1
 end
 
 % Backup the data first
-%{
 if ~exist([backup filename], 'file')
     copyfile([dirname filename], [backup filename]);
 end
-%}
 
 dt = .0005; % s
 x = load([dirname filename]);
